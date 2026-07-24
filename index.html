@@ -365,44 +365,151 @@ const SKILL_DATABASE = {
   ]
 };
 
-// パーツ辞書データ
-const PARTS_DATABASE = {
+// 全共通パーツデータ
+const BASIC_PARTS = {
   head: [
     { group: '基本パーツ', name: 'のうみそ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+2' },
-    { group: '基本パーツ', name: 'めだま', timing: 'オート', cost: '0', range: '自身', effect: '命中判定+1' },
-    { group: '基本パーツ', name: 'あご', timing: 'アクション', cost: '2', range: '0', effect: '肉弾攻撃1' },
-    { group: '武装パーツ', name: 'スコープ', timing: 'オート', cost: '0', range: '自身', effect: '射撃攻撃の命中判定+1' },
-    { group: '変異パーツ', name: '角', timing: 'アクション', cost: '2', range: '0', effect: '肉弾攻撃1+移動1' },
-    { group: '変異パーツ', name: '第三の目', timing: 'ジャッジ', cost: '1', range: '0-1', effect: '支援1/妨害1' },
-    { group: '改造パーツ', name: 'カンフー', timing: 'ジャッジ', cost: '1', range: '0', effect: '出目修正+1' },
-    { group: '改造パーツ', name: 'アンテナ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' }
+    { group: '基本パーツ', name: 'めだま', timing: 'オート', cost: '0', range: '0~2', effect: '命中判定+1' },
+    { group: '基本パーツ', name: 'あご', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1' }
   ],
   arm: [
-    { group: '基本パーツ', name: 'こぶし', timing: 'アクション', cost: '2', range: '0', effect: '肉弾攻撃1' },
-    { group: '基本パーツ', name: 'うで', timing: 'ジャッジ', cost: '1', range: '0', effect: '支援1' },
-    { group: '基本パーツ', name: 'かた', timing: 'ダメージ', cost: '1', range: '自身', effect: '移動1' },
-    { group: '武装パーツ', name: 'チェーンソウ', timing: 'アクション', cost: '3', range: '0', effect: '肉弾攻撃2+切断' },
-    { group: '武装パーツ', name: 'ガトリングガン', timing: 'アクション', cost: '3', range: '1-2', effect: '射撃攻撃2' },
-    { group: '変異パーツ', name: '巨大化', timing: 'オート', cost: '0', range: '自身', effect: '肉弾攻撃ダメージ+1' },
-    { group: '改造パーツ', name: 'レーザーブレード', timing: 'アクション', cost: '2', range: '0-1', effect: '肉弾攻撃2' }
+    { group: '基本パーツ', name: 'こぶし', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1' },
+    { group: '基本パーツ', name: 'うで', timing: 'アクション', cost: '2', range: '0', effect: '白兵1' },
+    { group: '基本パーツ', name: 'かた', timing: 'アクション', cost: '3', range: '0', effect: '移動1' }
   ],
   body: [
-    { group: '基本パーツ', name: 'せぼね', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
-    { group: '基本パーツ', name: 'はらわた', timing: 'なし', cost: '0', range: '自身', effect: 'パーツ切断耐性' },
-    { group: '武装パーツ', name: 'ショットガン', timing: 'アクション', cost: '2', range: '1', effect: '射撃攻撃2' },
-    { group: '武装パーツ', name: '防弾服', timing: 'ダメージ', cost: '1', range: '自身', effect: '防御1' },
-    { group: '変異パーツ', name: 'うろこ', timing: 'ダメージ', cost: '1', range: '自身', effect: '防御1' },
-    { group: '変異パーツ', name: 'トゲ', timing: 'ダメージ', cost: '1', range: '0', effect: '攻撃者へダメージ1' },
-    { group: '改造パーツ', name: 'ボイラー', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+2' }
+    { group: '基本パーツ', name: 'せぼね', timing: 'アクション', cost: '1', range: '自身', effect: '最大行動値+1' },
+    { group: '基本パーツ', name: 'はらわた', timing: 'オート', cost: '0', range: '自身', effect: '損傷時に最大行動値+1' }
   ],
   leg: [
-    { group: '基本パーツ', name: 'ほね', timing: 'アクション', cost: '3', range: '自身', effect: '移動1' },
-    { group: '基本パーツ', name: 'あし', timing: 'ジャッジ', cost: '1', range: '0', effect: '妨害1' },
-    { group: '武装パーツ', name: 'ローラーシューズ', timing: 'オート', cost: '0', range: '自身', effect: '移動コスト-1' },
-    { group: '変異パーツ', name: 'しっぽ', timing: 'ジャッジ', cost: '1', range: '0', effect: '妨害1' },
-    { group: '改造パーツ', name: 'キャタピラ', timing: 'オート', cost: '0', range: '自身', effect: '移動コスト-1' },
-    { group: '改造パーツ', name: 'スパイク', timing: 'アクション', cost: '2', range: '0', effect: '肉弾攻撃1' }
+    { group: '基本パーツ', name: 'ほね', timing: 'アクション', cost: '2', range: '自身', effect: '移動1' },
+    { group: '基本パーツ', name: 'あし', timing: 'アクション', cost: '3', range: '自身', effect: '移動1~2' }
   ]
+};
+
+const WEAPON_PARTS = [
+  { group: '武装パーツ', name: 'カンフー', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
+  { group: '武装パーツ', name: '日本刀', timing: 'アクション', cost: '2', range: '0', effect: '白兵1+切断' },
+  { group: '武装パーツ', name: '釘バット', timing: 'アクション', cost: '2', range: '0', effect: '白兵1+爆発' },
+  { group: '武装パーツ', name: 'チェーンソー', timing: 'アクション', cost: '3', range: '0', effect: '白兵2+切断' },
+  { group: '武装パーツ', name: 'バール', timing: 'アクション', cost: '3', range: '0', effect: '白兵2、出目+1' },
+  { group: '武装パーツ', name: '大型拳銃', timing: 'アクション', cost: '2', range: '0~1', effect: '射撃1' },
+  { group: '武装パーツ', name: '斧', timing: 'アクション', cost: '3', range: '0', effect: '白兵3' },
+  { group: '武装パーツ', name: '狙撃ライフル', timing: 'アクション', cost: '2', range: '2~3', effect: '射撃1、出目+1' },
+  { group: '武装パーツ', name: '肉切り包丁', timing: 'アクション', cost: '2', range: '0', effect: '白兵2' },
+  { group: '武装パーツ', name: '火炎ビン', timing: 'アクション', cost: '2', range: '0~1', effect: '砲撃1+爆発+連撃1、出目-1' },
+  { group: '武装パーツ', name: 'スコップ', timing: 'アクション', cost: '2', range: '0', effect: '白兵1+切断（切断判定+2）、防御無効' },
+  { group: '武装パーツ', name: '救急箱', timing: 'オート', cost: '0', range: '参照', effect: '戦闘終了時自身以外の基本パーツ3つ修復' },
+  { group: '武装パーツ', name: '有刺鉄線', timing: 'ダメージ', cost: '0', range: '自身', effect: 'ダメージ時：白兵・肉弾ダメージ+1' },
+  { group: '武装パーツ', name: 'ショットガン', timing: 'アクション', cost: '2', range: '0~1', effect: '射撃1+爆発、出目+1' },
+  { group: '武装パーツ', name: '仕込みブーツ', timing: 'アクション', cost: '2', range: '0', effect: '白兵2、出目+1' },
+  { group: '武装パーツ', name: 'マシンガン', timing: 'アクション', cost: '3', range: '1', effect: '射撃1+全体攻撃' },
+  { group: '武装パーツ', name: '発動', timing: 'ラピッド', cost: '0', range: '0', effect: '対象へ移動1' },
+  { group: '武装パーツ', name: '熊撃ち銃', timing: 'アクション', cost: '3', range: '0~2', effect: '射撃3' },
+  { group: '武装パーツ', name: '合金トランク', timing: 'ダメージ', cost: '0', range: '自身', effect: '防御1+爆発無効' },
+  { group: '武装パーツ', name: '二丁拳銃', timing: 'アクション', cost: '3', range: '0~1', effect: '射撃2+連撃1' },
+  { group: '武装パーツ', name: '鉄球鎖', timing: 'アクション', cost: '2', range: '0~1', effect: '白兵1+転倒' },
+  { group: '武装パーツ', name: '手榴弾', timing: 'ラピッド', cost: '2', range: '0~1', effect: '砲撃2+爆発、出目-1' },
+  { group: '武装パーツ', name: '棺桶', timing: 'ダメージ', cost: '2', range: '自身', effect: '防御2 戦闘終了時自身のパーツ2つ修復' },
+  { group: '武装パーツ', name: '捕縛銃', timing: 'アクション', cost: '3', range: '1', effect: '射撃1+転倒、相手移動コスト+2' },
+  { group: '武装パーツ', name: 'ジョギリ', timing: 'アクション', cost: '3', range: '0', effect: '白兵4、出目+1' },
+  { group: '武装パーツ', name: '対戦車ライフル', timing: 'アクション', cost: '4', range: '1~3', effect: '射撃5' },
+  { group: '武装パーツ', name: '芝刈り機', timing: 'アクション', cost: '3', range: '0', effect: '白兵3+連撃2' },
+  { group: '武装パーツ', name: 'アンデッドガン', timing: 'アクション', cost: '3', range: '1~2', effect: '射撃1+爆発+全体攻撃' },
+  { group: '武装パーツ', name: '名刀', timing: 'アクション', cost: '2', range: '0', effect: '白兵2+切断、出目+1' },
+  { group: '武装パーツ', name: '火炎放射器', timing: 'アクション', cost: '2', range: '0~1', effect: '砲撃1+爆発+連撃1' },
+  { group: '武装パーツ', name: '単分子繊維', timing: 'アクション', cost: '2', range: '0~1', effect: '白兵1+切断+連撃1' },
+  { group: '武装パーツ', name: 'ダイナマイト', timing: 'アクション', cost: '3', range: '0~1', effect: '砲撃2+爆発+全体攻撃、出目-1' },
+  { group: '武装パーツ', name: '空飛ぶギロチン', timing: 'アクション', cost: '3', range: '0~1', effect: '白兵1+切断+転倒' },
+  { group: '武装パーツ', name: 'ランチャー', timing: 'アクション', cost: '4', range: '1~2', effect: '砲撃4+爆発' },
+  { group: '武装パーツ', name: 'アフリカ投げナイフ', timing: 'アクション', cost: '3', range: '0~2', effect: '白兵1+切断 or 白兵1+転倒' },
+  { group: '武装パーツ', name: '大鋏', timing: 'アクション', cost: '3', range: '0', effect: '白兵2+切断（切断判定-2）' }
+];
+
+const MUTATION_PARTS = [
+  { group: '変異パーツ', name: 'うじむし', timing: 'オート', cost: '0', range: '自身', effect: 'ターン・バトル終了時このパーツ修復' },
+  { group: '変異パーツ', name: 'どろどろ', timing: 'ダメージ', cost: '1', range: '0~1', effect: '被ダメージ時：攻撃者に肉弾2' },
+  { group: '変異パーツ', name: 'つぎはぎ', timing: 'オート', cost: '0', range: '自身', effect: 'バトル終了時このパーツと基本パーツ1つ修復' },
+  { group: '変異パーツ', name: 'かぎづめ', timing: 'アクション', cost: '2', range: '0', effect: '肉弾2' },
+  { group: '変異パーツ', name: 'しんぞう', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
+  { group: '変異パーツ', name: 'あるびの', timing: 'ジャッジ', cost: '1', range: '0~1', effect: '支援1' },
+  { group: '変異パーツ', name: 'しっぽ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
+  { group: '変異パーツ', name: 'ちみどろ', timing: 'ジャッジ', cost: '1', range: '0~1', effect: '妨害1' },
+  { group: '変異パーツ', name: 'はりつき', timing: 'アクション', cost: '3', range: '自身', effect: '移動1、移動妨害無効' },
+  { group: '変異パーツ', name: 'おおあな', timing: 'ジャッジ', cost: '0', range: '0~3', effect: '自身攻撃対象時のみ：妨害1' },
+  { group: '変異パーツ', name: 'ぬるぬる', timing: 'ジャッジ', cost: '1', range: '0', effect: '自身攻撃対象時のみ：妨害1（連続使用可）' },
+  { group: '変異パーツ', name: 'すすりじた', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1、敵損傷時【はらわた】修復' },
+  { group: '変異パーツ', name: 'けもみみ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1、大失敗でも損傷しない' },
+  { group: '変異パーツ', name: 'よだれじた', timing: 'ジャッジ', cost: '2', range: '0~1', effect: '妨害1+転倒' },
+  { group: '変異パーツ', name: 'おとこのこ', timing: 'オート', cost: '0', range: '自身', effect: '対話判定出目+1' },
+  { group: '変異パーツ', name: 'よぶんなめ', timing: 'ジャッジ', cost: '1', range: '0~1', effect: '支援2' },
+  { group: '変異パーツ', name: 'よぶんなうで', timing: 'ラピッド', cost: '0', range: '自身', effect: '望むアクションをラピッドで使用' },
+  { group: '変異パーツ', name: 'しょくしゅ', timing: 'ラピッド', cost: '1', range: '0~1', effect: '移動妨害1' },
+  { group: '変異パーツ', name: 'ほねやり', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1+連撃1' },
+  { group: '変異パーツ', name: 'ほとけかずら', timing: 'ジャッジ', cost: '0', range: '0', effect: '支援1か妨害1' },
+  { group: '変異パーツ', name: 'どくばり', timing: 'アクション', cost: '3', range: '0', effect: '肉弾3' },
+  { group: '変異パーツ', name: 'うろこ', timing: 'ダメージ', cost: '1', range: '自身', effect: '防御2' },
+  { group: '変異パーツ', name: 'つめたいひかり', timing: 'アクション', cost: '1', range: '自身', effect: '他者対象の敵攻撃出目-1' },
+  { group: '変異パーツ', name: 'おおつの', timing: 'オート', cost: '0', range: '自身', effect: '射程0肉弾大成功時：連撃+1か転倒' },
+  { group: '変異パーツ', name: 'よぶんなあし', timing: 'オート', cost: '0', range: '自身', effect: '他脚部損傷時もマニューバ使用可' },
+  { group: '変異パーツ', name: 'やぶれひまく', timing: 'ダメージ', cost: '0', range: '自身', effect: '防御2' },
+  { group: '変異パーツ', name: 'よぶんなあたま', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+2' },
+  { group: '変異パーツ', name: 'けもあし', timing: 'アクション', cost: '2', range: '自身', effect: '移動1~2' },
+  { group: '変異パーツ', name: 'やせぎす', timing: 'オート', cost: '0', range: '自身', effect: '1判定につき1回妨害を無効化' },
+  { group: '変異パーツ', name: 'しびとだけ', timing: 'ジャッジ', cost: '0', range: '0', effect: '妨害2' },
+  { group: '変異パーツ', name: 'くさじる', timing: 'アクション', cost: '3', range: '0~1', effect: '肉弾1+爆発+転倒' },
+  { group: '変異パーツ', name: 'だるま', timing: 'オート', cost: '0', range: '自身', effect: '任意部位にダメージ振り分け可' },
+  { group: '変異パーツ', name: 'にくむち', timing: 'アクション', cost: '3', range: '0~1', effect: '肉弾2+連撃1' },
+  { group: '変異パーツ', name: 'きもちいいくすり', timing: 'ダメージ', cost: '1', range: '自身', effect: '被ダメージ時：任意の未練狂気点-1' },
+  { group: '変異パーツ', name: 'かめれおん', timing: 'アクション', cost: '2', range: '自身', effect: '攻撃するまで敵マニューバ対象にならない' },
+  { group: '変異パーツ', name: 'にくへび', timing: 'アクション', cost: '3', range: '0', effect: '肉弾2+連撃2、攻撃判定1回振り直し可' }
+];
+
+const CYBER_PARTS = [
+  { group: '改造パーツ', name: 'リミッター', timing: 'オート', cost: '0', range: '自身', effect: '損傷時最大行動値+2' },
+  { group: '改造パーツ', name: 'アーマースキン', timing: 'ダメージ', cost: '0', range: '自身', effect: '防御1' },
+  { group: '改造パーツ', name: 'アドレナリン', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
+  { group: '改造パーツ', name: 'スチールボーン', timing: 'ダメージ', cost: '1', range: '自身', effect: '防御1+切断無効化' },
+  { group: '改造パーツ', name: 'セイバートゥース', timing: 'アクション', cost: '2', range: '0', effect: '肉弾2' },
+  { group: '改造パーツ', name: 'ボルトヘッド', timing: 'ジャッジ', cost: '1', range: '自身', effect: '支援2' },
+  { group: '改造パーツ', name: 'ジェットノズル', timing: 'ダメージ', cost: '参照', range: '自身', effect: 'ダメージ時：基本パーツ1損傷でダメージ+1' },
+  { group: '改造パーツ', name: 'リモートアタック', timing: 'アクション', cost: '3', range: '0~1', effect: '肉弾1+転倒' },
+  { group: '改造パーツ', name: 'シザーハンズ', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1+切断' },
+  { group: '改造パーツ', name: 'ボイスエフェクト', timing: 'ラピッド', cost: '2', range: '0~2', effect: '姉妹1人と対話判定' },
+  { group: '改造パーツ', name: 'ジャンクパーツ', timing: 'オート', cost: '0', range: '自身', effect: '戦闘終了時装備箇所の基本パーツ全修復' },
+  { group: '改造パーツ', name: 'カルマプロセッサ', timing: 'オート', cost: '0', range: '自身', effect: '狂気点1点無効化の代わりに損傷' },
+  { group: '改造パーツ', name: 'ゾンビボム', timing: 'ダメージ', cost: '0', range: '0', effect: '損傷時：判定8の砲撃2+爆発+全体攻撃' },
+  { group: '改造パーツ', name: 'レーザービーム', timing: 'アクション', cost: '3', range: '0~3', effect: '射撃1+切断' },
+  { group: '改造パーツ', name: 'リフレックス', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
+  { group: '改造パーツ', name: 'スコープ', timing: 'ジャッジ', cost: '0', range: '自身', effect: '射撃・砲撃の支援2' },
+  { group: '改造パーツ', name: 'エレクトリガー', timing: 'アクション', cost: '2', range: '0', effect: '肉弾1+転倒' },
+  { group: '改造パーツ', name: 'スパイク', timing: 'ダメージ', cost: '1', range: '自身', effect: 'ダメージ時：白兵・肉弾ダメージ+2' },
+  { group: '改造パーツ', name: 'ドリル', timing: 'アクション', cost: '3', range: '0', effect: '白兵2、防御無効' },
+  { group: '改造パーツ', name: 'テンタクル', timing: 'ラピッド', cost: '1', range: '0~1', effect: '移動妨害1' },
+  { group: '改造パーツ', name: 'アサシンブレード', timing: 'ラピッド', cost: '2', range: '0', effect: '白兵2+連撃1' },
+  { group: '改造パーツ', name: 'ワイヤーリール', timing: 'ラピッド', cost: '3', range: '0~2', effect: '移動1' },
+  { group: '改造パーツ', name: 'アンテナ', timing: 'オート', cost: '0', range: '自身', effect: '1ターン1回コスト狂気点1無効' },
+  { group: '改造パーツ', name: 'エナジーチューブ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+2、被弾時基本パーツ1追加損傷' },
+  { group: '改造パーツ', name: 'ガントレット', timing: 'オート', cost: '0', range: '自身', effect: '腕防御1、腕の白兵・肉弾ダメ+1' },
+  { group: '改造パーツ', name: 'オートセパレート', timing: 'オート', cost: '0', range: '自身', effect: '切断を常に無効化' },
+  { group: '改造パーツ', name: 'キャンサー', timing: 'オート', cost: '0', range: '自身', effect: '脚防御1、移動時白兵・肉弾をラピッド化' },
+  { group: '改造パーツ', name: 'エンバーミング', timing: 'ジャッジ', cost: '2', range: '0', effect: '妨害2（連続使用可）' },
+  { group: '改造パーツ', name: 'マニピュレーター', timing: 'ラピッド', cost: '2', range: '0~1', effect: '移動妨害1+転倒' },
+  { group: '改造パーツ', name: 'パイルバンカー', timing: 'アクション', cost: '2', range: '0', effect: '白兵2、防御無効、命中時移動1' },
+  { group: '改造パーツ', name: 'サイボーグ', timing: 'ダメージ', cost: '0', range: '自身', effect: '防御2' },
+  { group: '改造パーツ', name: 'ライトセイバー', timing: 'アクション', cost: '2', range: '0', effect: '白兵1+切断+連撃1' },
+  { group: '改造パーツ', name: 'アームバイス', timing: 'ジャッジ', cost: '1', range: '0', effect: '支援2か妨害2' },
+  { group: '改造パーツ', name: 'ホッパー', timing: 'ラピッド', cost: '2', range: '自身', effect: '移動1、移動妨害無効' },
+  { group: '改造パーツ', name: 'サイコブラスター', timing: 'ラピッド', cost: '参照', range: '0~2', effect: '射撃4、行動値-1と未練狂気点+1' },
+  { group: '改造パーツ', name: 'ロケットパック', timing: 'アクション', cost: '0', range: '自身', effect: '移動1~2、1パート1回' }
+];
+
+// 部位ごとのパーツデータベース自動結合
+const PARTS_DATABASE = {
+  head: [...BASIC_PARTS.head, ...WEAPON_PARTS, ...MUTATION_PARTS, ...CYBER_PARTS],
+  arm:  [...BASIC_PARTS.arm,  ...WEAPON_PARTS, ...MUTATION_PARTS, ...CYBER_PARTS],
+  body: [...BASIC_PARTS.body, ...WEAPON_PARTS, ...MUTATION_PARTS, ...CYBER_PARTS],
+  leg:  [...BASIC_PARTS.leg,  ...WEAPON_PARTS, ...MUTATION_PARTS, ...CYBER_PARTS]
 };
 
 const CLASS_PARTS = {
@@ -424,17 +531,17 @@ const SECTIONS = [
 
 const DEFAULT_PARTS_LIST = [
   ['head', false, 'のうみそ', 'オート', '0', '自身', '最大行動値+2'],
-  ['head', false, 'めだま', 'オート', '0', '自身', '命中判定+1'],
-  ['head', false, 'あご', 'アクション', '2', '0', '肉弾攻撃1'],
-  ['arm',  false, 'こぶし', 'アクション', '2', '0', '肉弾攻撃1'],
-  ['arm',  false, 'うで', 'ジャッジ', '1', '0', '支援1'],
-  ['arm',  false, 'かた', 'ダメージ', '1', '自身', '移動1'],
-  ['body', false, 'せぼね', 'オート', '0', '自身', '最大行動値+1'],
-  ['body', false, 'はらわた', 'なし', '0', '自身', 'パーツ切断耐性'],
-  ['body', false, 'はらわた', 'なし', '0', '自身', 'パーツ切断耐性'],
-  ['leg',  false, 'ほね', 'アクション', '3', '自身', '移動1'],
-  ['leg',  false, 'ほね', 'アクション', '3', '自身', '移動1'],
-  ['leg',  false, 'あし', 'ジャッジ', '1', '0', '妨害1']
+  ['head', false, 'めだま', 'オート', '0', '0~2', '命中判定+1'],
+  ['head', false, 'あご', 'アクション', '2', '0', '肉弾1'],
+  ['arm',  false, 'こぶし', 'アクション', '2', '0', '肉弾1'],
+  ['arm',  false, 'うで', 'アクション', '2', '0', '白兵1'],
+  ['arm',  false, 'かた', 'アクション', '3', '0', '移動1'],
+  ['body', false, 'せぼね', 'アクション', '1', '自身', '最大行動値+1'],
+  ['body', false, 'はらわた', 'オート', '0', '自身', '損傷時に最大行動値+1'],
+  ['body', false, 'はらわた', 'オート', '0', '自身', '損傷時に最大行動値+1'],
+  ['leg',  false, 'ほね', 'アクション', '2', '自身', '移動1'],
+  ['leg',  false, 'ほね', 'アクション', '2', '自身', '移動1'],
+  ['leg',  false, 'あし', 'アクション', '3', '自身', '移動1~2']
 ];
 
 function onClassChange() {
@@ -615,7 +722,7 @@ function renderPartsSections() {
     });
 
     Object.keys(groups).forEach(groupName => {
-      optionsHtml += `<optgroup label="${groupName}">`;
+      optionsHtml += `<optgroup label="【${groupName}】">`;
       groups[groupName].forEach(p => {
         const jsonVal = JSON.stringify(p).replace(/"/g, '&quot;');
         optionsHtml += `<option value="${jsonVal}">${p.name}（${p.timing}/${p.effect}）</option>`;
