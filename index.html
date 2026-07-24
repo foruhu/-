@@ -2,113 +2,113 @@
 <html lang="ja">
 <head>
   <meta name="robots" content="noindex, nofollow">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ネクロニカ キャラクターシート</title>
-<style>
-:root {
-  --bg: #0f0f12;
-  --card: #18181c;
-  --red: #8b0000;
-  --text: #e0e0e0;
-  --border: #3a3a42;
-  --input: #222228;
-  --header-bg: #1a1a20;
-}
-* { box-sizing: border-box; }
-body {
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Georgia", serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  padding: 12px;
-  font-size: 13px;
-}
-h1 {
-  text-align: center;
-  color: #f0a0a0;
-  font-size: 1.4rem;
-  margin: 0 0 12px 0;
-  font-weight: bold;
-  letter-spacing: 3px;
-  border-bottom: 1px solid var(--red);
-  padding-bottom: 6px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 12px;
-}
-.title {
-  font-size: .95rem;
-  font-weight: bold;
-  color: #f0a0a0;
-  border-bottom: 2px solid var(--red);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-  font-family: serif;
-}
-.part-header {
-  background: #2a0808;
-  border: 1px solid var(--red);
-  color: #ffffff;
-  padding: 4px 8px;
-  font-weight: bold;
-  font-size: .9rem;
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  letter-spacing: 1px;
-}
-.part-header .val {
-  font-size: .75rem;
-  color: #ddd;
-  font-weight: normal;
-}
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-label { display: block; font-size: .75rem; color: #aaa; margin-bottom: 2px; }
-input, select, textarea {
-  width: 100%;
-  padding: 5px;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  background: var(--input);
-  color: #fff;
-  font-size: .85rem;
-  font-family: sans-serif;
-  text-align: center;
-}
-input[type="text"] { text-align: left; }
-.table-scroll { width: 100%; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; margin-top: 4px; min-width: 100%; }
-th, td { border: 1px solid var(--border); padding: 4px 2px; text-align: center; font-size: .8rem; }
-th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spacing: 1px; }
-.calc-table { background: #121215; margin-bottom: 8px; }
-.calc-table th { background: #22222a; color: #ccc; font-weight: bold; }
-.calc-table td.label-cell { background: #1e1e24; text-align: right; padding-right: 8px; font-weight: bold; color: #ddd; }
-.calc-table input[type="number"] { width: 100%; background: #18181c; border: 1px solid #444; color: #fff; font-weight: bold; }
-.calc-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; margin: 0 auto; }
-.calc-table .total-row td { background: #2a0808; color: #fff; font-size: 1rem; font-weight: bold; }
-.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
-button {
-  padding: 8px;
-  border: none;
-  border-radius: 4px;
-  background: var(--red);
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: .85rem;
-  font-family: sans-serif;
-}
-button:hover { opacity: 0.9; }
-button.sec { background: #4a4a52; }
-button.add-part-btn { background: #3a3a42; color: #ccc; width: 100%; padding: 4px; font-size: .75rem; margin-top: 4px; border: 1px dashed var(--border); }
-button.del { background: #522; color: #f88; padding: 2px 6px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ネクロニカ キャラクターシート</title>
+  <style>
+  :root {
+    --bg: #0f0f12;
+    --card: #18181c;
+    --red: #8b0000;
+    --text: #e0e0e0;
+    --border: #3a3a42;
+    --input: #222228;
+    --header-bg: #1a1a20;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Georgia", serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 12px;
+    font-size: 13px;
+  }
+  h1 {
+    text-align: center;
+    color: #f0a0a0;
+    font-size: 1.4rem;
+    margin: 0 0 12px 0;
+    font-weight: bold;
+    letter-spacing: 3px;
+    border-bottom: 1px solid var(--red);
+    padding-bottom: 6px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: .95rem;
+    font-weight: bold;
+    color: #f0a0a0;
+    border-bottom: 2px solid var(--red);
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    font-family: serif;
+  }
+  .part-header {
+    background: #2a0808;
+    border: 1px solid var(--red);
+    color: #ffffff;
+    padding: 4px 8px;
+    font-weight: bold;
+    font-size: .9rem;
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 1px;
+  }
+  .part-header .val {
+    font-size: .75rem;
+    color: #ddd;
+    font-weight: normal;
+  }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+  label { display: block; font-size: .75rem; color: #aaa; margin-bottom: 2px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--input);
+    color: #fff;
+    font-size: .85rem;
+    font-family: sans-serif;
+    text-align: center;
+  }
+  input[type="text"] { text-align: left; }
+  .table-scroll { width: 100%; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; min-width: 100%; }
+  th, td { border: 1px solid var(--border); padding: 4px 2px; text-align: center; font-size: .8rem; }
+  th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spacing: 1px; }
+  .calc-table { background: #121215; margin-bottom: 8px; }
+  .calc-table th { background: #22222a; color: #ccc; font-weight: bold; }
+  .calc-table td.label-cell { background: #1e1e24; text-align: right; padding-right: 8px; font-weight: bold; color: #ddd; }
+  .calc-table input[type="number"] { width: 100%; background: #18181c; border: 1px solid #444; color: #fff; font-weight: bold; }
+  .calc-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; margin: 0 auto; }
+  .calc-table .total-row td { background: #2a0808; color: #fff; font-size: 1rem; font-weight: bold; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  button {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    background: var(--red);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: .85rem;
+    font-family: sans-serif;
+  }
+  button:hover { opacity: 0.9; }
+  button.sec { background: #4a4a52; }
+  button.add-part-btn { background: #3a3a42; color: #ccc; width: 100%; padding: 4px; font-size: .75rem; margin-top: 4px; border: 1px dashed var(--border); }
+  button.del { background: #522; color: #f88; padding: 2px 6px; }
+  </style>
 </head>
 <body>
 
@@ -136,7 +136,7 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
         <tr>
           <td class="label-cell">ポジション：</td>
           <td>
-            <select id="pos">
+            <select id="pos" onchange="updateAllSkillDropdowns()">
               <option>アリス</option>
               <option>ホリック</option>
               <option>オートマトン</option>
@@ -228,16 +228,16 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
     <table>
       <thead>
         <tr>
-          <th style="width:20%">区分</th>
-          <th style="width:25%">スキル名</th>
-          <th style="width:45%">効果メモ・注記</th>
+          <th style="width:25%">区分</th>
+          <th style="width:30%">スキル名（選択）</th>
+          <th style="width:35%">効果メモ・注記</th>
           <th style="width:10%">操作</th>
         </tr>
       </thead>
       <tbody id="skill-tbody"></tbody>
     </table>
   </div>
-  <button type="button" class="sec" onclick="addSkillRow()" style="width:100%;margin-top:4px;padding:4px">+ スキル枠を追加</button>
+  <button type="button" class="sec" onclick="addSkillRow('ポジション')" style="width:100%;margin-top:4px;padding:4px">+ スキル枠を追加</button>
 </div>
 
 <!-- 配置パーツ・マニューバ -->
@@ -288,7 +288,28 @@ const CLASS_PARTS = {
   'レクイエム': [1,1,0],
   'バロック':   [0,2,0],
   'ホリック':   [0,1,1],
-  'ロマネスク': [0,0,2]  // ロマネスク：改造2
+  'ロマネスク': [0,0,2]
+};
+
+// スキル定義（追加・変更が自由にできます）
+const SKILL_DATA = {
+  position: {
+    'アリス': ['【おねだり】', '【クスクス】', '【おもいで】', '【さよなら】'],
+    'ホリック': ['【狂鬼】', '【執着】', '【肉の芽】', '【過剰摂取】'],
+    'オートマトン': ['【マネキン】', '【時計仕掛け】', '【自動人形】', '【精密動作】'],
+    'ジャンク': ['【ガラクタ】', '【生存者】', '【悪あがき】', '【拾い物】'],
+    'コート': ['【分析】', '【指示】', '【作戦】', '【前兆】'],
+    'ソロリティ': ['【お姉さま】', '【絆】', '【乙女】', '【身代わり】']
+  },
+  class: {
+    'ロマネスク': ['【舞踏】', '【華麗】', '【魅了】', '【ステージ】'],
+    'ステーシー': ['【肉の壁】', '【再構成】', '【死人】', '【しんのぞう】'],
+    'タナトス': ['【死の舞踏】', '【一刀両断】', '【断罪】', '【冷酷】'],
+    'レクイエム': ['【砲撃】', '【掃射】', '【狙撃】', '【集中弾幕】'],
+    'バロック': ['【異形】', '【変異】', '【異端】', '【肉体改造】'],
+    'ホリック': ['【狂気衝動】', '【自傷】', '【連撃】', '【暴走】'],
+    'ゴシック': ['【漆黒】', '【夜の子供】', '【深紅】', '【結界】']
+  }
 };
 
 const SECTIONS = [
@@ -328,6 +349,7 @@ function onClassChange() {
   document.getElementById('sc-cyb').textContent = scVal[2];
 
   calcTotals();
+  updateAllSkillDropdowns();
 }
 
 function calcTotals() {
@@ -407,16 +429,74 @@ function addPartRow(secId, damaged=false, name='', timing='', cost='', range='',
   tbody.appendChild(tr);
 }
 
-function addSkillRow(type='', name='', memo='') {
+// スキル行を追加する処理
+function addSkillRow(defaultCategory = 'ポジション', selectedSkill = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
+
   tr.innerHTML = `
-    <td><input type="text" value="${type}" placeholder="区分"></td>
-    <td><input type="text" value="${name}" placeholder="スキル名"></td>
+    <td>
+      <select class="skill-type-select" onchange="updateSkillRowOptions(this.closest('tr'))">
+        <option value="ポジション" ${defaultCategory === 'ポジション' ? 'selected' : ''}>ポジション</option>
+        <option value="メインスキル" ${defaultCategory === 'メインスキル' ? 'selected' : ''}>メインスキル</option>
+        <option value="サブクラス" ${defaultCategory === 'サブクラス' ? 'selected' : ''}>サブクラス</option>
+        <option value="その他" ${defaultCategory === 'その他' ? 'selected' : ''}>その他</option>
+      </select>
+    </td>
+    <td class="skill-name-cell">
+      <!-- ここに動的にセレクトボックス生成 -->
+    </td>
     <td><input type="text" value="${memo}" placeholder="効果メモ"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
+
   tbody.appendChild(tr);
+  updateSkillRowOptions(tr, selectedSkill);
+}
+
+// 行ごとのスキル選択肢を更新する
+function updateSkillRowOptions(tr, targetSkill = '') {
+  const category = tr.querySelector('.skill-type-select').value;
+  const cell = tr.querySelector('.skill-name-cell');
+
+  const posVal = document.getElementById('pos').value;
+  const mcVal = document.getElementById('mc').value;
+  const scVal = document.getElementById('sc').value;
+
+  let skillList = [];
+
+  if (category === 'ポジション') {
+    skillList = SKILL_DATA.position[posVal] || [];
+  } else if (category === 'メインスキル') {
+    skillList = SKILL_DATA.class[mcVal] || [];
+  } else if (category === 'サブクラス') {
+    skillList = SKILL_DATA.class[scVal] || [];
+  }
+
+  // 「その他」の場合または直接入力したい場合に対応
+  if (category === 'その他' || skillList.length === 0) {
+    cell.innerHTML = `<input type="text" class="skill-name-input" value="${targetSkill}" placeholder="スキル名を入力">`;
+  } else {
+    let selectHtml = `<select class="skill-name-select">`;
+    selectHtml += `<option value="">-- スキルを選択 --</option>`;
+    skillList.forEach(s => {
+      const isSelected = (s === targetSkill) ? 'selected' : '';
+      selectHtml += `<option value="${s}" ${isSelected}>${s}</option>`;
+    });
+    selectHtml += `</select>`;
+    cell.innerHTML = selectHtml;
+  }
+}
+
+// 全てのスキル行のドロップダウンを一括更新する
+function updateAllSkillDropdowns() {
+  const rows = document.querySelectorAll('#skill-tbody tr');
+  rows.forEach(tr => {
+    const select = tr.querySelector('.skill-name-select');
+    const input = tr.querySelector('.skill-name-input');
+    const currentVal = select ? select.value : (input ? input.value : '');
+    updateSkillRowOptions(tr, currentVal);
+  });
 }
 
 function addRow(target='', emotion='', madness='') {
@@ -533,7 +613,7 @@ function exportJSON() {
   a.click();
 }
 
-// ★ "secret123" の部分を好きなパスワード（合言葉）に変えてください
+// 合言葉（パスワード）
 const PASSWORD = "kirimi1225";
 
 window.onload = function() {
@@ -546,10 +626,13 @@ window.onload = function() {
 
   onClassChange();
   renderPartsSections();
+  
+  // 初期で4枠（ポジション、メインスキル×2、サブクラス）を追加
   addSkillRow("ポジション");
   addSkillRow("メインスキル");
   addSkillRow("メインスキル");
   addSkillRow("サブクラス");
+  
   addRow();
 };
 </script>
