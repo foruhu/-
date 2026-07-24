@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
 <style>
 :root {
@@ -281,9 +281,8 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
 </div>
 
 <script>
-// スキル辞書データ（区分：[ { name, memo }, ... ]）
+// スキル辞書データ
 const SKILL_DATABASE = {
-  // ポジション
   'アリス': [
     { name: 'おねだり', memo: 'ラピッド コスト0 狂気判定振り直し' },
     { name: '手添え', memo: 'ジャッジ コスト1 支援2' },
@@ -318,8 +317,6 @@ const SKILL_DATABASE = {
     { name: '姉妹の絆', memo: 'オート 未練の連携効果上昇' },
     { name: '共鳴', memo: 'ラピッド コスト1 未練を使った狂気点分散' }
   ],
-
-  // クラス
   'ロマネスク': [
     { name: '舞踏', memo: 'アクション コスト1 自身移動1' },
     { name: '時計仕掛け', memo: 'オート 最大行動値+1' },
@@ -405,6 +402,32 @@ function onClassChange() {
   document.getElementById('sc-cyb').textContent = scVal[2];
 
   calcTotals();
+  updateSkillRowsFromClass();
+}
+
+function updateSkillRowsFromClass() {
+  const pos = document.getElementById('pos').value;
+  const mc = document.getElementById('mc').value;
+  const sc = document.getElementById('sc').value;
+  const targets = [pos, mc, sc];
+
+  const tbody = document.getElementById('skill-tbody');
+  if (!tbody) return;
+
+  while (tbody.children.length < 3) {
+    addSkillRow();
+  }
+
+  const rows = tbody.querySelectorAll('tr');
+  targets.forEach((val, index) => {
+    if (rows[index]) {
+      const typeInput = rows[index].querySelector('.sk-type');
+      if (typeInput) {
+        typeInput.value = val;
+      }
+    }
+  });
+
   updateSkillOptions();
 }
 
@@ -647,14 +670,12 @@ function applySheetData(data) {
 
   onClassChange();
 
-  // スキル枠復元
   const skillTbody = document.getElementById('skill-tbody');
   skillTbody.innerHTML = '';
   if (data.skills && data.skills.length > 0) {
     data.skills.forEach(s => addSkillRow(s.type, s.name, s.memo));
   }
 
-  // パーツ枠復元
   if (data.parts) {
     SECTIONS.forEach(sec => {
       const tbody = document.getElementById(`parts-tbody-${sec.id}`);
@@ -667,7 +688,6 @@ function applySheetData(data) {
     });
   }
 
-  // 未練枠復元
   const listTbody = document.getElementById('list');
   listTbody.innerHTML = '';
   if (data.miren && data.miren.length > 0) {
@@ -727,14 +747,13 @@ function exportJSON() {
 }
 
 window.onload = function() {
-  onClassChange();
   renderPartsSections();
   
   DEFAULT_PARTS_LIST.forEach(p => {
     addPartRow(p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
   });
   
-  addSkillRow();
+  onClassChange();
   addRow();
 };
 </script>
