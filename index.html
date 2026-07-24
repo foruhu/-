@@ -238,9 +238,10 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
     <table>
       <thead>
         <tr>
-          <th style="width:20%">区分</th>
-          <th style="width:35%">スキル選択</th>
-          <th style="width:35%">効果メモ・注記</th>
+          <th style="width:18%">区分</th>
+          <th style="width:25%">スキル選択</th>
+          <th style="width:22%">スキル名</th>
+          <th style="width:25%">効果メモ・注記</th>
           <th style="width:10%">操作</th>
         </tr>
       </thead>
@@ -386,7 +387,7 @@ const BASIC_PARTS = {
   ]
 };
 
-// 武装パーツ（part指定なし＝全部位共通）
+// 武装パーツ
 const WEAPON_PARTS = [
   { group: '武装パーツ', name: 'カンフー', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+1' },
   { group: '武装パーツ', name: '日本刀', timing: 'アクション', cost: '2', range: '0', effect: '白兵1+切断' },
@@ -426,7 +427,7 @@ const WEAPON_PARTS = [
   { group: '武装パーツ', name: '大鋏', timing: 'アクション', cost: '3', range: '0', effect: '白兵2+切断（切断判定-2）' }
 ];
 
-// 変異パーツ（部位指定のあるパーツにpart付与）
+// 変異パーツ
 const MUTATION_PARTS = [
   { group: '変異パーツ', name: 'うじむし', timing: 'オート', cost: '0', range: '自身', effect: 'ターン・バトル終了時このパーツ修復' },
   { group: '変異パーツ', name: 'どろどろ', timing: 'ダメージ', cost: '1', range: '0~1', effect: '被ダメージ時：攻撃者に肉弾2' },
@@ -466,7 +467,7 @@ const MUTATION_PARTS = [
   { group: '変異パーツ', name: 'にくへび', timing: 'アクション', cost: '3', range: '0', effect: '肉弾2+連撃2、攻撃判定1回振り直し可' }
 ];
 
-// 改造パーツ（部位指定のあるパーツにpart付与）
+// 改造パーツ
 const CYBER_PARTS = [
   { group: '改造パーツ', name: 'リミッター', timing: 'オート', cost: '0', range: '自身', effect: '損傷時最大行動値+2' },
   { group: '改造パーツ', name: 'アーマースキン', timing: 'ダメージ', cost: '0', range: '自身', effect: '防御1' },
@@ -619,7 +620,7 @@ function updateSkillSelectOptions(selectElem, categories) {
   }
 }
 
-function addPosSkillRow(type='', memo='') {
+function addPosSkillRow(type='', name='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
@@ -630,13 +631,14 @@ function addPosSkillRow(type='', memo='') {
         <option value="">-- スキルを選択 --</option>
       </select>
     </td>
+    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
     <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
     <td style="color:#666;font-size:.75rem;">固定</td>
   `;
   tbody.appendChild(tr);
 }
 
-function addClassSkillRow(type='', memo='') {
+function addClassSkillRow(type='', name='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
@@ -647,6 +649,7 @@ function addClassSkillRow(type='', memo='') {
         <option value="">-- スキルを選択 --</option>
       </select>
     </td>
+    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
     <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
@@ -662,6 +665,7 @@ function onSkillSelectChange(selectElem) {
   if (!selectElem.value) return;
   try {
     const data = JSON.parse(selectElem.value);
+    if (tr.querySelector('.sk-name')) tr.querySelector('.sk-name').value = data.name;
     if (tr.querySelector('.sk-memo')) tr.querySelector('.sk-memo').value = data.memo;
   } catch(e) {}
 }
@@ -689,7 +693,6 @@ function calcTotals() {
   document.getElementById('total-cyb').textContent = mcVal[2] + scVal[2] + bonusCyb + cCyb;
 }
 
-// 部位ごとの適合パーツ抽出フィルタ
 function getPartsForSection(secId) {
   const bParts = BASIC_PARTS[secId] || [];
   const filterFn = p => !p.part || p.part === 'all' || p.part === secId;
@@ -742,21 +745,255 @@ function renderPartsSections() {
               <th style="width:22%">パーツ名</th>
               <th style="width:15%">タイミング</th>
               <th style="width:10%">コスト</th>
-              <th style="width:15%">射程</th>
-              <th style="width:20%">効果</th>
+              <th style="width:12%">射程</th>
+              <th style="width:23%">効果</th>
               <th style="width:10%">操作</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <select class="add-part-select" onchange="addPartFromSelect('${sec.id}', this)">
+      <select class="add-part-select" onchange="onAddPartSelect(this, '${sec.id}')">
         ${optionsHtml}
       </select>
     `;
     container.appendChild(secDiv);
   });
 }
+
+function onAddPartSelect(selectElem, secId) {
+  const val = selectElem.value;
+  if (!val) return;
+
+  if (val === 'empty') {
+    addPartRow(secId, false, '', '', '', '', '');
+  } else {
+    try {
+      const p = JSON.parse(val);
+      addPartRow(secId, false, p.name, p.timing, p.cost, p.range, p.effect);
+    } catch(e) {}
+  }
+  selectElem.value = '';
+}
+
+function addPartRow(secId, used=false, name='', timing='', cost='', range='', effect='') {
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="checkbox" class="part-used" ${used ? 'checked' : ''}></td>
+    <td><input type="text" class="part-name" value="${name}"></td>
+    <td><input type="text" class="part-timing" value="${timing}"></td>
+    <td><input type="text" class="part-cost" value="${cost}"></td>
+    <td><input type="text" class="part-range" value="${range}"></td>
+    <td><input type="text" class="part-effect" value="${effect}"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function resetUsed() {
+  const checkboxes = document.querySelectorAll('.part-used');
+  checkboxes.forEach(cb => cb.checked = false);
+}
+
+function addRow(target='', emotion='', madness='0') {
+  const tbody = document.getElementById('list');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="miren-target" value="${target}" placeholder="対象名"></td>
+    <td><input type="text" class="miren-emotion" value="${emotion}" placeholder="感情"></td>
+    <td><input type="number" class="miren-madness" value="${madness}" min="0"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getFormData() {
+  const skills = [];
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    skills.push({
+      type: tr.querySelector('.sk-type')?.value || '',
+      selectVal: tr.querySelector('.sk-select')?.value || '',
+      name: tr.querySelector('.sk-name')?.value || '',
+      memo: tr.querySelector('.sk-memo')?.value || ''
+    });
+  });
+
+  const parts = {};
+  SECTIONS.forEach(sec => {
+    parts[sec.id] = [];
+    document.querySelectorAll(`#parts-tbody-${sec.id} tr`).forEach(tr => {
+      parts[sec.id].push({
+        used: tr.querySelector('.part-used')?.checked || false,
+        name: tr.querySelector('.part-name')?.value || '',
+        timing: tr.querySelector('.part-timing')?.value || '',
+        cost: tr.querySelector('.part-cost')?.value || '',
+        range: tr.querySelector('.part-range')?.value || '',
+        effect: tr.querySelector('.part-effect')?.value || ''
+      });
+    });
+  });
+
+  const mirens = [];
+  document.querySelectorAll('#list tr').forEach(tr => {
+    mirens.push({
+      target: tr.querySelector('.miren-target')?.value || '',
+      emotion: tr.querySelector('.miren-emotion')?.value || '',
+      madness: tr.querySelector('.miren-madness')?.value || '0'
+    });
+  });
+
+  return {
+    pl: document.getElementById('pl').value,
+    name: document.getElementById('name').value,
+    pos: document.getElementById('pos').value,
+    mc: document.getElementById('mc').value,
+    sc: document.getElementById('sc').value,
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    chouaiWep: document.getElementById('chouai-wep').value,
+    chouaiMut: document.getElementById('chouai-mut').value,
+    chouaiCyb: document.getElementById('chouai-cyb').value,
+    age: document.getElementById('age').value,
+    ps: document.getElementById('ps').value,
+    hint: document.getElementById('hint').value,
+    mem: document.getElementById('mem').value,
+    act: document.getElementById('act').value,
+    fav: document.getElementById('fav').value,
+    tr: document.getElementById('tr').value,
+    skills,
+    parts,
+    mirens
+  };
+}
+
+function loadFormData(data) {
+  if (!data) return;
+  document.getElementById('pl').value = data.pl || '';
+  document.getElementById('name').value = data.name || '';
+  document.getElementById('pos').value = data.pos || 'アリス';
+  document.getElementById('mc').value = data.mc || 'ロマネスク';
+  document.getElementById('sc').value = data.sc || 'ロマネスク';
+
+  const bonusRadio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+  if (bonusRadio) bonusRadio.checked = true;
+
+  document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+  document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+  document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
+
+  document.getElementById('age').value = data.age || '';
+  document.getElementById('ps').value = data.ps || '煉獄';
+  document.getElementById('hint').value = data.hint || '';
+  document.getElementById('mem').value = data.mem || '';
+  document.getElementById('act').value = data.act || '9';
+  document.getElementById('fav').value = data.fav || '0';
+  document.getElementById('tr').value = data.tr || '';
+
+  onClassChange();
+
+  // スキルの復元
+  const skillTbody = document.getElementById('skill-tbody');
+  skillTbody.innerHTML = '';
+  if (data.skills && data.skills.length > 0) {
+    data.skills.forEach((s, idx) => {
+      if (idx === 0) {
+        addPosSkillRow(s.type, s.name, s.memo);
+      } else {
+        addClassSkillRow(s.type, s.name, s.memo);
+      }
+      const lastRow = skillTbody.lastElementChild;
+      if (lastRow && s.selectVal) {
+        const sel = lastRow.querySelector('.sk-select');
+        if (sel) sel.value = s.selectVal;
+      }
+    });
+  }
+
+  // パーツの復元
+  SECTIONS.forEach(sec => {
+    const tbody = document.getElementById(`parts-tbody-${sec.id}`);
+    if (tbody) tbody.innerHTML = '';
+    if (data.parts && data.parts[sec.id]) {
+      data.parts[sec.id].forEach(p => {
+        addPartRow(sec.id, p.used, p.name, p.timing, p.cost, p.range, p.effect);
+      });
+    }
+  });
+
+  // 未練の復元
+  const listTbody = document.getElementById('list');
+  if (listTbody) listTbody.innerHTML = '';
+  if (data.mirens && data.mirens.length > 0) {
+    data.mirens.forEach(m => {
+      addRow(m.target, m.emotion, m.madness);
+    });
+  }
+}
+
+function saveData() {
+  const data = getFormData();
+  localStorage.setItem('nechronica_char_sheet', JSON.stringify(data));
+  alert('ブラウザにデータを保存しました。');
+}
+
+function loadData() {
+  const json = localStorage.getItem('nechronica_char_sheet');
+  if (!json) {
+    alert('保存されたデータが見つかりません。');
+    return;
+  }
+  loadFormData(JSON.parse(json));
+  alert('データを読み込みました。');
+}
+
+function exportJSON() {
+  const data = getFormData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${data.name || 'ドール'}_キャラクターシート.json`;
+  a.click();
+}
+
+function exportCcfolia() {
+  const data = getFormData();
+  const ccfoliaData = {
+    kind: "character",
+    data: {
+      name: data.name || "無題のドール",
+      memo: `PL: ${data.pl}\nポジション: ${data.pos}\nメインクラス: ${data.mc}\nサブクラス: ${data.sc}\n享年/外見: ${data.age}\n初期配置: ${data.ps}\n暗示: ${data.hint}\n記憶のカケラ: ${data.mem}\nたからもの: ${data.tr}`,
+      status: [
+        { label: "最大行動値", value: parseInt(data.act) || 9, max: parseInt(data.act) || 9 }
+      ],
+      params: [
+        { label: "獲得寵愛点", value: data.fav || "0" }
+      ]
+    }
+  };
+
+  navigator.clipboard.writeText(JSON.stringify(ccfoliaData)).then(() => {
+    alert('ココフォリア用データをクリップボードにコピーしました！');
+  }).catch(() => {
+    alert('クリップボードへのコピーに失敗しました。');
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderPartsSections();
+  onClassChange();
+
+  // 初期データの投入
+  DEFAULT_PARTS_LIST.forEach(item => {
+    addPartRow(item[0], item[1], item[2], item[3], item[4], item[5], item[6]);
+  });
+
+  if (document.getElementById('list').children.length === 0) {
+    addRow();
+    addRow();
+  }
+});
 </script>
 </body>
 </html>
