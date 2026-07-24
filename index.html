@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ネクロニカ キャラクターシート</title>
@@ -532,7 +533,17 @@ function exportJSON() {
   a.click();
 }
 
+// ★ "secret123" の部分を好きなパスワード（合言葉）に変えてください
+const PASSWORD = "secret123";
+
 window.onload = function() {
+  const input = prompt("パスワードを入力してください:");
+  if (input !== PASSWORD) {
+    alert("パスワードが正しくありません。");
+    document.body.innerHTML = "<h2 style='color:#f88;text-align:center;margin-top:50px;'>アクセス権限がありません。</h2>";
+    return;
+  }
+
   onClassChange();
   renderPartsSections();
   addSkillRow();
