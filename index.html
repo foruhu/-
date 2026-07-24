@@ -106,8 +106,18 @@ button {
 }
 button:hover { opacity: 0.9; }
 button.sec { background: #4a4a52; }
-button.add-part-btn { background: #3a3a42; color: #ccc; width: 100%; padding: 4px; font-size: .75rem; margin-top: 4px; border: 1px dashed var(--border); }
 button.del { background: #522; color: #f88; padding: 2px 6px; }
+.add-part-select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px;
+  background: #25252d;
+  color: #f0a0a0;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  font-size: .8rem;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -592,6 +602,27 @@ function renderPartsSections() {
   SECTIONS.forEach(sec => {
     const secDiv = document.createElement('div');
     secDiv.className = 'part-section';
+
+    // パーツ追加用ドロップダウンの構築
+    let optionsHtml = `<option value="">+ ${sec.name}パーツを選択して追加...</option>`;
+    optionsHtml += `<option value="empty">+ 【手入力用】空の行を追加</option>`;
+
+    const partsList = PARTS_DATABASE[sec.id] || [];
+    const groups = {};
+    partsList.forEach(p => {
+      if (!groups[p.group]) groups[p.group] = [];
+      groups[p.group].push(p);
+    });
+
+    Object.keys(groups).forEach(groupName => {
+      optionsHtml += `<optgroup label="${groupName}">`;
+      groups[groupName].forEach(p => {
+        const jsonVal = JSON.stringify(p).replace(/"/g, '&quot;');
+        optionsHtml += `<option value="${jsonVal}">${p.name}（${p.timing}/${p.effect}）</option>`;
+      });
+      optionsHtml += `</optgroup>`;
+    });
+
     secDiv.innerHTML = `
       <div class="part-header">
         <span>${sec.name}パーツ</span>
@@ -601,23 +632,39 @@ function renderPartsSections() {
         <table>
           <thead>
             <tr>
-              <th style="width:6%">破損</th>
-              <th style="width:20%">パーツ選択</th>
-              <th style="width:18%">パーツ名</th>
-              <th style="width:14%">タイミング</th>
-              <th style="width:8%">コスト</th>
-              <th style="width:8%">射程</th>
-              <th style="width:20%">効果</th>
-              <th style="width:6%">操作</th>
+              <th style="width:8%">破損</th>
+              <th style="width:22%">パーツ名</th>
+              <th style="width:15%">タイミング</th>
+              <th style="width:10%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:25%">効果</th>
+              <th style="width:10%">操作</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <button type="button" class="add-part-btn" onclick="addPartRow('${sec.id}')">+ ${sec.name}パーツを追加</button>
+      <select class="add-part-select" onchange="onAddPartSelect('${sec.id}', this)">
+        ${optionsHtml}
+      </select>
     `;
     container.appendChild(secDiv);
   });
+}
+
+function onAddPartSelect(secId, selectElem) {
+  const val = selectElem.value;
+  if (!val) return;
+
+  if (val === 'empty') {
+    addPartRow(secId, false, '', '', '', '', '');
+  } else {
+    try {
+      const p = JSON.parse(val);
+      addPartRow(secId, false, p.name, p.timing, p.cost, p.range, p.effect);
+    } catch(e) {}
+  }
+  selectElem.value = ''; // 選択解除に戻す
 }
 
 function addPartRow(secId, damaged=false, name='', timing='', cost='', range='', effect='') {
@@ -626,11 +673,6 @@ function addPartRow(secId, damaged=false, name='', timing='', cost='', range='',
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="checkbox" class="chk-dmg" ${damaged ? 'checked' : ''}></td>
-    <td>
-      <select class="part-select" onchange="onPartSelectChange(this)">
-        <option value="">-- パーツを選択 --</option>
-      </select>
-    </td>
     <td><input type="text" class="part-name" value="${name}"></td>
     <td><input type="text" class="part-timing" value="${timing}"></td>
     <td><input type="text" class="part-cost" value="${cost}"></td>
@@ -639,44 +681,6 @@ function addPartRow(secId, damaged=false, name='', timing='', cost='', range='',
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
   tbody.appendChild(tr);
-
-  // パーツ選択肢の構築
-  const selectElem = tr.querySelector('.part-select');
-  const partsList = PARTS_DATABASE[secId];
-  if (partsList && selectElem) {
-    const groups = {};
-    partsList.forEach(p => {
-      if (!groups[p.group]) groups[p.group] = [];
-      groups[p.group].push(p);
-    });
-
-    Object.keys(groups).forEach(groupName => {
-      const optGroup = document.createElement('optgroup');
-      optGroup.label = groupName;
-      groups[groupName].forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = JSON.stringify(p);
-        opt.textContent = p.name;
-        optGroup.appendChild(opt);
-      });
-      selectElem.appendChild(optGroup);
-    });
-  }
-}
-
-function onPartSelectChange(selectElem) {
-  if (!selectElem.value) return;
-  try {
-    const data = JSON.parse(selectElem.value);
-    const tr = selectElem.closest('tr');
-    if (tr) {
-      if (data.name) tr.querySelector('.part-name').value = data.name;
-      if (data.timing) tr.querySelector('.part-timing').value = data.timing;
-      if (data.cost) tr.querySelector('.part-cost').value = data.cost;
-      if (data.range) tr.querySelector('.part-range').value = data.range;
-      if (data.effect) tr.querySelector('.part-effect').value = data.effect;
-    }
-  } catch(e) {}
 }
 
 function addRow(target='', emotion='', madness='') {
