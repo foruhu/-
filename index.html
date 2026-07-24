@@ -405,6 +405,7 @@ function onClassChange() {
   updateSkillRowsFromClass();
 }
 
+// 基本情報（ポジション／メイン／サブ）の値をスキルの「区分」欄に連動させる
 function updateSkillRowsFromClass() {
   const pos = document.getElementById('pos').value;
   const mc = document.getElementById('mc').value;
@@ -414,10 +415,12 @@ function updateSkillRowsFromClass() {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
 
+  // 少なくとも3つの枠を用意
   while (tbody.children.length < 3) {
     addSkillRow();
   }
 
+  // 1行目:ポジション名、2行目:メインクラス名、3行目:サブクラス名を「区分」に代入
   const rows = tbody.querySelectorAll('tr');
   targets.forEach((val, index) => {
     if (rows[index]) {
@@ -558,13 +561,9 @@ function addSkillRow(type='', name='', memo='') {
 function onSkillSelectChange(selectElem) {
   const tr = selectElem.closest('tr');
   if (!selectElem.value) {
-    tr.querySelector('.sk-type').value = '';
-    tr.querySelector('.sk-name').value = '';
-    tr.querySelector('.sk-memo').value = '';
     return;
   }
   const data = JSON.parse(selectElem.value);
-  tr.querySelector('.sk-type').value = data.cat;
   tr.querySelector('.sk-name').value = data.name;
   tr.querySelector('.sk-memo').value = data.memo;
 }
