@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ネクロニカ キャラクターシート</title>
+<style>
+:root {
+  --bg: #0f0f12;
+  --card: #18181c;
+  --red: #8b0000;
+  --text: #e0e0e0;
+  --border: #3a3a42;
+  --input: #222228;
+  --header-bg: #1a1a20;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Georgia", serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 12px;
+  font-size: 13px;
+}
+h1 {
+  text-align: center;
+  color: #f0a0a0;
+  font-size: 1.4rem;
+  margin: 0 0 12px 0;
+  font-weight: bold;
+  letter-spacing: 3px;
+  border-bottom: 1px solid var(--red);
+  padding-bottom: 6px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.title {
+  font-size: .95rem;
+  font-weight: bold;
+  color: #f0a0a0;
+  border-bottom: 2px solid var(--red);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  font-family: serif;
+}
+.part-header {
+  background: #2a0808;
+  border: 1px solid var(--red);
+  color: #ffffff;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-size: .9rem;
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 1px;
+}
+.part-header .val {
+  font-size: .75rem;
+  color: #ddd;
+  font-weight: normal;
+}
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+label { display: block; font-size: .75rem; color: #aaa; margin-bottom: 2px; }
+input, select, textarea {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--input);
+  color: #fff;
+  font-size: .85rem;
+  font-family: sans-serif;
+  text-align: center;
+}
+input[type="text"] { text-align: left; }
+.table-scroll { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 4px; min-width: 100%; }
+th, td { border: 1px solid var(--border); padding: 4px 2px; text-align: center; font-size: .8rem; }
+th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spacing: 1px; }
+.calc-table { background: #121215; margin-bottom: 8px; }
+.calc-table th { background: #22222a; color: #ccc; font-weight: bold; }
+.calc-table td.label-cell { background: #1e1e24; text-align: right; padding-right: 8px; font-weight: bold; color: #ddd; }
+.calc-table input[type="number"] { width: 100%; background: #18181c; border: 1px solid #444; color: #fff; font-weight: bold; }
+.calc-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; margin: 0 auto; }
+.calc-table .total-row td { background: #2a0808; color: #fff; font-size: 1rem; font-weight: bold; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+button {
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  background: var(--red);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: .85rem;
+  font-family: sans-serif;
+}
+button:hover { opacity: 0.9; }
+button.sec { background: #4a4a52; }
+button.add-part-btn { background: #3a3a42; color: #ccc; width: 100%; padding: 4px; font-size: .75rem; margin-top: 4px; border: 1px dashed var(--border); }
+button.del { background: #522; color: #f88; padding: 2px 6px; }
+</style>
+</head>
+<body>
+
+<h1>永い後日談のネクロニカ</h1>
+
+<!-- 基本情報・強化値計算 -->
+<div class="card">
+  <div class="title">基本情報・強化値計算</div>
+  <div class="g2">
+    <div><label>PL名</label><input type="text" id="pl"></div>
+    <div><label>ドール名</label><input type="text" id="name"></div>
+  </div>
+  <div class="table-scroll">
+    <table class="calc-table">
+      <thead>
+        <tr>
+          <th style="width:30%">区分</th>
+          <th style="width:34%">選択</th>
+          <th style="width:12%">武装</th>
+          <th style="width:12%">変異</th>
+          <th style="width:12%">改造</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label-cell">ポジション：</td>
+          <td>
+            <select id="pos">
+              <option>アリス</option>
+              <option>ホリック</option>
+              <option>オートマトン</option>
+              <option>ジャンク</option>
+              <option>コート</option>
+              <option>ソロリティ</option>
+            </select>
+          </td>
+          <td>-</td><td>-</td><td>-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">メインクラス：</td>
+          <td>
+            <select id="mc" onchange="onClassChange()">
+              <option selected>ロマネスク</option>
+              <option>ステーシー</option>
+              <option>タナトス</option>
+              <option>レクイエム</option>
+              <option>バロック</option>
+              <option>ホリック</option>
+              <option>ゴシック</option>
+            </select>
+          </td>
+          <td id="mc-wep">0</td><td id="mc-mut">0</td><td id="mc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">サブクラス：</td>
+          <td>
+            <select id="sc" onchange="onClassChange()">
+              <option selected>ロマネスク</option>
+              <option>ステーシー</option>
+              <option>タナトス</option>
+              <option>レクイエム</option>
+              <option>バロック</option>
+              <option>ホリック</option>
+              <option>ゴシック</option>
+            </select>
+          </td>
+          <td id="sc-wep">0</td><td id="sc-mut">0</td><td id="sc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">ボーナス：</td>
+          <td style="color:#aaa;font-size:.75rem">いずれか+1</td>
+          <td><input type="radio" name="bonus" value="wep" checked onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="mut" onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="cyb" onchange="calcTotals()"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">寵愛による修正：</td>
+          <td style="color:#aaa;font-size:.75rem">手入力加算</td>
+          <td><input type="number" id="chouai-wep" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-mut" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-cyb" value="0" min="0" oninput="calcTotals()"></td>
+        </tr>
+        <tr class="total-row">
+          <td class="label-cell" style="color:#ffaaaa">総計</td>
+          <td style="font-size:.75rem;color:#ccc">パーツ配置上限</td>
+          <td id="total-wep">1</td>
+          <td id="total-mut">0</td>
+          <td id="total-cyb">4</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="g2">
+    <div><label>享年/外見</label><input type="text" id="age"></div>
+    <div><label>初期配置</label>
+      <select id="ps">
+        <option>煉獄</option>
+        <option>花園</option>
+        <option>楽園</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div><label>暗示</label><input type="text" id="hint"></div>
+    <div><label>記憶のカケラ</label><input type="text" id="mem"></div>
+  </div>
+  <div class="g2">
+    <div><label>最大行動値</label><input type="number" id="act" value="9"></div>
+    <div><label>獲得寵愛点</label><input type="number" id="fav" value="0"></div>
+  </div>
+</div>
+
+<!-- 習得スキル -->
+<div class="card">
+  <div class="title">習得スキル</div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:20%">区分</th>
+          <th style="width:25%">スキル名</th>
+          <th style="width:45%">効果メモ・注記</th>
+          <th style="width:10%">操作</th>
+        </tr>
+      </thead>
+      <tbody id="skill-tbody"></tbody>
+    </table>
+  </div>
+  <button type="button" class="sec" onclick="addSkillRow()" style="width:100%;margin-top:4px;padding:4px">+ スキル枠を追加</button>
+</div>
+
+<!-- 配置パーツ・マニューバ -->
+<div class="card">
+  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>配置パーツ・マニューバ</span>
+    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+  </div>
+  <div id="parts-container"></div>
+</div>
+
+<!-- たからもの・未練 -->
+<div class="card">
+  <div class="title">たからもの・未練（姉妹への感情）</div>
+  <div style="margin-bottom:6px"><label>たからもの</label><input type="text" id="tr"></div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">対象（姉妹）</th>
+          <th style="width:25%">未練（感情）</th>
+          <th style="width:35%">狂気点</th>
+          <th style="width:15%">操作</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+  <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
+</div>
+
+<!-- アクションボタン -->
+<div class="btns">
+  <button type="button" onclick="saveData()">ブラウザ保存</button>
+  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
+</div>
+<div class="btns">
+  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
+  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
+</div>
+
+<script>
+// クラス初期強化値 [武装, 変異, 改造]
+const CLASS_PARTS = {
+  'ステーシー': [1,0,1],
+  'タナトス':   [2,0,0],
+  'ゴシック':   [0,0,2],
+  'レクイエム': [1,1,0],
+  'バロック':   [0,2,0],
+  'ホリック':   [0,1,1],
+  'ロマネスク': [0,0,2]  // ロマネスク：改造2
+};
+
+const SECTIONS = [
+  {id:'head', name:'頭', val:'10'},
+  {id:'arm',  name:'腕', val:'9'},
+  {id:'body', name:'胴', val:'8'},
+  {id:'leg',  name:'脚', val:'7'}
+];
+
+const DEFAULT_PARTS_LIST = [
+  ['head', false, 'のうみそ'],
+  ['head', false, 'めだま'],
+  ['head', false, 'あご'],
+  ['arm',  false, 'こぶし'],
+  ['arm',  false, 'うで'],
+  ['arm',  false, 'かた'],
+  ['body', false, 'せぼね'],
+  ['body', false, 'はらわた'],
+  ['body', false, 'はらわた'],
+  ['leg',  false, 'ほね'],
+  ['leg',  false, 'ほね'],
+  ['leg',  false, 'あし']
+];
+
+function onClassChange() {
+  const mc = document.getElementById('mc').value;
+  const sc = document.getElementById('sc').value;
+  const mcVal = CLASS_PARTS[mc] || [0,0,0];
+  const scVal = CLASS_PARTS[sc] || [0,0,0];
+
+  document.getElementById('mc-wep').textContent = mcVal[0];
+  document.getElementById('mc-mut').textContent = mcVal[1];
+  document.getElementById('mc-cyb').textContent = mcVal[2];
+
+  document.getElementById('sc-wep').textContent = scVal[0];
+  document.getElementById('sc-mut').textContent = scVal[1];
+  document.getElementById('sc-cyb').textContent = scVal[2];
+
+  calcTotals();
+}
+
+function calcTotals() {
+  const mc = document.getElementById('mc').value;
+  const sc = document.getElementById('sc').value;
+  const mcVal = CLASS_PARTS[mc] || [0,0,0];
+  const scVal = CLASS_PARTS[sc] || [0,0,0];
+
+  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
+  const bonus = document.querySelector('input[name="bonus"]:checked');
+  if (bonus) {
+    if (bonus.value === 'wep') bonusWep = 1;
+    if (bonus.value === 'mut') bonusMut = 1;
+    if (bonus.value === 'cyb') bonusCyb = 1;
+  }
+
+  const cWep = parseInt(document.getElementById('chouai-wep').value) || 0;
+  const cMut = parseInt(document.getElementById('chouai-mut').value) || 0;
+  const cCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
+
+  document.getElementById('total-wep').textContent = mcVal[0] + scVal[0] + bonusWep + cWep;
+  document.getElementById('total-mut').textContent = mcVal[1] + scVal[1] + bonusMut + cMut;
+  document.getElementById('total-cyb').textContent = mcVal[2] + scVal[2] + bonusCyb + cCyb;
+}
+
+function renderPartsSections() {
+  const container = document.getElementById('parts-container');
+  container.innerHTML = '';
+
+  SECTIONS.forEach(sec => {
+    const secDiv = document.createElement('div');
+    secDiv.className = 'part-section';
+    secDiv.innerHTML = `
+      <div class="part-header">
+        <span>${sec.name}パーツ</span>
+        <span class="val">破損判定: ${sec.val}</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:8%">破損</th>
+              <th style="width:25%">パーツ名</th>
+              <th style="width:15%">タイミング</th>
+              <th style="width:10%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:22%">効果</th>
+              <th style="width:10%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody-${sec.id}"></tbody>
+        </table>
+      </div>
+      <button type="button" class="add-part-btn" onclick="addPartRow('${sec.id}')">+ ${sec.name}パーツを追加</button>
+    `;
+    container.appendChild(secDiv);
+  });
+
+  DEFAULT_PARTS_LIST.forEach(p => {
+    addPartRow(p[0], p[1], p[2]);
+  });
+}
+
+function addPartRow(secId, damaged=false, name='', timing='', cost='', range='', effect='') {
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="checkbox" class="chk-dmg" ${damaged ? 'checked' : ''}></td>
+    <td><input type="text" class="part-name" value="${name}"></td>
+    <td><input type="text" class="part-timing" value="${timing}"></td>
+    <td><input type="text" class="part-cost" value="${cost}"></td>
+    <td><input type="text" class="part-range" value="${range}"></td>
+    <td><input type="text" class="part-effect" value="${effect}"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addSkillRow(type='', name='', memo='') {
+  const tbody = document.getElementById('skill-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${type}" placeholder="区分"></td>
+    <td><input type="text" value="${name}" placeholder="スキル名"></td>
+    <td><input type="text" value="${memo}" placeholder="効果メモ"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addRow(target='', emotion='', madness='') {
+  const tbody = document.getElementById('list');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${target}"></td>
+    <td><input type="text" value="${emotion}"></td>
+    <td><input type="text" value="${madness}"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function resetUsed() {
+  document.querySelectorAll('.chk-dmg').forEach(cb => cb.checked = false);
+}
+
+// ブラウザ(LocalStorage)へのデータ保存
+function saveData() {
+  const data = getSheetData();
+  localStorage.setItem('nechronica_sheet', JSON.stringify(data));
+  alert("ブラウザにデータを保存しました。");
+}
+
+// 保存データの読み込み
+function loadData() {
+  const json = localStorage.getItem('nechronica_sheet');
+  if (!json) {
+    alert("保存されているデータがありません。");
+    return;
+  }
+  applySheetData(JSON.parse(json));
+  alert("データを読み込みました。");
+}
+
+function getSheetData() {
+  return {
+    pl: document.getElementById('pl').value,
+    name: document.getElementById('name').value,
+    pos: document.getElementById('pos').value,
+    mc: document.getElementById('mc').value,
+    sc: document.getElementById('sc').value,
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    chouai: {
+      wep: document.getElementById('chouai-wep').value,
+      mut: document.getElementById('chouai-mut').value,
+      cyb: document.getElementById('chouai-cyb').value
+    },
+    age: document.getElementById('age').value,
+    ps: document.getElementById('ps').value,
+    hint: document.getElementById('hint').value,
+    mem: document.getElementById('mem').value,
+    act: document.getElementById('act').value,
+    fav: document.getElementById('fav').value,
+    tr: document.getElementById('tr').value
+  };
+}
+
+function applySheetData(data) {
+  if (data.pl) document.getElementById('pl').value = data.pl;
+  if (data.name) document.getElementById('name').value = data.name;
+  if (data.pos) document.getElementById('pos').value = data.pos;
+  if (data.mc) document.getElementById('mc').value = data.mc;
+  if (data.sc) document.getElementById('sc').value = data.sc;
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
+  if (data.chouai) {
+    document.getElementById('chouai-wep').value = data.chouai.wep || 0;
+    document.getElementById('chouai-mut').value = data.chouai.mut || 0;
+    document.getElementById('chouai-cyb').value = data.chouai.cyb || 0;
+  }
+  if (data.age) document.getElementById('age').value = data.age;
+  if (data.ps) document.getElementById('ps').value = data.ps;
+  if (data.hint) document.getElementById('hint').value = data.hint;
+  if (data.mem) document.getElementById('mem').value = data.mem;
+  if (data.act) document.getElementById('act').value = data.act;
+  if (data.fav) document.getElementById('fav').value = data.fav;
+  if (data.tr) document.getElementById('tr').value = data.tr;
+
+  onClassChange();
+}
+
+// ココフォリア駒データ出力
+function exportCcfolia() {
+  const name = document.getElementById('name').value || 'ノンネーム';
+  const act = document.getElementById('act').value || '0';
+  const data = {
+    kind: "character",
+    data: {
+      name: name,
+      status: [
+        { label: "行動値", value: parseInt(act), max: parseInt(act) }
+      ],
+      params: []
+    }
+  };
+  navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
+    alert("ココフォリア用の駒データをクリップボードにコピーしました！\nココフォリア画面上で [Ctrl+V] で貼り付けできます。");
+  }).catch(() => {
+    alert("クリップボードへのコピーに失敗しました。");
+  });
+}
+
+// JSONファイル出力
+function exportJSON() {
+  const data = getSheetData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${data.name || 'character'}_nechronica.json`;
+  a.click();
+}
+
+window.onload = function() {
+  onClassChange();
+  renderPartsSections();
+  addSkillRow();
+  addRow();
+};
+</script>
+</body>
+</html>
