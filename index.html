@@ -229,7 +229,7 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
       <thead>
         <tr>
           <th style="width:18%">区分</th>
-          <th style="width:25%">スキル選択 / 手入力</th>
+          <th style="width:25%">スキル選択</th>
           <th style="width:22%">スキル名</th>
           <th style="width:25%">効果メモ・注記</th>
           <th style="width:10%">操作</th>
@@ -238,7 +238,7 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
       <tbody id="skill-tbody"></tbody>
     </table>
   </div>
-  <button type="button" class="sec" onclick="addSkillRow()" style="width:100%;margin-top:4px;padding:4px">+ スキル枠を追加</button>
+  <button type="button" class="sec" onclick="addClassSkillRow()" style="width:100%;margin-top:4px;padding:4px">+ クラススキル枠を追加</button>
 </div>
 
 <!-- 配置パーツ・マニューバ -->
@@ -405,33 +405,121 @@ function onClassChange() {
   updateSkillRowsFromClass();
 }
 
-// 基本情報（ポジション／メイン／サブ）の値をスキルの「区分」欄に連動させる
 function updateSkillRowsFromClass() {
   const pos = document.getElementById('pos').value;
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
-  const targets = [pos, mc, sc];
 
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
 
-  // 少なくとも3つの枠を用意
-  while (tbody.children.length < 3) {
-    addSkillRow();
+  if (tbody.children.length === 0) {
+    addPosSkillRow();
+    addClassSkillRow();
+    addClassSkillRow();
   }
 
-  // 1行目:ポジション名、2行目:メインクラス名、3行目:サブクラス名を「区分」に代入
   const rows = tbody.querySelectorAll('tr');
-  targets.forEach((val, index) => {
-    if (rows[index]) {
-      const typeInput = rows[index].querySelector('.sk-type');
-      if (typeInput) {
-        typeInput.value = val;
-      }
+
+  // 行0：ポジションスキル
+  if (rows[0]) {
+    const typeInput = rows[0].querySelector('.sk-type');
+    if (typeInput) typeInput.value = pos;
+    updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
+  }
+
+  // 行1：メインクラス
+  if (rows[1]) {
+    const typeInput = rows[1].querySelector('.sk-type');
+    if (typeInput && !typeInput.dataset.manual) typeInput.value = mc;
+  }
+
+  // 行2：サブクラス
+  if (rows[2]) {
+    const typeInput = rows[2].querySelector('.sk-type');
+    if (typeInput && !typeInput.dataset.manual) typeInput.value = sc;
+  }
+
+  // 行1以降：クラススキルドロップダウン更新（メイン／サブクラス）
+  const classCategories = Array.from(new Set([mc, sc]));
+  for (let i = 1; i < rows.length; i++) {
+    updateSkillSelectOptions(rows[i].querySelector('.sk-select'), classCategories);
+  }
+}
+
+function updateSkillSelectOptions(selectElem, categories) {
+  if (!selectElem) return;
+  const currentVal = selectElem.value;
+  selectElem.innerHTML = '<option value="">-- スキルを選択 --</option>';
+
+  categories.forEach(cat => {
+    const skills = SKILL_DATABASE[cat];
+    if (skills) {
+      const group = document.createElement('optgroup');
+      group.label = cat;
+      skills.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
+        opt.textContent = s.name;
+        group.appendChild(opt);
+      });
+      selectElem.appendChild(group);
     }
   });
 
-  updateSkillOptions();
+  if (currentVal) {
+    selectElem.value = currentVal;
+  }
+}
+
+function addPosSkillRow(type='', name='', memo='') {
+  const tbody = document.getElementById('skill-tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="sk-type" value="${type}" placeholder="ポジション" readonly style="background:#151518;color:#aaa;"></td>
+    <td>
+      <select class="sk-select" onchange="onSkillSelectChange(this)">
+        <option value="">-- スキルを選択 --</option>
+      </select>
+    </td>
+    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
+    <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
+    <td style="color:#666;font-size:.75rem;">固定</td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addClassSkillRow(type='', name='', memo='') {
+  const tbody = document.getElementById('skill-tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="sk-type" value="${type}" placeholder="区分" oninput="this.dataset.manual='true'"></td>
+    <td>
+      <select class="sk-select" onchange="onSkillSelectChange(this)">
+        <option value="">-- スキルを選択 --</option>
+      </select>
+    </td>
+    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
+    <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+
+  const mc = document.getElementById('mc').value;
+  const sc = document.getElementById('sc').value;
+  updateSkillSelectOptions(tr.querySelector('.sk-select'), Array.from(new Set([mc, sc])));
+}
+
+function onSkillSelectChange(selectElem) {
+  const tr = selectElem.closest('tr');
+  if (!selectElem.value) return;
+  try {
+    const data = JSON.parse(selectElem.value);
+    if (tr.querySelector('.sk-name')) tr.querySelector('.sk-name').value = data.name;
+    if (tr.querySelector('.sk-memo')) tr.querySelector('.sk-memo').value = data.memo;
+  } catch(e) {}
 }
 
 function calcTotals() {
@@ -505,67 +593,6 @@ function addPartRow(secId, damaged=false, name='', timing='', cost='', range='',
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
   tbody.appendChild(tr);
-}
-
-function getAvailableCategories() {
-  const pos = document.getElementById('pos').value;
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  
-  return Array.from(new Set([pos, mc, sc]));
-}
-
-function updateSkillOptions() {
-  const categories = getAvailableCategories();
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    const select = tr.querySelector('.sk-select');
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">-- スキルを選択 --</option>';
-
-    categories.forEach(cat => {
-      const skills = SKILL_DATABASE[cat];
-      if (skills) {
-        const group = document.createElement('optgroup');
-        group.label = cat;
-        skills.forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
-          opt.textContent = `${s.name}`;
-          group.appendChild(opt);
-        });
-        select.appendChild(group);
-      }
-    });
-  });
-}
-
-function addSkillRow(type='', name='', memo='') {
-  const tbody = document.getElementById('skill-tbody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${type}" placeholder="区分"></td>
-    <td>
-      <select class="sk-select" onchange="onSkillSelectChange(this)">
-        <option value="">-- スキルを選択 --</option>
-      </select>
-    </td>
-    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
-    <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
-  `;
-  tbody.appendChild(tr);
-  updateSkillOptions();
-}
-
-function onSkillSelectChange(selectElem) {
-  const tr = selectElem.closest('tr');
-  if (!selectElem.value) {
-    return;
-  }
-  const data = JSON.parse(selectElem.value);
-  tr.querySelector('.sk-name').value = data.name;
-  tr.querySelector('.sk-memo').value = data.memo;
 }
 
 function addRow(target='', emotion='', madness='') {
@@ -667,13 +694,20 @@ function applySheetData(data) {
   if (data.fav) document.getElementById('fav').value = data.fav;
   if (data.tr) document.getElementById('tr').value = data.tr;
 
-  onClassChange();
-
   const skillTbody = document.getElementById('skill-tbody');
-  skillTbody.innerHTML = '';
+  if (skillTbody) skillTbody.innerHTML = '';
+
   if (data.skills && data.skills.length > 0) {
-    data.skills.forEach(s => addSkillRow(s.type, s.name, s.memo));
+    data.skills.forEach((s, idx) => {
+      if (idx === 0) {
+        addPosSkillRow(s.type, s.name, s.memo);
+      } else {
+        addClassSkillRow(s.type, s.name, s.memo);
+      }
+    });
   }
+
+  onClassChange();
 
   if (data.parts) {
     SECTIONS.forEach(sec => {
