@@ -443,6 +443,43 @@ const DEFAULT_PARTS = {
   ]
 };
 
+// 全追加パーツデータベース（武装・変異・改造）
+const EXTRA_PARTS_DB = {
+  head: [
+    { name: 'スコープ', type: '武装', timing: 'オート', cost: '無', range: '自身', memo: '射撃の攻撃判定出目+1' },
+    { name: '角', type: '変異', timing: 'アクション', cost: '2', range: '0', memo: '肉弾1＋切断' },
+    { name: '第三の眼', type: '変異', timing: 'ジャッジ', cost: '1', range: '0〜2', memo: '支援2' },
+    { name: 'レーダー', type: '改造', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1、行動判定出目+1' },
+    { name: 'ボイスモジュール', type: '改造', timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動1' }
+  ],
+  arm: [
+    { name: 'チェーンソウ', type: '武装', timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋切断' },
+    { name: 'ナイフ', type: '武装', timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋切断' },
+    { name: 'ハンドガン', type: '武装', timing: 'アクション', cost: '2', range: '1〜2', memo: '射撃1' },
+    { name: 'ショットガン', type: '武装', timing: 'アクション', cost: '3', range: '1〜2', memo: '射撃2＋転倒' },
+    { name: 'ライフル', type: '武装', timing: 'アクション', cost: '3', range: '2〜3', memo: '射撃2' },
+    { name: '巨大鋏', type: '変異', timing: 'アクション', cost: '3', range: '0', memo: '肉弾2＋切断' },
+    { name: '触手', type: '変異', timing: 'アクション', cost: '2', range: '0〜1', memo: '肉弾1＋移動1' },
+    { name: 'ガトリングガン', type: '改造', timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
+    { name: 'アイアンフィスト', type: '改造', timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' }
+  ],
+  body: [
+    { name: 'ガトリング砲', type: '武装', timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
+    { name: '手榴弾', type: '武装', timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
+    { name: '肉殻', type: '変異', timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
+    { name: '骨組', type: '変異', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
+    { name: '合金装甲', type: '改造', timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
+    { name: 'リフレクター', type: '改造', timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' }
+  ],
+  leg: [
+    { name: 'ローラーシューズ', type: '武装', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
+    { name: '多節足', type: '変異', timing: 'アクション', cost: '1', range: '自身', memo: '移動2' },
+    { name: '尻尾', type: '変異', timing: 'ジャッジ', cost: '1', range: '0', memo: '転倒' },
+    { name: 'キャタピラ', type: '改造', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2、移動マニューバのコスト-1' },
+    { name: 'ブースター', type: '改造', timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' }
+  ]
+};
+
 // パーツ構造生成
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
@@ -477,7 +514,13 @@ function renderPartsContainer() {
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <button type="button" class="add-part-select" onclick="addCustomPart('${sec.id}')">+ パーツを追加</button>
+      <div style="display:flex;gap:4px;margin-top:6px;">
+        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
+          <option value="">+ 【${sec.title}】にパーツを追加...</option>
+          <option value="custom">-- 自由入力パーツを追加 --</option>
+          ${generateExtraPartsOptions(sec.id)}
+        </select>
+      </div>
     `;
     container.appendChild(secDiv);
 
@@ -489,6 +532,33 @@ function renderPartsContainer() {
       });
     }
   });
+}
+
+function generateExtraPartsOptions(secId) {
+  const parts = EXTRA_PARTS_DB[secId];
+  if (!parts) return '';
+  return parts.map(p => {
+    const val = JSON.stringify(p);
+    return `<option value='${val}'>[${p.type}] ${p.name}</option>`;
+  }).join('');
+}
+
+function onExtraPartSelect(secId, selectElem) {
+  const val = selectElem.value;
+  if (!val) return;
+
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  if (!tbody) return;
+
+  if (val === 'custom') {
+    addPartRow(tbody, '新規パーツ', '武装', 'アクション', '1', '0', '', true);
+  } else {
+    try {
+      const p = JSON.parse(val);
+      addPartRow(tbody, p.name, p.type, p.timing, p.cost, p.range, p.memo, true);
+    } catch(e){}
+  }
+  selectElem.value = '';
 }
 
 function addPartRow(tbody, name='', type='基本', timing='オート', cost='無', range='自身', memo='', isCustom=true) {
@@ -504,13 +574,6 @@ function addPartRow(tbody, name='', type='基本', timing='オート', cost='無
     <td>${isCustom ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
-}
-
-function addCustomPart(sectionId) {
-  const tbody = document.getElementById(`parts-tbody-${sectionId}`);
-  if (tbody) {
-    addPartRow(tbody, '新規パーツ', '武装', 'アクション', '1', '0', '', true);
-  }
 }
 
 function toggleBroken(chk) {
