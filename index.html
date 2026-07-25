@@ -238,11 +238,11 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
     <table>
       <thead>
         <tr>
-          <th style="width:18%">区分</th>
+          <th style="width:25%">区分</th>
           <th style="width:25%">スキル選択</th>
-          <th style="width:22%">スキル名</th>
-          <th style="width:25%">効果メモ・注記</th>
-          <th style="width:10%">操作</th>
+          <th style="width:20%">スキル名</th>
+          <th style="width:22%">効果メモ・注記</th>
+          <th style="width:8%">操作</th>
         </tr>
       </thead>
       <tbody id="skill-tbody"></tbody>
@@ -365,7 +365,7 @@ const SKILL_DATABASE = {
   ]
 };
 
-// 基本パーツ（各部位固有）
+// 基本パーツ
 const BASIC_PARTS = {
   head: [
     { part: 'head', group: '基本パーツ', name: 'のうみそ', timing: 'オート', cost: '0', range: '自身', effect: '最大行動値+2' },
@@ -573,20 +573,27 @@ function updateSkillRowsFromClass() {
 
   const rows = tbody.querySelectorAll('tr');
 
+  // ポジション行の区分名を自動更新
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
-    if (typeInput) typeInput.value = pos;
+    if (typeInput) typeInput.value = `ポジション（${pos}）`;
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
+  // メインクラス行の区分名を自動更新
   if (rows[1]) {
     const typeInput = rows[1].querySelector('.sk-type');
-    if (typeInput && !typeInput.dataset.manual) typeInput.value = mc;
+    if (typeInput && !typeInput.dataset.manual) {
+      typeInput.value = `メインクラス（${mc}）`;
+    }
   }
 
+  // サブクラス行の区分名を自動更新
   if (rows[2]) {
     const typeInput = rows[2].querySelector('.sk-type');
-    if (typeInput && !typeInput.dataset.manual) typeInput.value = sc;
+    if (typeInput && !typeInput.dataset.manual) {
+      typeInput.value = `サブクラス（${sc}）`;
+    }
   }
 
   const classCategories = Array.from(new Set([mc, sc]));
@@ -623,9 +630,11 @@ function updateSkillSelectOptions(selectElem, categories) {
 function addPosSkillRow(type='', name='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
+  const pos = document.getElementById('pos').value;
+  const displayType = type || `ポジション（${pos}）`;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${type}" placeholder="ポジション" readonly style="background:#151518;color:#aaa;"></td>
+    <td><input type="text" class="sk-type" value="${displayType}" placeholder="ポジション" readonly style="background:#151518;color:#aaa;"></td>
     <td>
       <select class="sk-select" onchange="onSkillSelectChange(this)">
         <option value="">-- スキルを選択 --</option>
