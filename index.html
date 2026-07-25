@@ -560,7 +560,9 @@ function onClassChange() {
   calcTotals();
   updateSkillRowsFromClass();
 }
-
+// --------------------------------------------------
+// ポジション・クラス変更時に呼び出される連動処理
+// --------------------------------------------------
 function updateSkillRowsFromClass() {
   const pos = document.getElementById('pos').value;
   const mc = document.getElementById('mc').value;
@@ -577,34 +579,33 @@ function updateSkillRowsFromClass() {
 
   const rows = tbody.querySelectorAll('tr');
 
+  // 【ポジション枠の更新】
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
     if (typeInput) typeInput.value = `ポジション（${pos}）`;
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
-  if (rows[1]) {
-    const typeInput = rows[1].querySelector('.sk-type');
-    if (typeInput && !typeInput.dataset.manual) {
-      typeInput.value = `メインクラス（${mc}）`;
-    }
-  }
-
-  if (rows[2]) {
-    const typeInput = rows[2].querySelector('.sk-type');
-    if (typeInput && !typeInput.dataset.manual) {
-      typeInput.value = `サブクラス（${sc}）`;
-    }
-  }
-
+  // 【クラス枠の更新】
   const classCategories = Array.from(new Set([mc, sc]));
+
   for (let i = 1; i < rows.length; i++) {
+    const typeInput = rows[i].querySelector('.sk-type');
+    if (typeInput && !typeInput.dataset.manual) {
+      if (i === 1) typeInput.value = `メインクラス（${mc}）`;
+      else if (i === 2) typeInput.value = `サブクラス（${sc}）`;
+      else typeInput.value = `追加クラススキル`;
+    }
     updateSkillSelectOptions(rows[i].querySelector('.sk-select'), classCategories);
   }
 }
 
+// --------------------------------------------------
+// ドロップダウンの選択肢（<option>）を動的に生成する処理
+// --------------------------------------------------
 function updateSkillSelectOptions(selectElem, categories) {
   if (!selectElem) return;
+
   const currentVal = selectElem.value;
   selectElem.innerHTML = '<option value="">-- スキルを選択 --</option>';
 
@@ -612,13 +613,15 @@ function updateSkillSelectOptions(selectElem, categories) {
     const skills = SKILL_DATABASE[cat];
     if (skills) {
       const group = document.createElement('optgroup');
-      group.label = cat;
+      group.label = `【${cat}】`;
+      
       skills.forEach(s => {
         const opt = document.createElement('option');
         opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
         opt.textContent = s.name;
         group.appendChild(opt);
       });
+      
       selectElem.appendChild(group);
     }
   });
@@ -627,6 +630,7 @@ function updateSkillSelectOptions(selectElem, categories) {
     selectElem.value = currentVal;
   }
 }
+
 
 function addPosSkillRow(type='', name='', memo='') {
   const tbody = document.getElementById('skill-tbody');
