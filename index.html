@@ -671,17 +671,7 @@ function updateSkillRowsFromClass() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
 
-  const tbody = document.getElementById('skill-tbody');
-  if (!tbody) return;
-
-  if (tbody.children.length === 0) {
-    addPosSkillRow('', '', false);      
-    addClassSkillRow('mc', '', '', false);    
-    addClassSkillRow('mc', '', '', false);    
-    addClassSkillRow('sc', '', '', false);    
-  }
-
-  const rows = tbody.querySelectorAll('tr');
+  const rows = document.querySelectorAll('#skill-tbody tr');
 
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
@@ -729,7 +719,7 @@ function updateSkillSelectOptions(selectElem, categories) {
   }
 }
 
-function addPosSkillRow(type='', memo='', isRemovable=true) {
+function addPosSkillRow(type='', skillData='', memo='', isRemovable=true) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const pos = document.getElementById('pos').value;
@@ -746,10 +736,14 @@ function addPosSkillRow(type='', memo='', isRemovable=true) {
     <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
-  updateSkillSelectOptions(tr.querySelector('.sk-select'), [pos]);
+  const sel = tr.querySelector('.sk-select');
+  updateSkillSelectOptions(sel, [pos]);
+  if (skillData) {
+    sel.value = skillData;
+  }
 }
 
-function addClassSkillRow(role = 'mc', type='', memo='', isRemovable=true) {
+function addClassSkillRow(role = 'mc', type='', skillData='', memo='', isRemovable=true) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const mc = document.getElementById('mc').value;
@@ -771,15 +765,19 @@ function addClassSkillRow(role = 'mc', type='', memo='', isRemovable=true) {
     <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
-  updateSkillSelectOptions(tr.querySelector('.sk-select'), [targetClass]);
+  const sel = tr.querySelector('.sk-select');
+  updateSkillSelectOptions(sel, [targetClass]);
+  if (skillData) {
+    sel.value = skillData;
+  }
 }
 
 function addMcSkillRow() {
-  addClassSkillRow('mc', '', '', true);
+  addClassSkillRow('mc', '', '', '', true);
 }
 
 function addScSkillRow() {
-  addClassSkillRow('sc', '', '', true);
+  addClassSkillRow('sc', '', '', '', true);
 }
 
 function onSkillSelectChange(selectElem) {
@@ -834,9 +832,9 @@ function addRow(target = '', emotion = '', madness = '0') {
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="tr-target" value="${target}"></td>
-    <td><input type="text" class="tr-emotion" value="${emotion}"></td>
-    <td><input type="text" class="tr-madness" value="${madness}"></td>
+    <td><input type="text" value="${target}" placeholder="姉妹の名前"></td>
+    <td><input type="text" value="${emotion}" placeholder="未練の種類"></td>
+    <td><input type="text" value="${madness}" placeholder="狂気点"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
@@ -849,31 +847,86 @@ function saveData() {
     pos: document.getElementById('pos').value,
     mc: document.getElementById('mc').value,
     sc: document.getElementById('sc').value,
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    chouaiWep: document.getElementById('chouai-wep').value,
+    chouaiMut: document.getElementById('chouai-mut').value,
+    chouaiCyb: document.getElementById('chouai-cyb').value,
     age: document.getElementById('age').value,
     ps: document.getElementById('ps').value,
     hint: document.getElementById('hint').value,
     mem: document.getElementById('mem').value,
     act: document.getElementById('act').value,
     fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value
+    tr: document.getElementById('tr').value,
+    skills: [],
+    parts: [],
+    miren: []
   };
-  localStorage.setItem('necro_sheet_data', JSON.stringify(data));
-  alert('データをブラウザに保存しました。');
+
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    data.skills.push({
+      type: tr.querySelector('.sk-type')?.value || '',
+      role: tr.querySelector('.sk-type')?.getAttribute('data-role') || '',
+      select: tr.querySelector('.sk-select')?.value || '',
+      memo: tr.querySelector('.sk-memo')?.value || ''
+    });
+  });
+
+  const partsMap = {};
+  ['head', 'arm', 'body', 'leg'].forEach(secId => {
+    partsMap[secId] = [];
+    document.querySelectorAll(`#parts-tbody-${secId} tr`).forEach(tr => {
+      partsMap[secId].push({
+        broken: tr.querySelector('input[type="checkbox"]')?.checked || false,
+        name: tr.querySelector('.p-name')?.value || '',
+        type: tr.querySelector('.p-type')?.value || '',
+        level: tr.querySelector('.p-level')?.value || '1',
+        timing: tr.querySelector('.p-timing')?.value || '',
+        cost: tr.querySelector('.p-cost')?.value || '',
+        range: tr.querySelector('.p-range')?.value || '',
+        memo: tr.querySelector('.p-memo')?.value || ''
+      });
+    });
+  });
+  data.partsMap = partsMap;
+
+  document.querySelectorAll('#list tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    if (inputs.length >= 3) {
+      data.miren.push({
+        target: inputs[0].value,
+        emotion: inputs[1].value,
+        madness: inputs[2].value
+      });
+    }
+  });
+
+  localStorage.setItem('necro_char_data', JSON.stringify(data));
+  alert('ブラウザに保存しました。');
 }
 
 function loadData() {
-  const raw = localStorage.getItem('necro_sheet_data');
-  if (!raw) {
+  const json = localStorage.getItem('necro_char_data');
+  if (!json) {
     alert('保存されたデータが見つかりません。');
     return;
   }
   try {
-    const data = JSON.parse(raw);
+    const data = JSON.parse(json);
     document.getElementById('pl').value = data.pl || '';
     document.getElementById('name').value = data.name || '';
     document.getElementById('pos').value = data.pos || 'アリス';
     document.getElementById('mc').value = data.mc || 'ロマネスク';
     document.getElementById('sc').value = data.sc || 'ロマネスク';
+
+    if (data.bonus) {
+      const r = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+      if (r) r.checked = true;
+    }
+
+    document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+    document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+    document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
     document.getElementById('age').value = data.age || '';
     document.getElementById('ps').value = data.ps || '煉獄';
     document.getElementById('hint').value = data.hint || '';
@@ -881,7 +934,95 @@ function loadData() {
     document.getElementById('act').value = data.act || '9';
     document.getElementById('fav').value = data.fav || '0';
     document.getElementById('tr').value = data.tr || '';
+
     onClassChange();
+
+    if (data.partsMap) {
+      ['head', 'arm', 'body', 'leg'].forEach(secId => {
+        const tbody = document.getElementById(`parts-tbody-${secId}`);
+        if (tbody && data.partsMap[secId]) {
+          tbody.innerHTML = '';
+          data.partsMap[secId].forEach(p => {
+            const isRemovable = (p.type !== '基本');
+            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, isRemovable);
+            const lastRow = tbody.lastElementChild;
+            if (lastRow && p.broken) {
+              const chk = lastRow.querySelector('input[type="checkbox"]');
+              if (chk) {
+                chk.checked = true;
+                toggleBroken(chk);
+              }
+            }
+          });
+        }
+      });
+    } else if (data.parts && data.parts.length > 0) {
+      ['head', 'arm', 'body', 'leg'].forEach(secId => {
+        const tbody = document.getElementById(`parts-tbody-${secId}`);
+        if (tbody) {
+          tbody.innerHTML = '';
+          if (DEFAULT_PARTS[secId]) {
+            DEFAULT_PARTS[secId].forEach(p => {
+              addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
+            });
+          }
+        }
+      });
+      data.parts.forEach(p => {
+        let secId = 'head';
+        if (p.type === '武装' && (p.name.includes('チェーンソウ') || p.name.includes('ナイフ') || p.name.includes('ハンドガン') || p.name.includes('ショットガン') || p.name.includes('ライフル') || p.name.includes('巨大鋏') || p.name.includes('触手') || p.name.includes('ガトリングガン') || p.name.includes('アイアンフィスト'))) {
+          secId = 'arm';
+        } else if (p.type === '武装' && (p.name.includes('ガトリング砲') || p.name.includes('手榴弾'))) {
+          secId = 'body';
+        } else if (p.type === '武装' && p.name.includes('ローラーシューズ')) {
+          secId = 'leg';
+        } else if (p.type === '変異') {
+          if (p.name.includes('鋏') || p.name.includes('触手')) secId = 'arm';
+          else if (p.name.includes('肉殻') || p.name.includes('骨組')) secId = 'body';
+          else if (p.name.includes('多節足') || p.name.includes('尻尾')) secId = 'leg';
+        } else if (p.type === '改造') {
+          if (p.name.includes('アイアンフィスト') || p.name.includes('ガトリングガン')) secId = 'arm';
+          else if (p.name.includes('合金') || p.name.includes('リフレクター')) secId = 'body';
+          else if (p.name.includes('キャタピラ') || p.name.includes('ブースター')) secId = 'leg';
+        }
+        const tbody = document.getElementById(`parts-tbody-${secId}`);
+        if (tbody) {
+          addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
+          const lastRow = tbody.lastElementChild;
+          if (lastRow && p.broken) {
+            const chk = lastRow.querySelector('input[type="checkbox"]');
+            if (chk) {
+              chk.checked = true;
+              toggleBroken(chk);
+            }
+          }
+        }
+      });
+    }
+
+    if (data.skills && data.skills.length > 0) {
+      const tbody = document.getElementById('skill-tbody');
+      tbody.innerHTML = '';
+      data.skills.forEach(s => {
+        if (s.role) {
+          addClassSkillRow(s.role, s.type, s.select, s.memo, true);
+        } else {
+          addPosSkillRow(s.type, s.select, s.memo, true);
+        }
+      });
+    }
+
+    if (data.miren && data.miren.length > 0) {
+      const tbody = document.getElementById('list');
+      tbody.innerHTML = '';
+      data.miren.push = (m => {
+        addRow(m.target, m.emotion, m.madness);
+      });
+      data.miren.forEach(m => {
+        addRow(m.target, m.emotion, m.madness);
+      });
+    }
+
     alert('データを読み込みました。');
   } catch(e) {
     alert('データの読み込みに失敗しました。');
@@ -889,30 +1030,36 @@ function loadData() {
 }
 
 function exportJSON() {
-  const data = {
-    pl: document.getElementById('pl').value,
-    name: document.getElementById('name').value,
-    pos: document.getElementById('pos').value,
-    mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const data = localStorage.getItem('necro_char_data') || '{}';
+  const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (data.name || 'necro_doll') + '.json';
+  a.download = (document.getElementById('name').value || 'necro_character') + '.json';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function exportCcfolia() {
-  alert('ココフォリア出力機能は現在準備中です。');
+  const name = document.getElementById('name').value || '無名のドール';
+  const pl = document.getElementById('pl').value || '不明';
+  const text = `【ネクロニカ】${name} (PL:${pl})`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('ココフォリア用の簡易テキストをクリップボードにコピーしました。');
+  }).catch(() => {
+    alert('コピーに失敗しました。');
+  });
 }
 
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  addRow();
+  if (document.getElementById('skill-tbody').children.length === 0) {
+    addPosSkillRow('', '', '', false);
+    addClassSkillRow('mc', '', '', '', false);
+    addClassSkillRow('mc', '', '', '', false);
+    addClassSkillRow('sc', '', '', '', false);
+  }
 };
 </script>
 </body>
