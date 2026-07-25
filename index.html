@@ -118,6 +118,10 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
   font-size: .8rem;
   cursor: pointer;
 }
+tr.broken input {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
 </style>
 </head>
 <body>
@@ -573,14 +577,12 @@ function updateSkillRowsFromClass() {
 
   const rows = tbody.querySelectorAll('tr');
 
-  // ポジション行の区分名を自動更新
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
     if (typeInput) typeInput.value = `ポジション（${pos}）`;
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
-  // メインクラス行の区分名を自動更新
   if (rows[1]) {
     const typeInput = rows[1].querySelector('.sk-type');
     if (typeInput && !typeInput.dataset.manual) {
@@ -588,7 +590,6 @@ function updateSkillRowsFromClass() {
     }
   }
 
-  // サブクラス行の区分名を自動更新
   if (rows[2]) {
     const typeInput = rows[2].querySelector('.sk-type');
     if (typeInput && !typeInput.dataset.manual) {
@@ -751,18 +752,18 @@ function renderPartsSections() {
           <thead>
             <tr>
               <th style="width:8%">破損</th>
-              <th style="width:22%">パーツ名</th>
+              <th style="width:22%">名称</th>
               <th style="width:15%">タイミング</th>
               <th style="width:10%">コスト</th>
-              <th style="width:12%">射程</th>
-              <th style="width:23%">効果</th>
-              <th style="width:10%">操作</th>
+              <th style="width:10%">射程</th>
+              <th style="width:27%">効果</th>
+              <th style="width:8%">操作</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <select class="add-part-select" onchange="onAddPartSelect(this, '${sec.id}')">
+      <select class="add-part-select" onchange="addPartFromSelect(this, '${sec.id}')">
         ${optionsHtml}
       </select>
     `;
@@ -770,40 +771,51 @@ function renderPartsSections() {
   });
 }
 
-function onAddPartSelect(selectElem, secId) {
-  const val = selectElem.value;
-  if (!val) return;
-
-  if (val === 'empty') {
+function addPartFromSelect(selectElem, secId) {
+  if (!selectElem.value) return;
+  if (selectElem.value === 'empty') {
     addPartRow(secId, false, '', '', '', '', '');
   } else {
     try {
-      const p = JSON.parse(val);
+      const p = JSON.parse(selectElem.value);
       addPartRow(secId, false, p.name, p.timing, p.cost, p.range, p.effect);
     } catch(e) {}
   }
   selectElem.value = '';
 }
 
-function addPartRow(secId, used=false, name='', timing='', cost='', range='', effect='') {
+function addPartRow(secId, broken=false, name='', timing='', cost='', range='', effect='') {
   const tbody = document.getElementById(`parts-tbody-${secId}`);
   if (!tbody) return;
   const tr = document.createElement('tr');
+  if (broken) tr.classList.add('broken');
   tr.innerHTML = `
-    <td><input type="checkbox" class="part-used" ${used ? 'checked' : ''}></td>
-    <td><input type="text" class="part-name" value="${name}"></td>
-    <td><input type="text" class="part-timing" value="${timing}"></td>
-    <td><input type="text" class="part-cost" value="${cost}"></td>
-    <td><input type="text" class="part-range" value="${range}"></td>
-    <td><input type="text" class="part-effect" value="${effect}"></td>
+    <td><input type="checkbox" class="p-broken" ${broken ? 'checked' : ''} onchange="toggleBroken(this)"></td>
+    <td><input type="text" class="p-name" value="${name}" placeholder="パーツ名"></td>
+    <td><input type="text" class="p-timing" value="${timing}" placeholder="タイミング"></td>
+    <td><input type="text" class="p-cost" value="${cost}" placeholder="コスト"></td>
+    <td><input type="text" class="p-range" value="${range}" placeholder="射程"></td>
+    <td><input type="text" class="p-effect" value="${effect}" placeholder="効果"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
   tbody.appendChild(tr);
 }
 
+function toggleBroken(checkbox) {
+  const tr = checkbox.closest('tr');
+  if (checkbox.checked) {
+    tr.classList.add('broken');
+  } else {
+    tr.classList.remove('broken');
+  }
+}
+
 function resetUsed() {
-  const checkboxes = document.querySelectorAll('.part-used');
-  checkboxes.forEach(cb => cb.checked = false);
+  const checkboxes = document.querySelectorAll('#parts-container input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+    toggleBroken(cb);
+  });
 }
 
 function addRow(target='', emotion='', madness='0') {
@@ -811,20 +823,20 @@ function addRow(target='', emotion='', madness='0') {
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="miren-target" value="${target}" placeholder="対象名"></td>
-    <td><input type="text" class="miren-emotion" value="${emotion}" placeholder="感情"></td>
-    <td><input type="number" class="miren-madness" value="${madness}" min="0"></td>
+    <td><input type="text" class="m-target" value="${target}" placeholder="対象名"></td>
+    <td><input type="text" class="m-emotion" value="${emotion}" placeholder="未練（感情）"></td>
+    <td><input type="number" class="m-madness" value="${madness}" min="0" max="4"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
   tbody.appendChild(tr);
 }
 
 function getFormData() {
+  const bonus = document.querySelector('input[name="bonus"]:checked');
   const skills = [];
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     skills.push({
       type: tr.querySelector('.sk-type')?.value || '',
-      selectVal: tr.querySelector('.sk-select')?.value || '',
       name: tr.querySelector('.sk-name')?.value || '',
       memo: tr.querySelector('.sk-memo')?.value || ''
     });
@@ -835,22 +847,22 @@ function getFormData() {
     parts[sec.id] = [];
     document.querySelectorAll(`#parts-tbody-${sec.id} tr`).forEach(tr => {
       parts[sec.id].push({
-        used: tr.querySelector('.part-used')?.checked || false,
-        name: tr.querySelector('.part-name')?.value || '',
-        timing: tr.querySelector('.part-timing')?.value || '',
-        cost: tr.querySelector('.part-cost')?.value || '',
-        range: tr.querySelector('.part-range')?.value || '',
-        effect: tr.querySelector('.part-effect')?.value || ''
+        broken: tr.querySelector('.p-broken')?.checked || false,
+        name: tr.querySelector('.p-name')?.value || '',
+        timing: tr.querySelector('.p-timing')?.value || '',
+        cost: tr.querySelector('.p-cost')?.value || '',
+        range: tr.querySelector('.p-range')?.value || '',
+        effect: tr.querySelector('.p-effect')?.value || ''
       });
     });
   });
 
-  const mirens = [];
+  const miren = [];
   document.querySelectorAll('#list tr').forEach(tr => {
-    mirens.push({
-      target: tr.querySelector('.miren-target')?.value || '',
-      emotion: tr.querySelector('.miren-emotion')?.value || '',
-      madness: tr.querySelector('.miren-madness')?.value || '0'
+    miren.push({
+      target: tr.querySelector('.m-target')?.value || '',
+      emotion: tr.querySelector('.m-emotion')?.value || '',
+      madness: tr.querySelector('.m-madness')?.value || '0'
     });
   });
 
@@ -860,7 +872,7 @@ function getFormData() {
     pos: document.getElementById('pos').value,
     mc: document.getElementById('mc').value,
     sc: document.getElementById('sc').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    bonus: bonus ? bonus.value : 'wep',
     chouaiWep: document.getElementById('chouai-wep').value,
     chouaiMut: document.getElementById('chouai-mut').value,
     chouaiCyb: document.getElementById('chouai-cyb').value,
@@ -873,7 +885,7 @@ function getFormData() {
     tr: document.getElementById('tr').value,
     skills,
     parts,
-    mirens
+    miren
   };
 }
 
@@ -884,76 +896,71 @@ function loadFormData(data) {
   document.getElementById('pos').value = data.pos || 'アリス';
   document.getElementById('mc').value = data.mc || 'ロマネスク';
   document.getElementById('sc').value = data.sc || 'ロマネスク';
-
-  const bonusRadio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-  if (bonusRadio) bonusRadio.checked = true;
-
-  document.getElementById('chouai-wep').value = data.chouaiWep || '0';
-  document.getElementById('chouai-mut').value = data.chouaiMut || '0';
-  document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
-
+  
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
+  
+  document.getElementById('chouai-wep').value = data.chouaiWep || 0;
+  document.getElementById('chouai-mut').value = data.chouaiMut || 0;
+  document.getElementById('chouai-cyb').value = data.chouaiCyb || 0;
   document.getElementById('age').value = data.age || '';
   document.getElementById('ps').value = data.ps || '煉獄';
   document.getElementById('hint').value = data.hint || '';
   document.getElementById('mem').value = data.mem || '';
-  document.getElementById('act').value = data.act || '9';
-  document.getElementById('fav').value = data.fav || '0';
+  document.getElementById('act').value = data.act || 9;
+  document.getElementById('fav').value = data.fav || 0;
   document.getElementById('tr').value = data.tr || '';
 
   onClassChange();
 
-  // スキルの復元
+  // スキル再構築
   const skillTbody = document.getElementById('skill-tbody');
   skillTbody.innerHTML = '';
   if (data.skills && data.skills.length > 0) {
     data.skills.forEach((s, idx) => {
-      if (idx === 0) {
-        addPosSkillRow(s.type, s.name, s.memo);
-      } else {
-        addClassSkillRow(s.type, s.name, s.memo);
-      }
-      const lastRow = skillTbody.lastElementChild;
-      if (lastRow && s.selectVal) {
-        const sel = lastRow.querySelector('.sk-select');
-        if (sel) sel.value = s.selectVal;
-      }
+      if (idx === 0) addPosSkillRow(s.type, s.name, s.memo);
+      else addClassSkillRow(s.type, s.name, s.memo);
     });
+  } else {
+    updateSkillRowsFromClass();
   }
 
-  // パーツの復元
+  // パーツ再構築
   SECTIONS.forEach(sec => {
     const tbody = document.getElementById(`parts-tbody-${sec.id}`);
     if (tbody) tbody.innerHTML = '';
     if (data.parts && data.parts[sec.id]) {
       data.parts[sec.id].forEach(p => {
-        addPartRow(sec.id, p.used, p.name, p.timing, p.cost, p.range, p.effect);
+        addPartRow(sec.id, p.broken, p.name, p.timing, p.cost, p.range, p.effect);
       });
     }
   });
 
-  // 未練の復元
+  // 未練再構築
   const listTbody = document.getElementById('list');
   if (listTbody) listTbody.innerHTML = '';
-  if (data.mirens && data.mirens.length > 0) {
-    data.mirens.forEach(m => {
-      addRow(m.target, m.emotion, m.madness);
-    });
+  if (data.miren && data.miren.length > 0) {
+    data.miren.forEach(m => addRow(m.target, m.emotion, m.madness));
+  } else {
+    addRow();
   }
 }
 
 function saveData() {
   const data = getFormData();
-  localStorage.setItem('nechronica_char_sheet', JSON.stringify(data));
+  localStorage.setItem('nechronica_sheet_data', JSON.stringify(data));
   alert('ブラウザにデータを保存しました。');
 }
 
 function loadData() {
-  const json = localStorage.getItem('nechronica_char_sheet');
-  if (!json) {
-    alert('保存されたデータが見つかりません。');
+  const saved = localStorage.getItem('nechronica_sheet_data');
+  if (!saved) {
+    alert('保存データが見つかりませんでした。');
     return;
   }
-  loadFormData(JSON.parse(json));
+  loadFormData(JSON.parse(saved));
   alert('データを読み込みました。');
 }
 
@@ -962,46 +969,63 @@ function exportJSON() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${data.name || 'ドール'}_キャラクターシート.json`;
+  a.download = `${data.name || 'nechronica_doll'}.json`;
   a.click();
 }
 
 function exportCcfolia() {
   const data = getFormData();
-  const ccfoliaData = {
+  let memo = `【PL】${data.pl}\n`;
+  memo += `【ポジション】${data.pos} / 【メイン】${data.mc} / 【サブ】${data.sc}\n`;
+  memo += `【享年/外見】${data.age} / 【配置】${data.ps}\n`;
+  memo += `【暗示】${data.hint} / 【記憶のカケラ】${data.mem}\n`;
+  memo += `【たからもの】${data.tr}\n\n`;
+
+  memo += `■スキル\n`;
+  data.skills.forEach(s => {
+    if (s.name) memo += `・${s.name}（${s.type}）: ${s.memo}\n`;
+  });
+
+  memo += `\n■未練\n`;
+  data.miren.forEach(m => {
+    if (m.target) memo += `・${m.target} : ${m.emotion}（狂気点:${m.madness}）\n`;
+  });
+
+  const commands = `NC\n1D10\n2D10\n1D10+1 命中判定`;
+
+  const ccfoliaObj = {
     kind: "character",
     data: {
       name: data.name || "無題のドール",
-      memo: `PL: ${data.pl}\nポジション: ${data.pos}\nメインクラス: ${data.mc}\nサブクラス: ${data.sc}\n享年/外見: ${data.age}\n初期配置: ${data.ps}\n暗示: ${data.hint}\n記憶のカケラ: ${data.mem}\nたからもの: ${data.tr}`,
+      memo: memo,
       status: [
-        { label: "最大行動値", value: parseInt(data.act) || 9, max: parseInt(data.act) || 9 }
+        { label: "最大行動値", value: parseInt(data.act) || 0, max: parseInt(data.act) || 0 },
+        { label: "獲得寵愛点", value: parseInt(data.fav) || 0, max: 0 }
       ],
-      params: [
-        { label: "獲得寵愛点", value: data.fav || "0" }
-      ]
+      params: [],
+      commands: commands
     }
   };
 
-  navigator.clipboard.writeText(JSON.stringify(ccfoliaData)).then(() => {
-    alert('ココフォリア用データをクリップボードにコピーしました！');
+  navigator.clipboard.writeText(JSON.stringify(ccfoliaObj)).then(() => {
+    alert('ココフォリア用データをクリップボードにコピーしました！\nココフォリア上で [Ctrl + V] で貼り付けできます。');
   }).catch(() => {
     alert('クリップボードへのコピーに失敗しました。');
   });
 }
 
+// 初期化処理
 window.addEventListener('DOMContentLoaded', () => {
-  renderPartsSections();
   onClassChange();
+  renderPartsSections();
 
-  // 初期データの投入
-  DEFAULT_PARTS_LIST.forEach(item => {
-    addPartRow(item[0], item[1], item[2], item[3], item[4], item[5], item[6]);
+  // 初期パーツの読み込み
+  DEFAULT_PARTS_LIST.forEach(p => {
+    addPartRow(p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
   });
 
-  if (document.getElementById('list').children.length === 0) {
-    addRow();
-    addRow();
-  }
+  // 初期未練枠
+  addRow();
 });
 </script>
 </body>
