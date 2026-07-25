@@ -559,7 +559,7 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
-function addPartRow(tbody, name='', type='基本', timing='オート', cost='無', range='自身', memo='', isCustom=true) {
+function addPartRow(tbody, name='', type='基本', timing='オート', cost='無', range='自身', memo='', isRemovable=true) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
@@ -569,7 +569,7 @@ function addPartRow(tbody, name='', type='基本', timing='オート', cost='無
     <td><input type="text" class="p-cost" value="${cost}"></td>
     <td><input type="text" class="p-range" value="${range}"></td>
     <td><textarea class="p-memo" rows="1">${memo}</textarea></td>
-    <td>${isCustom ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
+    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
 }
