@@ -315,11 +315,11 @@ const SKILL_DATABASE = {
   ],
   'オートマトン': [
     { name: '援護', memo: '【援護】 O/参照/0〜1\n1ターンに1回、射程内の他の姉妹のアクションマニューバを宣言した際、自身の現在行動値-1する代わりに、宣言されたマニューバのコストを0にする' },
-    { name: '私は人形', memo: '【私は人形】 O/無し/自\nバトルパートで1ターン目のみ、あらゆる発狂状態の効果を無し視してよい' },
-    { name: '無し茶', memo: '【無し茶】 O/参照/自\nコストとして、あなたは任意の基本パーツ1つ損傷する\n行動・攻撃・切断判定において、振り直しできる' },
+    { name: '私は人形', memo: '【私は人形】 O/無し/自\nバトルパートで1ターン目のみ、あらゆる発狂状態の効果を無効視してよい' },
+    { name: '無茶', memo: '【無茶】 O/参照/自\nコストとして、あなたは任意の基本パーツ1つ損傷する\n行動・攻撃・切断判定において、振り直しできる' },
     { name: '煉獄の檻', memo: '【煉獄の檻】 O/無し/自\nターン終了時に煉獄にいるなら、行動値がマイナスになっていても最大行動値まで回復させる' },
     { name: '氷の心', memo: '【氷の心】 O/無し/自\n狂気判定の出目+1' },
-    { name: '血の涙', memo: '【血の涙】 O/参照/自\n精神攻撃によって与えられる狂気点を無し視できる\n基本パーツ1つ損傷。基本パーツがない場合は使用不可' },
+    { name: '血の涙', memo: '【血の涙】 O/参照/自\n精神攻撃によって与えられる狂気点を無効視できる\n基本パーツ1つ損傷。基本パーツがない場合は使用不可' },
     { name: '敵は敵', memo: '【敵は敵】 O/無し/自\nあなたに対する精神攻撃の判定値を7以上にする' }
   ],
   'ジャンク': [
@@ -360,7 +360,7 @@ const SKILL_DATABASE = {
     { name: '死人の流儀', memo: '【死人の流儀】 J/参照/0〜1\nコストの代わりに、任意の基本パーツを1つ損傷\n支援2か妨害2' }
   ],
   'タナトス': [
-    { name: '無し限解体', memo: '【無し限解体】 D/0/自\nダメージを与えた際のみ使用可\n次カウントまで所有する攻撃マニューバは、同対象に使う限りタイミングがダメージとなる' },
+    { name: '無限解体', memo: '【無限解体】 D/0/自\nダメージを与えた際のみ使用可\n次カウントまで所有する攻撃マニューバは、同対象に使う限りタイミングがダメージとなる' },
     { name: '死神', memo: '【死神】 O/無し/自\n白兵の出目+1' },
     { name: '災禍', memo: '【災禍】 D/2/自\n白兵のみ使用可\n全体攻撃の効果を得る。これによる自身へのダメージはない。' },
     { name: '殺劇', memo: '【殺劇】 O/無し/自\n同カウント内に他の姉妹が攻撃対象とした敵に攻撃判定する際、自身の攻撃判定の出目+1、ダメージ+1してよい' },
@@ -376,7 +376,7 @@ const SKILL_DATABASE = {
     { name: '舌なめずり', memo: '【舌なめずり】 R/0/0〜1\n移動妨害1' },
     { name: '悪食', memo: '【悪食】 O/無し/参照\n自身の攻撃によって対象に発生させた切断判定に出目-2' },
     { name: '背徳の悦び', memo: '【背徳の悦び】 D/0/自\n使用済みのラピッド、ジャッジ、ダメージを1つ再使用可能にする' },
-    { name: '引き裂き', memo: '【引き裂き】 O/無し/自\n【あご】【こぶし】を肉弾1+切断になる' },
+    { name: '引き裂き', memo: '【引き裂き】 O/無し/自\n【あご】【こぶし】を肉弾1+切断にする' },
     { name: '完全捕食', memo: '【完全捕食】 O/無し/0\n射程0の対象に肉弾攻撃を成功させた際、対象の残りパーツ総数が［判定値-5］以下だったなら、対象は全てのパーツが損傷する' }
   ],
   'レクイエム': [
@@ -448,10 +448,10 @@ const EXTRA_PARTS_DB = {
   head: [
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
-    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
-        { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1', memo: '妨害1＋転倒。' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1', memo: '妨害1＋転倒。' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
-      { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の末練から、狂気点を1減少させてよい。' },
+    { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の未練から、狂気点を1減少させてよい。' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' },
     { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
@@ -530,7 +530,7 @@ const EXTRA_PARTS_DB = {
     { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
     { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
     { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
-    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' }
+    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
     { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
     { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '「切断」を常に無効化してよい。' }
@@ -664,37 +664,47 @@ function onExtraPartSelect(secId, selectElem) {
         const currentCount = countExistingParts(p.type, p.level);
 
         if (currentCount >= maxLimit) {
-          alert(`【${p.type}】の強化値（現在 ${currentTotal}）におけるLv${p.level}パーツの取得上限（${maxLimit}個）に達しているため追加できません。`);
+          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
           selectElem.value = '';
           return;
         }
       }
-
-      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
     }
   }
   selectElem.value = '';
 }
 
-function addPartRow(tbody, name='', type='基本', level=1, timing='オート', cost='0', range='0', memo='', isRemovable=true) {
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable) {
   const tr = document.createElement('tr');
+  const readOnlyAttr = isEditable ? '' : 'readonly';
+  const disabledAttr = isEditable ? '' : 'disabled';
+
   tr.innerHTML = `
-    <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
-    <td><input type="text" class="p-name" value="${name}"></td>
-    <td><input type="text" class="p-type" value="${type}" ${isRemovable ? '' : 'readonly style="background:#151518;color:#aaa;"'}></td>
-    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:40px;" ${isRemovable ? '' : 'readonly style="background:#151518;color:#aaa;"'}></td>
-    <td><input type="text" class="p-timing" value="${timing}"></td>
-    <td><input type="text" class="p-cost" value="${cost}"></td>
-    <td><input type="text" class="p-range" value="${range}"></td>
-    <td><textarea class="p-memo" rows="1">${memo}</textarea></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
+    <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+    <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
+    <td>
+      <select class="p-type" ${disabledAttr}>
+        <option ${type==='基本'?'selected':''}>基本</option>
+        <option ${type==='武装'?'selected':''}>武装</option>
+        <option ${type==='変異'?'selected':''}>変異</option>
+        <option ${type==='改造'?'selected':''}>改造</option>
+      </select>
+    </td>
+    <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
+    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
+    <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
+    <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
+    <td><textarea class="p-memo" ${readOnlyAttr}>${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
   `;
   tbody.appendChild(tr);
+  calcTotals();
 }
 
-function toggleBroken(chk) {
-  const tr = chk.closest('tr');
-  if (chk.checked) {
+function togglePartBreak(checkbox) {
+  const tr = checkbox.closest('tr');
+  if (checkbox.checked) {
     tr.classList.add('broken');
   } else {
     tr.classList.remove('broken');
@@ -702,163 +712,28 @@ function toggleBroken(chk) {
 }
 
 function resetUsed() {
-  const checkboxes = document.querySelectorAll('#parts-container input[type="checkbox"]');
-  checkboxes.forEach(chk => {
-    chk.checked = false;
-    toggleBroken(chk);
+  document.querySelectorAll('#parts-container tr input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('tr').classList.remove('broken');
   });
 }
 
 function onClassChange() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
-  const mcVal = CLASS_PARTS[mc] || [0,0,0];
-  const scVal = CLASS_PARTS[sc] || [0,0,0];
 
-  document.getElementById('mc-wep').textContent = mcVal[0];
-  document.getElementById('mc-mut').textContent = mcVal[1];
-  document.getElementById('mc-cyb').textContent = mcVal[2];
+  const mcParts = CLASS_PARTS[mc] || [0,0,2];
+  const scParts = CLASS_PARTS[sc] || [0,0,2];
 
-  document.getElementById('sc-wep').textContent = scVal[0];
-  document.getElementById('sc-mut').textContent = scVal[1];
-  document.getElementById('sc-cyb').textContent = scVal[2];
+  document.getElementById('mc-wep').textContent = mcParts[0];
+  document.getElementById('mc-mut').textContent = mcParts[1];
+  document.getElementById('mc-cyb').textContent = mcParts[2];
+
+  document.getElementById('sc-wep').textContent = scParts[0];
+  document.getElementById('sc-mut').textContent = scParts[1];
+  document.getElementById('sc-cyb').textContent = scParts[2];
 
   calcTotals();
-  updateSkillRowsFromClass();
-}
-
-function updateSkillRowsFromClass() {
-  const pos = document.getElementById('pos').value;
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-
-  const rows = document.querySelectorAll('#skill-tbody tr');
-
-  if (rows[0]) {
-    const typeInput = rows[0].querySelector('.sk-type');
-    if (typeInput) typeInput.value = pos;
-    updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
-  }
-
-  for (let i = 1; i < rows.length; i++) {
-    const typeInput = rows[i].querySelector('.sk-type');
-    const selectElem = rows[i].querySelector('.sk-select');
-    if (typeInput) {
-      const role = typeInput.getAttribute('data-role');
-      const targetClass = (role === 'sc') ? sc : mc;
-      typeInput.value = targetClass;
-      updateSkillSelectOptions(selectElem, [targetClass]);
-    }
-  }
-}
-
-function updateSkillSelectOptions(selectElem, categories) {
-  if (!selectElem) return;
-
-  const currentVal = selectElem.value;
-  selectElem.innerHTML = '<option value="">-- スキルを選択 --</option>';
-
-  categories.forEach(cat => {
-    const skills = SKILL_DATABASE[cat];
-    if (skills) {
-      const group = document.createElement('optgroup');
-      group.label = `【${cat}】`;
-      
-      skills.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
-        opt.textContent = s.name;
-        group.appendChild(opt);
-      });
-      
-      selectElem.appendChild(group);
-    }
-  });
-
-  if (currentVal) {
-    selectElem.value = currentVal;
-  }
-}
-
-function addPosSkillRow(type='', skillData='', memo='', isRemovable=true) {
-  const tbody = document.getElementById('skill-tbody');
-  if (!tbody) return;
-  const pos = document.getElementById('pos').value;
-  const displayType = type || pos;
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${displayType}" readonly style="background:#151518;color:#aaa;"></td>
-    <td>
-      <select class="sk-select" onchange="onSkillSelectChange(this)">
-        <option value="">-- スキルを選択 --</option>
-      </select>
-    </td>
-    <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
-  `;
-  tbody.appendChild(tr);
-  const sel = tr.querySelector('.sk-select');
-  updateSkillSelectOptions(sel, [pos]);
-  if (skillData) {
-    sel.value = skillData;
-  }
-}
-
-function addClassSkillRow(role = 'mc', type='', skillData='', memo='', isRemovable=true) {
-  const tbody = document.getElementById('skill-tbody');
-  if (!tbody) return;
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const targetClass = (role === 'sc') ? sc : mc;
-  const displayType = type || targetClass;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <input type="text" class="sk-type" data-role="${role}" value="${displayType}" readonly style="background:#151518;color:#aaa;">
-    </td>
-    <td>
-      <select class="sk-select" onchange="onSkillSelectChange(this)">
-        <option value="">-- スキルを選択 --</option>
-      </select>
-    </td>
-    <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
-  `;
-  tbody.appendChild(tr);
-  const sel = tr.querySelector('.sk-select');
-  updateSkillSelectOptions(sel, [targetClass]);
-  if (skillData) {
-    sel.value = skillData;
-  }
-}
-
-function addMcSkillRow(type='', skillData='', memo='', isRemovable=true) {
-  addClassSkillRow('mc', type, skillData, memo, isRemovable);
-}
-
-function addScSkillRow(type='', skillData='', memo='', isRemovable=true) {
-  addClassSkillRow('sc', type, skillData, memo, isRemovable);
-}
-
-function onSkillSelectChange(sel) {
-  const tr = sel.closest('tr');
-  const memoTextarea = tr.querySelector('.sk-memo');
-  if (!memoTextarea) return;
-
-  if (!sel.value) {
-    memoTextarea.value = '';
-    return;
-  }
-
-  try {
-    const data = JSON.parse(sel.value);
-    if (data && data.memo) {
-      memoTextarea.value = data.memo;
-    }
-  } catch (e) {
-    memoTextarea.value = '';
-  }
 }
 
 function calcTotals() {
@@ -871,14 +746,12 @@ function calcTotals() {
   const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
 
   let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
-  const bonusRadios = document.getElementsByName('bonus');
-  bonusRadios.forEach(r => {
-    if (r.checked) {
-      if (r.value === 'wep') bonusWep = 1;
-      if (r.value === 'mut') bonusMut = 1;
-      if (r.value === 'cyb') bonusCyb = 1;
-    }
-  });
+  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
+  if (bonusSelected) {
+    if (bonusSelected.value === 'wep') bonusWep = 1;
+    else if (bonusSelected.value === 'mut') bonusMut = 1;
+    else if (bonusSelected.value === 'cyb') bonusCyb = 1;
+  }
 
   const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
   const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
@@ -893,17 +766,76 @@ function calcTotals() {
   document.getElementById('total-cyb').textContent = totalCyb;
 }
 
-function addRow(target='', emotion='', mad='0') {
+function addRow() {
   const tbody = document.getElementById('list');
-  if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="tr-target" value="${target}" placeholder="対象の姉妹"></td>
-    <td><input type="text" class="tr-emotion" value="${emotion}" placeholder="未練（感情）"></td>
-    <td><input type="text" class="tr-mad" value="${mad}" placeholder="狂気点"></td>
-    <td><button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="0" min="0"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
   `;
   tbody.appendChild(tr);
+}
+
+function addSkillRow(category, skillName = '', memo = '') {
+  const tbody = document.getElementById('skill-tbody');
+  const tr = document.createElement('tr');
+  
+  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+  if (SKILL_DATABASE[category]) {
+    SKILL_DATABASE[category].forEach(s => {
+      const selected = (s.name === skillName) ? 'selected' : '';
+      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
+    });
+  }
+
+  tr.innerHTML = `
+    <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
+    <td>
+      <select onchange="onSkillSelect(this)">
+        ${optionsHtml}
+      </select>
+    </td>
+    <td><textarea style="height:38px;">${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addPosSkillRow() {
+  const pos = document.getElementById('pos').value;
+  addSkillRow(pos);
+}
+
+function addMcSkillRow() {
+  const mc = document.getElementById('mc').value;
+  addSkillRow(mc);
+}
+
+function addScSkillRow() {
+  const sc = document.getElementById('sc').value;
+  addSkillRow(sc);
+}
+
+function onSkillSelect(selectElem) {
+  const skillName = selectElem.value;
+  const tr = selectElem.closest('tr');
+  const categoryInput = tr.querySelector('input');
+  const textarea = tr.querySelector('textarea');
+
+  if (!skillName) {
+    textarea.value = '';
+    return;
+  }
+
+  const category = categoryInput.value;
+  if (SKILL_DATABASE[category]) {
+    const found = SKILL_DATABASE[category].find(s => s.name === skillName);
+    if (found) {
+      textarea.value = found.memo;
+    }
+  }
 }
 
 function saveData() {
@@ -913,10 +845,6 @@ function saveData() {
     pos: document.getElementById('pos').value,
     mc: document.getElementById('mc').value,
     sc: document.getElementById('sc').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
     age: document.getElementById('age').value,
     ps: document.getElementById('ps').value,
     hint: document.getElementById('hint').value,
@@ -924,135 +852,45 @@ function saveData() {
     act: document.getElementById('act').value,
     fav: document.getElementById('fav').value,
     tr: document.getElementById('tr').value,
-    skills: [],
-    parts: {},
-    relations: []
+    chouaiWep: document.getElementById('chouai-wep').value,
+    chouaiMut: document.getElementById('chouai-mut').value,
+    chouaiCyb: document.getElementById('chouai-cyb').value,
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
   };
-
-  const skillRows = document.querySelectorAll('#skill-tbody tr');
-  skillRows.forEach(tr => {
-    const typeInput = tr.querySelector('.sk-type');
-    const selectElem = tr.querySelector('.sk-select');
-    const memoArea = tr.querySelector('.sk-memo');
-    data.skills.push({
-      role: typeInput?.getAttribute('data-role') || 'pos',
-      type: typeInput?.value || '',
-      skillData: selectElem?.value || '',
-      memo: memoArea?.value || ''
-    });
-  });
-
-  ['head', 'arm', 'body', 'leg'].forEach(secId => {
-    data.parts[secId] = [];
-    const rows = document.querySelectorAll(`#parts-tbody-${secId} tr`);
-    rows.forEach(tr => {
-      data.parts[secId].push({
-        broken: tr.querySelector('input[type="checkbox"]').checked,
-        name: tr.querySelector('.p-name').value,
-        type: tr.querySelector('.p-type').value,
-        level: tr.querySelector('.p-level').value,
-        timing: tr.querySelector('.p-timing').value,
-        cost: tr.querySelector('.p-cost').value,
-        range: tr.querySelector('.p-range').value,
-        memo: tr.querySelector('.p-memo').value,
-        isRemovable: tr.querySelector('.del') !== null
-      });
-    });
-  });
-
-  const relationRows = document.querySelectorAll('#list tr');
-  relationRows.forEach(tr => {
-    data.relations.push({
-      target: tr.querySelector('.tr-target').value,
-      emotion: tr.querySelector('.tr-emotion').value,
-      mad: tr.querySelector('.tr-mad').value
-    });
-  });
-
-  localStorage.setItem('nechronica_sheet_data', JSON.stringify(data));
-  alert('ブラウザにデータを保存しました。');
+  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました');
 }
 
 function loadData() {
-  const jsonStr = localStorage.getItem('nechronica_sheet_data');
-  if (!jsonStr) {
-    alert('保存されたデータが見つかりません。');
+  const json = localStorage.getItem('necro_sheet');
+  if (!json) {
+    alert('保存されたデータがありません');
     return;
   }
-  try {
-    const data = JSON.parse(jsonStr);
-    document.getElementById('pl').value = data.pl || '';
-    document.getElementById('name').value = data.name || '';
-    document.getElementById('pos').value = data.pos || 'アリス';
-    document.getElementById('mc').value = data.mc || 'ロマネスク';
-    document.getElementById('sc').value = data.sc || 'ロマネスク';
-
-    if (data.bonus) {
-      const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-      if (radio) radio.checked = true;
-    }
-
-    document.getElementById('chouai-wep').value = data.chouaiWep || '0';
-    document.getElementById('chouai-mut').value = data.chouaiMut || '0';
-    document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
-    document.getElementById('age').value = data.age || '';
-    document.getElementById('ps').value = data.ps || '煉獄';
-    document.getElementById('hint').value = data.hint || '';
-    document.getElementById('mem').value = data.mem || '';
-    document.getElementById('act').value = data.act || '9';
-    document.getElementById('fav').value = data.fav || '0';
-    document.getElementById('tr').value = data.tr || '';
-
-    onClassChange();
-
-    const skillTbody = document.getElementById('skill-tbody');
-    if (skillTbody) skillTbody.innerHTML = '';
-    if (data.skills && data.skills.length > 0) {
-      data.skills.forEach(s => {
-        if (s.role === 'pos') {
-          addPosSkillRow(s.type, s.skillData, s.memo, true);
-        } else {
-          addClassSkillRow(s.role, s.type, s.skillData, s.memo, true);
-        }
-      });
-    } else {
-      addPosSkillRow();
-      addMcSkillRow('mc');
-      addScSkillRow('sc');
-    }
-
-    if (data.parts) {
-      ['head', 'arm', 'body', 'leg'].forEach(secId => {
-        const tbody = document.getElementById(`parts-tbody-${secId}`);
-        if (tbody) tbody.innerHTML = '';
-        if (data.parts[secId]) {
-          data.parts[secId].forEach(p => {
-            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isRemovable);
-            if (p.broken) {
-              const lastTr = tbody.lastElementChild;
-              const chk = lastTr.querySelector('input[type="checkbox"]');
-              if (chk) {
-                chk.checked = true;
-                toggleBroken(chk);
-              }
-            }
-          });
-        }
-      });
-    }
-
-    const relationTbody = document.getElementById('list');
-    if (relationTbody) relationTbody.innerHTML = '';
-    if (data.relations && data.relations.length > 0) {
-      data.relations.forEach(r => {
-        addRow(r.target, r.emotion, r.mad);
-      });
-    }
-
-    alert('保存データを読み込みました。');
-  } catch (e) {
-    alert('データの読み込みに失敗しました。');
+  const data = JSON.parse(json);
+  document.getElementById('pl').value = data.pl || '';
+  document.getElementById('name').value = data.name || '';
+  document.getElementById('pos').value = data.pos || 'アリス';
+  document.getElementById('mc').value = data.mc || 'ロマネスク';
+  document.getElementById('sc').value = data.sc || 'ロマネスク';
+  document.getElementById('age').value = data.age || '';
+  document.getElementById('ps').value = data.ps || '煉獄';
+  document.getElementById('hint').value = data.hint || '';
+  document.getElementById('mem').value = data.mem || '';
+  document.getElementById('act').value = data.act || '9';
+  document.getElementById('fav').value = data.fav || '0';
+  document.getElementById('tr').value = data.tr || '';
+  document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+  document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+  document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
+  
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
   }
+
+  onClassChange();
+  alert('データを読み込みました');
 }
 
 function exportJSON() {
@@ -1061,55 +899,31 @@ function exportJSON() {
     name: document.getElementById('name').value,
     pos: document.getElementById('pos').value,
     mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
-    age: document.getElementById('age').value,
-    ps: document.getElementById('ps').value,
-    hint: document.getElementById('hint').value,
-    mem: document.getElementById('mem').value,
-    act: document.getElementById('act').value,
-    fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value
+    sc: document.getElementById('sc').value
   };
-
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (data.name || 'nechronica_sheet') + '.json';
+  a.download = (data.name || 'necro_character') + '.json';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function exportCcfolia() {
-  const name = document.getElementById('name').value || '無し名ドール';
-  const pl = document.getElementById('pl').value || '未設定';
-  const pos = document.getElementById('pos').value;
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const act = document.getElementById('act').value;
-
-  let text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${pos}\n【メインクラス】${mc}\n【サブクラス】${sc}\n【行動値】${act}`;
-  
+  const name = document.getElementById('name').value || '無名のエトランゼ';
+  const pl = document.getElementById('pl').value || '';
+  const text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${document.getElementById('pos').value}\n【メインクラス】${document.getElementById('mc').value}\n【サブクラス】${document.getElementById('sc').value}`;
   navigator.clipboard.writeText(text).then(() => {
-    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました。');
-  }).catch(() => {
-    alert('クリップボードへのコピーに失敗しました。');
+    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました');
+  }).catch(err => {
+    alert('コピーに失敗しました: ' + err);
   });
 }
 
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  const skillTbody = document.getElementById('skill-tbody');
-  if (skillTbody && skillTbody.children.length === 0) {
-    addPosSkillRow();
-    addMcSkillRow('mc');
-    addScSkillRow('sc');
-  }
 };
 </script>
 </body>
