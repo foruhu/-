@@ -618,10 +618,10 @@ function updateSkillRowsFromClass() {
   if (!tbody) return;
 
   if (tbody.children.length === 0) {
-    addPosSkillRow();      
-    addClassSkillRow();    
-    addClassSkillRow();    
-    addClassSkillRow();    
+    addPosSkillRow('', '', false);      
+    addClassSkillRow('', '', false);    
+    addClassSkillRow('', '', false);    
+    addClassSkillRow('', '', false);    
   }
 
   const rows = tbody.querySelectorAll('tr');
@@ -667,7 +667,7 @@ function updateSkillSelectOptions(selectElem, categories) {
   }
 }
 
-function addPosSkillRow(type='', memo='') {
+function addPosSkillRow(type='', memo='', isRemovable=true) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const pos = document.getElementById('pos').value;
@@ -681,13 +681,13 @@ function addPosSkillRow(type='', memo='') {
       </select>
     </td>
     <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
+    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
   updateSkillSelectOptions(tr.querySelector('.sk-select'), [pos]);
 }
 
-function addClassSkillRow(type='', memo='') {
+function addClassSkillRow(type='', memo='', isRemovable=true) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const mc = document.getElementById('mc').value;
@@ -703,7 +703,7 @@ function addClassSkillRow(type='', memo='') {
       </select>
     </td>
     <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
+    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
 
@@ -754,7 +754,7 @@ function addRow(target='', emotion='', madness=0) {
     <td><input type="text" placeholder="対象名" value="${target}"></td>
     <td><input type="text" placeholder="感情" value="${emotion}"></td>
     <td><input type="number" value="${madness}" min="0" max="4"></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
+    <td><button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
 }
