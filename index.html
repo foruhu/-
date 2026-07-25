@@ -252,7 +252,8 @@ tr.broken input, tr.broken textarea {
       <tbody id="skill-tbody"></tbody>
     </table>
   </div>
-  <div style="margin-top: 6px;">
+  <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジションスキル枠を追加</button>
     <button type="button" class="sec" onclick="addClassSkillRow()" style="width:100%;padding:6px">+ クラススキル枠を追加</button>
   </div>
 </div>
@@ -689,7 +690,7 @@ function addPosSkillRow(type='', memo='') {
       </select>
     </td>
     <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td style="color:#666;font-size:.75rem;">固定</td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
   updateSkillSelectOptions(tr.querySelector('.sk-select'), [pos]);
@@ -711,7 +712,7 @@ function addClassSkillRow(type='', memo='') {
       </select>
     </td>
     <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td style="color:#666;font-size:.75rem;">固定</td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
 
