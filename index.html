@@ -635,7 +635,14 @@ function updateSkillRowsFromClass() {
   const classCategories = Array.from(new Set([mc, sc]));
 
   for (let i = 1; i < rows.length; i++) {
-    updateSkillSelectOptions(rows[i].querySelector('.sk-select'), classCategories);
+    const typeInput = rows[i].querySelector('.sk-type');
+    const selectElem = rows[i].querySelector('.sk-select');
+    if (typeInput) {
+      if (!classCategories.includes(typeInput.value)) {
+        typeInput.value = mc;
+      }
+      updateSkillSelectOptions(selectElem, classCategories);
+    }
   }
 }
 
@@ -696,7 +703,12 @@ function addClassSkillRow(type='', memo='', isRemovable=true) {
 
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${displayType}" readonly style="background:#151518;color:#aaa;"></td>
+    <td>
+      <select class="sk-type" onchange="onClassTypeChange(this)" style="background:#222228;color:#fff;">
+        <option value="${mc}">${mc}</option>
+        <option value="${sc}">${sc}</option>
+      </select>
+    </td>
     <td>
       <select class="sk-select" onchange="onSkillSelectChange(this)">
         <option value="">-- スキルを選択 --</option>
@@ -707,7 +719,22 @@ function addClassSkillRow(type='', memo='', isRemovable=true) {
   `;
   tbody.appendChild(tr);
 
-  updateSkillSelectOptions(tr.querySelector('.sk-select'), Array.from(new Set([mc, sc])));
+  const classCategories = Array.from(new Set([mc, sc]));
+  const typeSelect = tr.querySelector('.sk-type');
+  if (typeSelect && classCategories.includes(displayType)) {
+    typeSelect.value = displayType;
+  }
+  updateSkillSelectOptions(tr.querySelector('.sk-select'), classCategories);
+}
+
+function onClassTypeChange(selectElem) {
+  const tr = selectElem.closest('tr');
+  const selectElemSkill = tr.querySelector('.sk-select');
+  if (selectElemSkill) {
+    selectElemSkill.value = '';
+    const memoTextarea = tr.querySelector('.sk-memo');
+    if (memoTextarea) memoTextarea.value = '';
+  }
 }
 
 function onSkillSelectChange(selectElem) {
@@ -716,7 +743,13 @@ function onSkillSelectChange(selectElem) {
   try {
     const data = JSON.parse(selectElem.value);
     const typeInput = tr.querySelector('.sk-type');
-    if (typeInput) typeInput.value = data.cat;
+    if (typeInput) {
+      if (typeInput.tagName === 'SELECT') {
+        typeInput.value = data.cat;
+      } else {
+        typeInput.value = data.cat;
+      }
+    }
     
     const memoTextarea = tr.querySelector('.sk-memo');
     if (memoTextarea) memoTextarea.value = data.memo;
