@@ -119,7 +119,7 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
   font-size: .8rem;
   cursor: pointer;
 }
-tr.broken input {
+tr.broken input, tr.broken textarea {
   text-decoration: line-through;
   opacity: 0.5;
 }
@@ -338,7 +338,7 @@ const SKILL_DATABASE = {
     { name: '作戦', memo: '【作戦】 O/無/参照\nバトルパート開始時、敵配置を見てから姉妹1人の配置を奈落以外の望むエリアに変更してもよい' },
     { name: '冷静', memo: '【冷静】 O/無/自\n行動判定の出目+1' },
     { name: '先読み', memo: '【先読み】 A/1/0〜1\n対象が次に使うアクションのコストを-1' },
-    { name: '看板', memo: '【看破】 R/0/0〜3\n対象のラピッド、ダメージ、ジャッジのうち1つの効果を打ち消す' },
+    { name: '看破', memo: '【看破】 R/0/0〜3\n対象のラピッド、ダメージ、ジャッジのうち1つの効果を打ち消す' },
     { name: '抑制', memo: '【抑制】 O/参照/自\n狂気判定で失敗した際、その結果を成功に変えてもよい（大失敗は含まない）\n自身の任意のパーツを損傷させる' },
     { name: '憎まれ役', memo: '【憎まれ役】 O/参照/参照\n他の姉妹が、狂気判定に失敗または大失敗した際、その結果を成功に変えてもよい\n任意の未練に狂気点+1' }
   ],
@@ -422,6 +422,113 @@ const CLASS_PARTS = {
   'ホリック':   [0,1,1],
   'ロマネスク': [0,0,2]
 };
+
+// 基本パーツデータ定義
+const DEFAULT_PARTS = {
+  head: [
+    { name: 'あたま', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
+    { name: 'め', type: '基本', timing: 'ジャッジ', cost: '1', range: '0〜2', memo: '支援1' },
+    { name: 'くち', type: '基本', timing: 'アクション', cost: '0', range: '0', memo: '地獄でのみ使用可。対話判定を行う' }
+  ],
+  arm: [
+    { name: 'うで', type: '基本', timing: 'ジャッジ', cost: '1', range: '0', memo: '妨害1' },
+    { name: 'こぶし', type: '基本', timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1' }
+  ],
+  body: [
+    { name: 'たてまえ', type: '基本', timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1' },
+    { name: 'はらわた', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' }
+  ],
+  leg: [
+    { name: 'あし', type: '基本', timing: 'アクション', cost: '1', range: '自身', memo: '移動1' }
+  ]
+};
+
+// パーツ構造生成
+function renderPartsContainer() {
+  const container = document.getElementById('parts-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const sections = [
+    { id: 'head', title: '頭部', val: '（最大数値：2）' },
+    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
+    { id: 'body', title: '胴部', val: '（最大数値：2）' },
+    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+  ];
+
+  sections.forEach(sec => {
+    const secDiv = document.createElement('div');
+    secDiv.innerHTML = `
+      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:8%">破損</th>
+              <th style="width:20%">パーツ名</th>
+              <th style="width:10%">種別</th>
+              <th style="width:12%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:26%">効果メモ</th>
+              <th style="width:6%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody-${sec.id}"></tbody>
+        </table>
+      </div>
+      <button type="button" class="add-part-select" onclick="addCustomPart('${sec.id}')">+ パーツを追加</button>
+    `;
+    container.appendChild(secDiv);
+
+    // デフォルトパーツ追加
+    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
+    if (DEFAULT_PARTS[sec.id]) {
+      DEFAULT_PARTS[sec.id].forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.timing, p.cost, p.range, p.memo, false);
+      });
+    }
+  });
+}
+
+function addPartRow(tbody, name='', type='基本', timing='オート', cost='無', range='自身', memo='', isCustom=true) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
+    <td><input type="text" class="p-name" value="${name}"></td>
+    <td><input type="text" class="p-type" value="${type}"></td>
+    <td><input type="text" class="p-timing" value="${timing}"></td>
+    <td><input type="text" class="p-cost" value="${cost}"></td>
+    <td><input type="text" class="p-range" value="${range}"></td>
+    <td><textarea class="p-memo" rows="1">${memo}</textarea></td>
+    <td>${isCustom ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addCustomPart(sectionId) {
+  const tbody = document.getElementById(`parts-tbody-${sectionId}`);
+  if (tbody) {
+    addPartRow(tbody, '新規パーツ', '武装', 'アクション', '1', '0', '', true);
+  }
+}
+
+function toggleBroken(chk) {
+  const tr = chk.closest('tr');
+  if (chk.checked) {
+    tr.classList.add('broken');
+  } else {
+    tr.classList.remove('broken');
+  }
+}
+
+function resetUsed() {
+  const checkboxes = document.querySelectorAll('#parts-container input[type="checkbox"]');
+  checkboxes.forEach(chk => {
+    chk.checked = false;
+    toggleBroken(chk);
+  });
+}
 
 function onClassChange() {
   const mc = document.getElementById('mc').value;
@@ -580,8 +687,19 @@ function calcTotals() {
   document.getElementById('total-cyb').textContent = mcVal[2] + scVal[2] + bonusCyb + cCyb;
 }
 
-function resetUsed() {}
-function addRow() {}
+function addRow() {
+  const tbody = document.getElementById('list');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="対象名"></td>
+    <td><input type="text" placeholder="感情"></td>
+    <td><input type="number" value="0" min="0" max="4"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
 function saveData() { alert('保存しました'); }
 function loadData() { alert('読み込みました'); }
 function exportCcfolia() { alert('ココフォリア出力機能'); }
@@ -589,6 +707,7 @@ function exportJSON() { alert('JSON保存機能'); }
 
 // 初期化処理
 window.onload = function() {
+  renderPartsContainer();
   onClassChange();
 };
 </script>
