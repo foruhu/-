@@ -446,11 +446,18 @@ const DEFAULT_PARTS = {
 
 const EXTRA_PARTS_DB = {
   head: [
-    { name: 'スコープ', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '射撃の攻撃判定出目+1' },
-    { name: '角', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1＋切断' },
-    { name: '第三の眼', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜2', memo: '支援2' },
-    { name: 'レーダー', type: '改造', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1、行動判定出目+1' },
-    { name: 'ボイスモジュール', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動1' }
+    { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
+    { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range:'自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
+    { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
+    { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無', range: '自身', memo: '最大行動値+1' }
+    { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' }
+    { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' }
+    { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' }
+    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' }
+    { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' }
+    { name: 'すすりじた', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1。この攻撃で敵のパーツを損傷させた際、自身のはらわたを損傷しているなら、1つだけ損傷前の状態に戻してよい。' }
+    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '1たーんに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' }
   ],
   arm: [
     { name: 'チェーンソウ', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋切断' },
