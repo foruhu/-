@@ -450,13 +450,13 @@ const EXTRA_PARTS_DB = {
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range:'自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
-    { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無', range: '自身', memo: '最大行動値+1' }
-    { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' }
-    { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' }
-    { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' }
-    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' }
-    { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' }
-    { name: 'すすりじた', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1。この攻撃で敵のパーツを損傷させた際、自身のはらわたを損傷しているなら、1つだけ損傷前の状態に戻してよい。' }
+    { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無', range: '自身', memo: '最大行動値+1' },
+    { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' },
+    { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
+    { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' },
+    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' },
+    { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
+    { name: 'すすりじた', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1。この攻撃で敵のパーツを損傷させた際、自身のはらわたを損傷しているなら、1つだけ損傷前の状態に戻してよい。' },
     { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '1たーんに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' }
   ],
   arm: [
@@ -487,7 +487,6 @@ const EXTRA_PARTS_DB = {
   ]
 };
 
-// 強化値に応じたパーツレベルごとの取得上限数テーブル [Lv1上限, Lv2上限, Lv3上限]
 const PART_LIMIT_TABLE = {
   1: [1, 0, 0],
   2: [1, 1, 0],
@@ -561,7 +560,6 @@ function renderPartsContainer() {
   });
 }
 
-// 現在シート上にある指定系統・指定レベルの追加パーツ数をカウントする
 function countExistingParts(categoryType, level) {
   let count = 0;
   const rows = document.querySelectorAll('#parts-container tr');
@@ -591,7 +589,6 @@ function onExtraPartSelect(secId, selectElem) {
     const idx = parseInt(idxStr, 10);
     const p = EXTRA_PARTS_DB[sId][idx];
     if (p) {
-      // 制限チェック
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
       else if (p.type === '変異') categoryKey = 'mut';
@@ -601,7 +598,6 @@ function onExtraPartSelect(secId, selectElem) {
         const totalValElem = document.getElementById(`total-${categoryKey}`);
         const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 1 : 1;
         
-        // 強化値のテーブル上限を取得（テーブル範囲外なら最大値にフォールバック）
         const tableLimits = PART_LIMIT_TABLE[currentTotal] || PART_LIMIT_TABLE[9];
         const maxLimit = tableLimits[p.level - 1] ?? 0;
         const currentCount = countExistingParts(p.type, p.level);
@@ -807,32 +803,41 @@ function calcTotals() {
   const mcVal = CLASS_PARTS[mc] || [0,0,0];
   const scVal = CLASS_PARTS[sc] || [0,0,0];
 
-  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
-  const bonus = document.querySelector('input[name="bonus"]:checked');
-  if (bonus) {
-    if (bonus.value === 'wep') bonusWep = 1;
-    if (bonus.value === 'mut') bonusMut = 1;
-    if (bonus.value === 'cyb') bonusCyb = 1;
+  let wep = mcVal[0] + scVal[0];
+  let mut = mcVal[1] + scVal[1];
+  let cyb = mcVal[2] + scVal[2];
+
+  const bonusRadios = document.getElementsByName('bonus');
+  for (const r of bonusRadios) {
+    if (r.checked) {
+      if (r.value === 'wep') wep += 1;
+      if (r.value === 'mut') mut += 1;
+      if (r.value === 'cyb') cyb += 1;
+    }
   }
 
-  const cWep = parseInt(document.getElementById('chouai-wep').value) || 0;
-  const cMut = parseInt(document.getElementById('chouai-mut').value) || 0;
-  const cCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  document.getElementById('total-wep').textContent = mcVal[0] + scVal[0] + bonusWep + cWep;
-  document.getElementById('total-mut').textContent = mcVal[1] + scVal[1] + bonusMut + cMut;
-  document.getElementById('total-cyb').textContent = mcVal[2] + scVal[2] + bonusCyb + cCyb;
+  wep += chouaiWep;
+  mut += chouaiMut;
+  cyb += chouaiCyb;
+
+  document.getElementById('total-wep').textContent = wep;
+  document.getElementById('total-mut').textContent = mut;
+  document.getElementById('total-cyb').textContent = cyb;
 }
 
-function addRow(target='', emotion='', madness=0) {
+function addRow(target = '', emotion = '', madness = '0') {
   const tbody = document.getElementById('list');
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" placeholder="対象名" value="${target}"></td>
-    <td><input type="text" placeholder="感情" value="${emotion}"></td>
-    <td><input type="number" value="${madness}" min="0" max="4"></td>
-    <td><button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button></td>
+    <td><input type="text" class="tr-target" value="${target}"></td>
+    <td><input type="text" class="tr-emotion" value="${emotion}"></td>
+    <td><input type="text" class="tr-madness" value="${madness}"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
 }
@@ -850,23 +855,20 @@ function saveData() {
     mem: document.getElementById('mem').value,
     act: document.getElementById('act').value,
     fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value,
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
+    tr: document.getElementById('tr').value
   };
-  localStorage.setItem('nechronica_sheet_data', JSON.stringify(data));
-  alert('ブラウザに保存しました');
+  localStorage.setItem('necro_sheet_data', JSON.stringify(data));
+  alert('データをブラウザに保存しました。');
 }
 
 function loadData() {
-  const json = localStorage.getItem('nechronica_sheet_data');
-  if (!json) {
-    alert('保存されたデータが見つかりません');
+  const raw = localStorage.getItem('necro_sheet_data');
+  if (!raw) {
+    alert('保存されたデータが見つかりません。');
     return;
   }
   try {
-    const data = JSON.parse(json);
+    const data = JSON.parse(raw);
     document.getElementById('pl').value = data.pl || '';
     document.getElementById('name').value = data.name || '';
     document.getElementById('pos').value = data.pos || 'アリス';
@@ -879,19 +881,11 @@ function loadData() {
     document.getElementById('act').value = data.act || '9';
     document.getElementById('fav').value = data.fav || '0';
     document.getElementById('tr').value = data.tr || '';
-    document.getElementById('chouai-wep').value = data.chouaiWep || '0';
-    document.getElementById('chouai-mut').value = data.chouaiMut || '0';
-    document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
-    
     onClassChange();
-    alert('データを読み込みました');
+    alert('データを読み込みました。');
   } catch(e) {
-    alert('データの読み込みに失敗しました');
+    alert('データの読み込みに失敗しました。');
   }
-}
-
-function exportCcfolia() {
-  alert('ココフォリア出力機能（必要に応じて拡張できます）');
 }
 
 function exportJSON() {
@@ -900,15 +894,19 @@ function exportJSON() {
     name: document.getElementById('name').value,
     pos: document.getElementById('pos').value,
     mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value,
+    sc: document.getElementById('sc').value
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (data.name || 'nechronica_chara') + '.json';
+  a.download = (data.name || 'necro_doll') + '.json';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function exportCcfolia() {
+  alert('ココフォリア出力機能は現在準備中です。');
 }
 
 window.onload = function() {
