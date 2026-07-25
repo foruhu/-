@@ -459,7 +459,9 @@ const EXTRA_PARTS_DB = {
     { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' },
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
     { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '1ターンに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' },
-    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' }
+    { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
+    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
+    { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
   ],
   arm: [
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
@@ -470,6 +472,7 @@ const EXTRA_PARTS_DB = {
     { name: 'チェーンソー', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2+切断' },
     { name: '大型拳銃', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵2' },
     { name: '狙撃ライフル', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '2〜3', memo: '射撃1、攻撃判定+1' },
+    { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
     { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
     { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
     { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発、攻撃判定+1' },
@@ -484,25 +487,49 @@ const EXTRA_PARTS_DB = {
     { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2', memo: '射撃1+爆発+連撃1' },
     { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃1+爆発+連撃1' },
     { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' },
+    { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
     { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1。' },
+    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
     { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃2。' },
     { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援1。' },
     { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '妨害1。' },
+    { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
+    { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
+    { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
+    { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
+    { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
     { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1', memo: '妨害1＋転倒。' },
+    { name: 'よぷんななめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
+    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1。' },
     { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋切断。' },
+    { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
+    { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
+    { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。' },
+    { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵攻撃2＋連撃1。' },
+    { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3', memo: '射撃攻撃1＋切断。' },
     { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '腕のみ、ダメージに対して常に「防御1」。腕部にある白兵・肉弾攻撃マニューバのダメージ+1。' },
     { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '脚のみ、ダメージに対して常に「防御1」。バトルパートで移動時、白兵・肉弾攻撃マニューバを1つ、「ラピッド」で使用可。' },
+    { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '移動妨害1＋転倒。' },
     { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
-    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援2か妨害2。' }
+    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援2か妨害2。' },
+    { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
+    { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
   ],
   body: [
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
+    { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
     { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' },
+    { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
     { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
+    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
     { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
     { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
@@ -514,6 +541,9 @@ const EXTRA_PARTS_DB = {
     { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
     { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
     { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
+    { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
+    { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
   ]
 };
@@ -618,8 +648,7 @@ function onExtraPartSelect(secId, selectElem) {
   } else {
     const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
-    
+    const p = EXTRA_PARTS_DB[sId][idx];
     if (p) {
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
@@ -628,50 +657,52 @@ function onExtraPartSelect(secId, selectElem) {
 
       if (categoryKey) {
         const totalValElem = document.getElementById(`total-${categoryKey}`);
-        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 0 : 0;
+        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 1 : 1;
+        
+        const tableLimits = PART_LIMIT_TABLE[currentTotal] || PART_LIMIT_TABLE[9];
+        const maxLimit = tableLimits[p.level - 1] ?? 0;
         const currentCount = countExistingParts(p.type, p.level);
 
-        if (currentCount >= currentTotal) {
-          alert(`総計（上限）を超過するため、[${p.type} Lv${p.level}] のパーツを追加できません。`);
+        if (currentCount >= maxLimit) {
+          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
           selectElem.value = '';
           return;
         }
       }
-
       addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
     }
   }
   selectElem.value = '';
 }
 
-function addPartRow(tbody, name, type, level, timing, cost, range, memo, isCustom) {
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable) {
   const tr = document.createElement('tr');
-
-  let typeOptions = '';
-  ['基本', '武装', '変異', '改造'].forEach(t => {
-    typeOptions += `<option ${t === type ? 'selected' : ''}>${t}</option>`;
-  });
-
-  let timingOptions = '';
-  ['オート', 'アクション', 'ラピッド', 'ジャッジ', 'ダメージ', '常時'].forEach(tm => {
-    timingOptions += `<option ${tm === timing ? 'selected' : ''}>${tm}</option>`;
-  });
+  const readOnlyAttr = isEditable ? '' : 'readonly';
+  const disabledAttr = isEditable ? '' : 'disabled';
 
   tr.innerHTML = `
-    <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer"></td>
-    <td><input type="text" class="p-name" value="${name}"></td>
-    <td><select class="p-type" style="padding:2px">${typeOptions}</select></td>
-    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:100%;padding:2px"></td>
-    <td><select class="p-timing" style="padding:2px">${timingOptions}</select></td>
-    <td><input type="text" class="p-cost" value="${cost}"></td>
-    <td><input type="text" class="p-range" value="${range}"></td>
-    <td><textarea class="p-memo" rows="1" style="height:28px">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
+    <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+    <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
+    <td>
+      <select class="p-type" ${disabledAttr}>
+        <option ${type==='基本'?'selected':''}>基本</option>
+        <option ${type==='武装'?'selected':''}>武装</option>
+        <option ${type==='変異'?'selected':''}>変異</option>
+        <option ${type==='改造'?'selected':''}>改造</option>
+      </select>
+    </td>
+    <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
+    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
+    <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
+    <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
+    <td><textarea class="p-memo" ${readOnlyAttr}>${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
   `;
   tbody.appendChild(tr);
+  calcTotals();
 }
 
-function toggleBroken(checkbox) {
+function togglePartBreak(checkbox) {
   const tr = checkbox.closest('tr');
   if (checkbox.checked) {
     tr.classList.add('broken');
@@ -680,13 +711,8 @@ function toggleBroken(checkbox) {
   }
 }
 
-function deleteRow(btn) {
-  const tr = btn.closest('tr');
-  tr.remove();
-}
-
 function resetUsed() {
-  document.querySelectorAll('#parts-container input[type="checkbox"]').forEach(cb => {
+  document.querySelectorAll('#parts-container tr input[type="checkbox"]').forEach(cb => {
     cb.checked = false;
     cb.closest('tr').classList.remove('broken');
   });
@@ -696,113 +722,208 @@ function onClassChange() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
 
-  const mcP = CLASS_PARTS[mc] || [0,0,0];
-  const scP = CLASS_PARTS[sc] || [0,0,0];
+  const mcParts = CLASS_PARTS[mc] || [0,0,2];
+  const scParts = CLASS_PARTS[sc] || [0,0,2];
 
-  document.getElementById('mc-wep').textContent = mcP[0];
-  document.getElementById('mc-mut').textContent = mcP[1];
-  document.getElementById('mc-cyb').textContent = mcP[2];
+  document.getElementById('mc-wep').textContent = mcParts[0];
+  document.getElementById('mc-mut').textContent = mcParts[1];
+  document.getElementById('mc-cyb').textContent = mcParts[2];
 
-  document.getElementById('sc-wep').textContent = scP[0];
-  document.getElementById('sc-mut').textContent = scP[1];
-  document.getElementById('sc-cyb').textContent = scP[2];
+  document.getElementById('sc-wep').textContent = scParts[0];
+  document.getElementById('sc-mut').textContent = scParts[1];
+  document.getElementById('sc-cyb').textContent = scParts[2];
 
   calcTotals();
 }
 
 function calcTotals() {
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const mcP = CLASS_PARTS[mc] || [0,0,0];
-  const scP = CLASS_PARTS[sc] || [0,0,0];
+  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
+  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
+  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
 
-  let wep = mcP[0] + scP[0];
-  let mut = mcP[1] + scP[1];
-  let cyb = mcP[2] + scP[2];
+  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
 
-  const bonusElem = document.querySelector('input[name="bonus"]:checked');
-  if (bonusElem) {
-    if (bonusElem.value === 'wep') wep += 1;
-    if (bonusElem.value === 'mut') mut += 1;
-    if (bonusElem.value === 'cyb') cyb += 1;
+  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
+  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
+  if (bonusSelected) {
+    if (bonusSelected.value === 'wep') bonusWep = 1;
+    else if (bonusSelected.value === 'mut') bonusMut = 1;
+    else if (bonusSelected.value === 'cyb') bonusCyb = 1;
   }
 
-  wep += parseInt(document.getElementById('chouai-wep').value, 10) || 0;
-  mut += parseInt(document.getElementById('chouai-mut').value, 10) || 0;
-  cyb += parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  document.getElementById('total-wep').textContent = wep;
-  document.getElementById('total-mut').textContent = mut;
-  document.getElementById('total-cyb').textContent = cyb;
+  const totalWep = mcWep + scWep + bonusWep + chouaiWep;
+  const totalMut = mcMut + scMut + bonusMut + chouaiMut;
+  const totalCyb = mcCyb + scCyb + bonusCyb + chouaiCyb;
+
+  document.getElementById('total-wep').textContent = totalWep;
+  document.getElementById('total-mut').textContent = totalMut;
+  document.getElementById('total-cyb').textContent = totalCyb;
 }
 
-function addSkillRow(type, name, memo) {
+function addRow() {
+  const tbody = document.getElementById('list');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="0" min="0"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addSkillRow(category, skillName = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
+  
+  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+  if (SKILL_DATABASE[category]) {
+    SKILL_DATABASE[category].forEach(s => {
+      const selected = (s.name === skillName) ? 'selected' : '';
+      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
+    });
+  }
 
   tr.innerHTML = `
-    <td><input type="text" class="s-type" value="${type}"></td>
-    <td><input type="text" class="s-name" value="${name}"></td>
-    <td><textarea class="s-memo" rows="1" style="height:28px">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
+    <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
+    <td>
+      <select onchange="onSkillSelect(this)">
+        ${optionsHtml}
+      </select>
+    </td>
+    <td><textarea style="height:38px;">${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
   `;
   tbody.appendChild(tr);
 }
 
 function addPosSkillRow() {
   const pos = document.getElementById('pos').value;
-  const list = SKILL_DATABASE[pos] || [];
-  const s = list[0] || { name: '', memo: '' };
-  addSkillRow('ポジション', s.name, s.memo);
+  addSkillRow(pos);
 }
 
 function addMcSkillRow() {
   const mc = document.getElementById('mc').value;
-  const list = SKILL_DATABASE[mc] || [];
-  const s = list[0] || { name: '', memo: '' };
-  addSkillRow('メイン', s.name, s.memo);
+  addSkillRow(mc);
 }
 
 function addScSkillRow() {
   const sc = document.getElementById('sc').value;
-  const list = SKILL_DATABASE[sc] || [];
-  const s = list[0] || { name: '', memo: '' };
-  addSkillRow('サブ', s.name, s.memo);
+  addSkillRow(sc);
 }
 
-function addRow() {
-  const tbody = document.getElementById('list');
-  const tr = document.createElement('tr');
+function onSkillSelect(selectElem) {
+  const skillName = selectElem.value;
+  const tr = selectElem.closest('tr');
+  const categoryInput = tr.querySelector('input');
+  const textarea = tr.querySelector('textarea');
 
-  tr.innerHTML = `
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td><input type="number" value="0" min="0"></td>
-    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
-  `;
-  tbody.appendChild(tr);
+  if (!skillName) {
+    textarea.value = '';
+    return;
+  }
+
+  const category = categoryInput.value;
+  if (SKILL_DATABASE[category]) {
+    const found = SKILL_DATABASE[category].find(s => s.name === skillName);
+    if (found) {
+      textarea.value = found.memo;
+    }
+  }
 }
 
 function saveData() {
-  alert('保存機能は準備中です');
+  const data = {
+    pl: document.getElementById('pl').value,
+    name: document.getElementById('name').value,
+    pos: document.getElementById('pos').value,
+    mc: document.getElementById('mc').value,
+    sc: document.getElementById('sc').value,
+    age: document.getElementById('age').value,
+    ps: document.getElementById('ps').value,
+    hint: document.getElementById('hint').value,
+    mem: document.getElementById('mem').value,
+    act: document.getElementById('act').value,
+    fav: document.getElementById('fav').value,
+    tr: document.getElementById('tr').value,
+    chouaiWep: document.getElementById('chouai-wep').value,
+    chouaiMut: document.getElementById('chouai-mut').value,
+    chouaiCyb: document.getElementById('chouai-cyb').value,
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
+  };
+  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました');
 }
 
 function loadData() {
-  alert('読込機能は準備中です');
-}
+  const json = localStorage.getItem('necro_sheet');
+  if (!json) {
+    alert('保存されたデータがありません');
+    return;
+  }
+  const data = JSON.parse(json);
+  document.getElementById('pl').value = data.pl || '';
+  document.getElementById('name').value = data.name || '';
+  document.getElementById('pos').value = data.pos || 'アリス';
+  document.getElementById('mc').value = data.mc || 'ロマネスク';
+  document.getElementById('sc').value = data.sc || 'ロマネスク';
+  document.getElementById('age').value = data.age || '';
+  document.getElementById('ps').value = data.ps || '煉獄';
+  document.getElementById('hint').value = data.hint || '';
+  document.getElementById('mem').value = data.mem || '';
+  document.getElementById('act').value = data.act || '9';
+  document.getElementById('fav').value = data.fav || '0';
+  document.getElementById('tr').value = data.tr || '';
+  document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+  document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+  document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
+  
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
 
-function exportCcfolia() {
-  alert('ココフォリア出力は準備中です');
+  onClassChange();
+  alert('データを読み込みました');
 }
 
 function exportJSON() {
-  alert('JSON保存は準備中です');
+  const data = {
+    pl: document.getElementById('pl').value,
+    name: document.getElementById('name').value,
+    pos: document.getElementById('pos').value,
+    mc: document.getElementById('mc').value,
+    sc: document.getElementById('sc').value
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (data.name || 'necro_character') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCcfolia() {
+  const name = document.getElementById('name').value || '無名のエトランゼ';
+  const pl = document.getElementById('pl').value || '';
+  const text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${document.getElementById('pos').value}\n【メインクラス】${document.getElementById('mc').value}\n【サブクラス】${document.getElementById('sc').value}`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました');
+  }).catch(err => {
+    alert('コピーに失敗しました: ' + err);
+  });
 }
 
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  addRow();
 };
 </script>
 </body>
