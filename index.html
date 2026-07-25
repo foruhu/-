@@ -648,7 +648,9 @@ function onExtraPartSelect(secId, selectElem) {
   } else {
     const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId][idx];
+    // どの部位のデータベースから選ばれたかも取得する
+    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
+    
     if (p) {
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
@@ -664,11 +666,14 @@ function onExtraPartSelect(secId, selectElem) {
         const currentCount = countExistingParts(p.type, p.level);
 
         if (currentCount >= maxLimit) {
-          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
+          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n（現在の総計上限: ${currentTotal}）`);
           selectElem.value = '';
           return;
         }
       }
+    }
+
+    if (p) {
       addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
     }
   }
