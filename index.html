@@ -635,11 +635,21 @@ function updateSkillRowsFromClass() {
   const classCategories = Array.from(new Set([mc, sc]));
 
   for (let i = 1; i < rows.length; i++) {
-    const typeInput = rows[i].querySelector('.sk-type');
+    const typeSelect = rows[i].querySelector('.sk-type');
     const selectElem = rows[i].querySelector('.sk-select');
-    if (typeInput) {
-      if (!classCategories.includes(typeInput.value)) {
-        typeInput.value = mc;
+    if (typeSelect && typeSelect.tagName === 'SELECT') {
+      const currentType = typeSelect.value;
+      typeSelect.innerHTML = '';
+      classCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        typeSelect.appendChild(opt);
+      });
+      if (classCategories.includes(currentType)) {
+        typeSelect.value = currentType;
+      } else {
+        typeSelect.value = mc;
       }
       updateSkillSelectOptions(selectElem, classCategories);
     }
@@ -700,13 +710,18 @@ function addClassSkillRow(type='', memo='', isRemovable=true) {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
   const displayType = type || mc;
+  const classCategories = Array.from(new Set([mc, sc]));
+
+  let optionsHtml = '';
+  classCategories.forEach(cat => {
+    optionsHtml += `<option value="${cat}">${cat}</option>`;
+  });
 
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>
       <select class="sk-type" onchange="onClassTypeChange(this)" style="background:#222228;color:#fff;">
-        <option value="${mc}">${mc}</option>
-        <option value="${sc}">${sc}</option>
+        ${optionsHtml}
       </select>
     </td>
     <td>
@@ -719,7 +734,6 @@ function addClassSkillRow(type='', memo='', isRemovable=true) {
   `;
   tbody.appendChild(tr);
 
-  const classCategories = Array.from(new Set([mc, sc]));
   const typeSelect = tr.querySelector('.sk-type');
   if (typeSelect && classCategories.includes(displayType)) {
     typeSelect.value = displayType;
