@@ -295,6 +295,55 @@ tr.broken input {
 </div>
 
 <script>
+// ポジションやクラスが変更されたときに、「区分」の選択肢を更新する関数
+function updateSkillCategoryOptions() {
+  // 1. ポジション、メインクラス、サブクラスの要素を取得
+  const posElem = document.getElementById('position-select');
+  const mainElem = document.getElementById('main-class-select');
+  const subElem = document.getElementById('sub-class-select');
+
+  if (!posElem || !mainElem || !subElem) return;
+
+  // 2. 現在選択されている値を取得
+  const position = posElem.value;
+  const mainClass = mainElem.value;
+  const subClass = subElem.value;
+
+  // 3. 区分として表示させたい選択肢のリストを作る
+  const categories = [];
+  if (position) categories.push(position);
+  if (mainClass) categories.push(mainClass);
+  // サブクラスがメインクラスと被っていない場合のみ追加
+  if (subClass && subClass !== mainClass) categories.push(subClass);
+  
+  // 必要に応じて共通枠も追加
+  categories.push("全ポジション共通", "全クラス共通");
+
+  // 4. スキル欄にあるすべての「区分」プルダウンを取得
+  const categorySelects = document.querySelectorAll('.skill-category-select');
+
+  categorySelects.forEach(select => {
+    // 修正前にユーザーが選んでいた区分（もしあれば）を記憶しておく
+    const selectedValue = select.value;
+
+    // 一旦プルダウンの中身をクリアして「区分を選択」を先頭に入れる
+    select.innerHTML = '<option value="">区分を選択</option>';
+
+    // 作成したカテゴリー（ポジション名・クラス名）を<option>として追加
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      select.appendChild(option);
+    });
+
+    // もし元々選んでいた値が新しい選択肢の中にもあれば、それを選択状態に戻す
+    if (categories.includes(selectedValue)) {
+      select.value = selectedValue;
+    }
+  });
+}
+
 // スキル辞書データ
 const SKILL_DATABASE = {
   'アリス': [
