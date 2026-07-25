@@ -427,19 +427,25 @@ const CLASS_PARTS = {
 const DEFAULT_PARTS = {
   head: [
     { name: 'あたま', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
-    { name: 'め', type: '基本', timing: 'ジャッジ', cost: '1', range: '0〜2', memo: '支援1' },
-    { name: 'くち', type: '基本', timing: 'アクション', cost: '0', range: '0', memo: '地獄でのみ使用可。対話判定を行う' }
+    { name: 'めだま', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大限行動値+2' },
+    { name: 'あご', type: '基本', timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' }
   ],
   arm: [
-    { name: 'うで', type: '基本', timing: 'ジャッジ', cost: '1', range: '0', memo: '妨害1' },
     { name: 'こぶし', type: '基本', timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' }
+    { name: 'うで', type: '基本', timing: 'ジャッジ', cost: '1', range: '0', memo: '支援1' },
+    { name: 'かた', type: '基本', timing: 'アクション', cost: '4', range: '自身', memo: '移動1' }
   ],
   body: [
-    { name: 'たてまえ', type: '基本', timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1' },
-    { name: 'はらわた', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' }
+    { name: 'せぼね', type: '基本', timing: 'アクション', cost: '1', range: '自身', memo: '同ターン内の次カウントで使う。マニューバ1つのカウント-1(最低0)' },
+    { name: 'はらわた', type: '基本', timing: 'オート', cost: '無', range: '無', memo: 'なし' }
+    { name: 'はらわた', type: '基本', timing: 'オート', cost: '無', range: '無', memo: 'なし' }
   ],
   leg: [
-    { name: 'あし', type: '基本', timing: 'アクション', cost: '1', range: '自身', memo: '移動1' }
+    { name: 'ほね', type: '基本', timing: 'アクション', cost: '3', range: '自身', memo: '移動1' }
+    { name: 'ほね', type: '基本', timing: 'アクション', cost: '3', range: '自身', memo: '移動1' }
+    { name: 'あし', type: '基本', timing: 'ジャッジ', cost: '1', range: '0', memo: '妨害1' }
+  ]
+  ]
   ]
 };
 
