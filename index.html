@@ -398,7 +398,7 @@ function onClassChange() {
 }
 
 // --------------------------------------------------
-// ポジション・クラス変更時に「区分（名前のみ）」と「選択肢」を更新
+// ポジション・クラス変更時に「区分（名前のみ・固定表示）」と「選択肢」を更新
 // --------------------------------------------------
 function updateSkillRowsFromClass() {
   const pos = document.getElementById('pos').value;
@@ -430,7 +430,7 @@ function updateSkillRowsFromClass() {
 
   for (let i = 1; i < rows.length; i++) {
     const typeInput = rows[i].querySelector('.sk-type');
-    if (typeInput && !typeInput.dataset.manual) {
+    if (typeInput) {
       if (i === 1 || i === 2) typeInput.value = mc; // メインクラス枠（2つ）
       else if (i === 3) typeInput.value = sc;       // サブクラス枠
       else typeInput.value = mc;
@@ -497,7 +497,7 @@ function addClassSkillRow(type='', name='', memo='') {
 
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${displayType}" placeholder="区分" oninput="this.dataset.manual='true'"></td>
+    <td><input type="text" class="sk-type" value="${displayType}" readonly style="background:#151518;color:#aaa;"></td>
     <td>
       <select class="sk-select" onchange="onSkillSelectChange(this)">
         <option value="">-- スキルを選択 --</option>
