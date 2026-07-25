@@ -240,17 +240,23 @@ tr.broken input, tr.broken textarea {
 <div class="card">
   <div class="title">習得スキル</div>
   <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:20%">区分</th>
-          <th style="width:30%">スキル選択</th>
-          <th style="width:42%">効果メモ・注記</th>
-          <th style="width:8%">操作</th>
-        </tr>
-      </thead>
-      <tbody id="skill-tbody"></tbody>
-    </table>
+    <table class="sheet-table">
+  <thead>
+    <tr>
+      <th style="width:20%;">区分</th>
+      <th style="width:30%;">スキル名</th>
+      <th>効果メモ</th>
+      <th style="width:10%;">操作</th>
+    </tr>
+  </thead>
+  <tbody id="skill-tbody">
+    <!-- 配置パーツ側と合わせて、削除ボタンのクラスを class="del" / 表記を「削」に統一 -->
+  </tbody>
+</table>
+<div style="margin-top: 8px;">
+  <button type="button" class="btn-add" onclick="addClassSkillRow()">+ クラススキル枠を追加</button>
+</div>
+
   </div>
   <button type="button" class="sec" onclick="addClassSkillRow()" style="width:100%;margin-top:4px;padding:4px">+ クラススキル枠を追加</button>
 </div>
