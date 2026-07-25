@@ -619,9 +619,9 @@ function updateSkillRowsFromClass() {
 
   if (tbody.children.length === 0) {
     addPosSkillRow('', '', false);      
-    addClassSkillRow('', '', false);    
-    addClassSkillRow('', '', false);    
-    addClassSkillRow('', '', false);    
+    addClassSkillRow('mc', '', '', false);    
+    addClassSkillRow('mc', '', '', false);    
+    addClassSkillRow('sc', '', '', false);    
   }
 
   const rows = tbody.querySelectorAll('tr');
@@ -632,26 +632,14 @@ function updateSkillRowsFromClass() {
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
-  const classCategories = Array.from(new Set([mc, sc]));
-
   for (let i = 1; i < rows.length; i++) {
     const typeSelect = rows[i].querySelector('.sk-type');
     const selectElem = rows[i].querySelector('.sk-select');
     if (typeSelect && typeSelect.tagName === 'SELECT') {
-      const currentType = typeSelect.value;
-      typeSelect.innerHTML = '';
-      classCategories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        typeSelect.appendChild(opt);
-      });
-      if (classCategories.includes(currentType)) {
-        typeSelect.value = currentType;
-      } else {
-        typeSelect.value = mc;
-      }
-      updateSkillSelectOptions(selectElem, classCategories);
+      const skillRole = typeSelect.getAttribute('data-role');
+      const targetClass = (skillRole === 'sc') ? sc : mc;
+      typeSelect.value = targetClass;
+      updateSkillSelectOptions(selectElem, [targetClass]);
     }
   }
 }
@@ -704,25 +692,18 @@ function addPosSkillRow(type='', memo='', isRemovable=true) {
   updateSkillSelectOptions(tr.querySelector('.sk-select'), [pos]);
 }
 
-function addClassSkillRow(type='', memo='', isRemovable=true) {
+function addClassSkillRow(role = 'mc', type='', memo='', isRemovable=true) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
-  const displayType = type || mc;
-  const classCategories = Array.from(new Set([mc, sc]));
-
-  let optionsHtml = '';
-  classCategories.forEach(cat => {
-    optionsHtml += `<option value="${cat}">${cat}</option>`;
-  });
+  const targetClass = (role === 'sc') ? sc : mc;
+  const displayType = type || targetClass;
 
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>
-      <select class="sk-type" onchange="onClassTypeChange(this)" style="background:#222228;color:#fff;">
-        ${optionsHtml}
-      </select>
+      <input type="text" class="sk-type" data-role="${role}" value="${displayType}" readonly style="background:#151518;color:#aaa;">
     </td>
     <td>
       <select class="sk-select" onchange="onSkillSelectChange(this)">
@@ -733,22 +714,15 @@ function addClassSkillRow(type='', memo='', isRemovable=true) {
     <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
-
-  const typeSelect = tr.querySelector('.sk-type');
-  if (typeSelect && classCategories.includes(displayType)) {
-    typeSelect.value = displayType;
-  }
-  updateSkillSelectOptions(tr.querySelector('.sk-select'), classCategories);
+  updateSkillSelectOptions(tr.querySelector('.sk-select'), [targetClass]);
 }
 
-function onClassTypeChange(selectElem) {
-  const tr = selectElem.closest('tr');
-  const selectElemSkill = tr.querySelector('.sk-select');
-  if (selectElemSkill) {
-    selectElemSkill.value = '';
-    const memoTextarea = tr.querySelector('.sk-memo');
-    if (memoTextarea) memoTextarea.value = '';
-  }
+function addMcSkillRow() {
+  addClassSkillRow('mc', '', '', true);
+}
+
+function addScSkillRow() {
+  addClassSkillRow('sc', '', '', true);
 }
 
 function onSkillSelectChange(selectElem) {
@@ -758,11 +732,7 @@ function onSkillSelectChange(selectElem) {
     const data = JSON.parse(selectElem.value);
     const typeInput = tr.querySelector('.sk-type');
     if (typeInput) {
-      if (typeInput.tagName === 'SELECT') {
-        typeInput.value = data.cat;
-      } else {
-        typeInput.value = data.cat;
-      }
+      typeInput.value = data.cat;
     }
     
     const memoTextarea = tr.querySelector('.sk-memo');
