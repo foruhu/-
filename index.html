@@ -250,9 +250,10 @@ tr.broken input, tr.broken textarea {
       <tbody id="skill-tbody"></tbody>
     </table>
   </div>
-  <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-    <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジションスキル枠を追加</button>
-    <button type="button" class="sec" onclick="addClassSkillRow()" style="width:100%;padding:6px">+ クラススキル枠を追加</button>
+  <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+    <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジション</button>
+    <button type="button" class="sec" onclick="addMcSkillRow()" style="width:100%;padding:6px">+ メインクラス</button>
+    <button type="button" class="sec" onclick="addScSkillRow()" style="width:100%;padding:6px">+ サブクラス</button>
   </div>
 </div>
 
@@ -633,12 +634,12 @@ function updateSkillRowsFromClass() {
   }
 
   for (let i = 1; i < rows.length; i++) {
-    const typeSelect = rows[i].querySelector('.sk-type');
+    const typeInput = rows[i].querySelector('.sk-type');
     const selectElem = rows[i].querySelector('.sk-select');
-    if (typeSelect && typeSelect.tagName === 'SELECT') {
-      const skillRole = typeSelect.getAttribute('data-role');
-      const targetClass = (skillRole === 'sc') ? sc : mc;
-      typeSelect.value = targetClass;
+    if (typeInput) {
+      const role = typeInput.getAttribute('data-role');
+      const targetClass = (role === 'sc') ? sc : mc;
+      typeInput.value = targetClass;
       updateSkillSelectOptions(selectElem, [targetClass]);
     }
   }
