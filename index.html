@@ -243,9 +243,8 @@ tr.broken input {
       <thead>
         <tr>
           <th style="width:25%">区分</th>
-          <th style="width:25%">スキル選択</th>
-          <th style="width:20%">スキル名</th>
-          <th style="width:22%">効果メモ・注記</th>
+          <th style="width:35%">スキル選択</th>
+          <th style="width:32%">効果メモ・注記</th>
           <th style="width:8%">操作</th>
         </tr>
       </thead>
@@ -397,9 +396,6 @@ function onClassChange() {
   updateSkillRowsFromClass();
 }
 
-// --------------------------------------------------
-// ポジション・クラス変更時に「区分（名前のみ・固定表示）」と「選択肢」を更新
-// --------------------------------------------------
 function updateSkillRowsFromClass() {
   const pos = document.getElementById('pos').value;
   const mc = document.getElementById('mc').value;
@@ -408,31 +404,28 @@ function updateSkillRowsFromClass() {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
 
-  // 初期化（ポジション1つ、メインクラス2つ、サブクラス1つ＝計4つ）
   if (tbody.children.length === 0) {
-    addPosSkillRow();       // ポジション枠
-    addClassSkillRow();    // メインクラス枠1
-    addClassSkillRow();    // メインクラス枠2
-    addClassSkillRow();    // サブクラス枠
+    addPosSkillRow();       
+    addClassSkillRow();    
+    addClassSkillRow();    
+    addClassSkillRow();    
   }
 
   const rows = tbody.querySelectorAll('tr');
 
-  // 【ポジション枠の更新】
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
     if (typeInput) typeInput.value = pos;
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
-  // 【クラス枠の更新】
   const classCategories = Array.from(new Set([mc, sc]));
 
   for (let i = 1; i < rows.length; i++) {
     const typeInput = rows[i].querySelector('.sk-type');
     if (typeInput) {
-      if (i === 1 || i === 2) typeInput.value = mc; // メインクラス枠（2つ）
-      else if (i === 3) typeInput.value = sc;       // サブクラス枠
+      if (i === 1 || i === 2) typeInput.value = mc;
+      else if (i === 3) typeInput.value = sc;
       else typeInput.value = mc;
     }
     updateSkillSelectOptions(rows[i].querySelector('.sk-select'), classCategories);
@@ -467,7 +460,7 @@ function updateSkillSelectOptions(selectElem, categories) {
   }
 }
 
-function addPosSkillRow(type='', name='', memo='') {
+function addPosSkillRow(type='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const pos = document.getElementById('pos').value;
@@ -480,7 +473,6 @@ function addPosSkillRow(type='', name='', memo='') {
         <option value="">-- スキルを選択 --</option>
       </select>
     </td>
-    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
     <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
     <td style="color:#666;font-size:.75rem;">固定</td>
   `;
@@ -488,7 +480,7 @@ function addPosSkillRow(type='', name='', memo='') {
   updateSkillSelectOptions(tr.querySelector('.sk-select'), [pos]);
 }
 
-function addClassSkillRow(type='', name='', memo='') {
+function addClassSkillRow(type='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const mc = document.getElementById('mc').value;
@@ -503,7 +495,6 @@ function addClassSkillRow(type='', name='', memo='') {
         <option value="">-- スキルを選択 --</option>
       </select>
     </td>
-    <td><input type="text" class="sk-name" value="${name}" placeholder="スキル名"></td>
     <td><input type="text" class="sk-memo" value="${memo}" placeholder="効果メモ"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
   `;
@@ -517,7 +508,6 @@ function onSkillSelectChange(selectElem) {
   if (!selectElem.value) return;
   try {
     const data = JSON.parse(selectElem.value);
-    if (tr.querySelector('.sk-name')) tr.querySelector('.sk-name').value = data.name;
     if (tr.querySelector('.sk-memo')) tr.querySelector('.sk-memo').value = data.memo;
   } catch(e) {}
 }
