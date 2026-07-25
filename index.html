@@ -591,39 +591,19 @@ function renderPartsContainer() {
   });
 }
 
-function addPartRow(tbody, name, type, level, timing, cost, range, memo, isCustom, broken = false) {
-  const tr = document.createElement('tr');
-  if (broken) tr.className = 'broken';
-
-  tr.innerHTML = `
-    <td><input type="checkbox" ${broken ? 'checked' : ''} onchange="toggleBroken(this)"></td>
-    <td><input type="text" value="${name}" class="p-name"></td>
-    <td>
-      <select class="p-type" onchange="calcTotals()">
-        <option ${type === '基本' ? 'selected' : ''}>基本</option>
-        <option ${type === '武装' ? 'selected' : ''}>武装</option>
-        <option ${type === '変異' ? 'selected' : ''}>変異</option>
-        <option ${type === '改造' ? 'selected' : ''}>改造</option>
-      </select>
-    </td>
-    <td><input type="number" value="${level}" min="1" max="3" class="p-level" style="width:40px;text-align:center" onchange="calcTotals()"></td>
-    <td><input type="text" value="${timing}"></td>
-    <td><input type="text" value="${cost}"></td>
-    <td><input type="text" value="${range}"></td>
-    <td><textarea rows="1">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">削除</button></td>
-  `;
-  tbody.appendChild(tr);
-  calcTotals();
-}
-
-function toggleBroken(checkbox) {
-  const tr = checkbox.closest('tr');
-  if (checkbox.checked) {
-    tr.classList.add('broken');
-  } else {
-    tr.classList.remove('broken');
-  }
+function countExistingParts(categoryType, level) {
+  let count = 0;
+  const rows = document.querySelectorAll('#parts-container tr');
+  rows.forEach(tr => {
+    const typeInput = tr.querySelector('.p-type');
+    const lvInput = tr.querySelector('.p-level');
+    if (typeInput && lvInput) {
+      if (typeInput.value === categoryType && parseInt(lvInput.value, 10) === level) {
+        count++;
+      }
+    }
+  });
+  return count;
 }
 
 function onExtraPartSelect(secId, selectElem) {
@@ -641,26 +621,91 @@ function onExtraPartSelect(secId, selectElem) {
     const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
     
     if (p) {
+      let categoryKey = '';
+      if (p.type === '武装') categoryKey = 'wep';
+      else if (p.type === '変異') categoryKey = 'mut';
+      else if (p.type === '改造') categoryKey = 'cyb';
+
+      if (categoryKey) {
+        const totalValElem = document.getElementById(`total-${categoryKey}`);
+        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 0 : 0;
+        const currentCount = countExistingParts(p.type, p.level);
+
+        if (currentCount >= currentTotal) {
+          alert(`総計（上限）を超過するため、[${p.type} Lv${p.level}] のパーツを追加できません。`);
+          selectElem.value = '';
+          return;
+        }
+      }
+
       addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
     }
   }
   selectElem.value = '';
 }
 
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isCustom) {
+  const tr = document.createElement('tr');
+
+  let typeOptions = '';
+  ['基本', '武装', '変異', '改造'].forEach(t => {
+    typeOptions += `<option ${t === type ? 'selected' : ''}>${t}</option>`;
+  });
+
+  let timingOptions = '';
+  ['オート', 'アクション', 'ラピッド', 'ジャッジ', 'ダメージ', '常時'].forEach(tm => {
+    timingOptions += `<option ${tm === timing ? 'selected' : ''}>${tm}</option>`;
+  });
+
+  tr.innerHTML = `
+    <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer"></td>
+    <td><input type="text" class="p-name" value="${name}"></td>
+    <td><select class="p-type" style="padding:2px">${typeOptions}</select></td>
+    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:100%;padding:2px"></td>
+    <td><select class="p-timing" style="padding:2px">${timingOptions}</select></td>
+    <td><input type="text" class="p-cost" value="${cost}"></td>
+    <td><input type="text" class="p-range" value="${range}"></td>
+    <td><textarea class="p-memo" rows="1" style="height:28px">${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function toggleBroken(checkbox) {
+  const tr = checkbox.closest('tr');
+  if (checkbox.checked) {
+    tr.classList.add('broken');
+  } else {
+    tr.classList.remove('broken');
+  }
+}
+
+function deleteRow(btn) {
+  const tr = btn.closest('tr');
+  tr.remove();
+}
+
+function resetUsed() {
+  document.querySelectorAll('#parts-container input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('tr').classList.remove('broken');
+  });
+}
+
 function onClassChange() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
 
-  const mcVal = CLASS_PARTS[mc] || [0,0,2];
-  const scVal = CLASS_PARTS[sc] || [0,0,2];
+  const mcP = CLASS_PARTS[mc] || [0,0,0];
+  const scP = CLASS_PARTS[sc] || [0,0,0];
 
-  document.getElementById('mc-wep').innerText = mcVal[0];
-  document.getElementById('mc-mut').innerText = mcVal[1];
-  document.getElementById('mc-cyb').innerText = mcVal[2];
+  document.getElementById('mc-wep').textContent = mcP[0];
+  document.getElementById('mc-mut').textContent = mcP[1];
+  document.getElementById('mc-cyb').textContent = mcP[2];
 
-  document.getElementById('sc-wep').innerText = scVal[0];
-  document.getElementById('sc-mut').innerText = scVal[1];
-  document.getElementById('sc-cyb').innerText = scVal[2];
+  document.getElementById('sc-wep').textContent = scP[0];
+  document.getElementById('sc-mut').textContent = scP[1];
+  document.getElementById('sc-cyb').textContent = scP[2];
 
   calcTotals();
 }
@@ -668,93 +713,96 @@ function onClassChange() {
 function calcTotals() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
-  const mcVal = CLASS_PARTS[mc] || [0,0,2];
-  const scVal = CLASS_PARTS[sc] || [0,0,2];
+  const mcP = CLASS_PARTS[mc] || [0,0,0];
+  const scP = CLASS_PARTS[sc] || [0,0,0];
 
-  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
-  const bonusRadio = document.querySelector('input[name="bonus"]:checked');
-  if (bonusRadio) {
-    if (bonusRadio.value === 'wep') bonusWep = 1;
-    if (bonusRadio.value === 'mut') bonusMut = 1;
-    if (bonusRadio.value === 'cyb') bonusCyb = 1;
+  let wep = mcP[0] + scP[0];
+  let mut = mcP[1] + scP[1];
+  let cyb = mcP[2] + scP[2];
+
+  const bonusElem = document.querySelector('input[name="bonus"]:checked');
+  if (bonusElem) {
+    if (bonusElem.value === 'wep') wep += 1;
+    if (bonusElem.value === 'mut') mut += 1;
+    if (bonusElem.value === 'cyb') cyb += 1;
   }
 
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
+  wep += parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  mut += parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  cyb += parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  const totalWep = mcVal[0] + scVal[0] + bonusWep + chouaiWep;
-  const totalMut = mcVal[1] + scVal[1] + bonusMut + chouaiMut;
-  const totalCyb = mcVal[2] + scVal[2] + bonusCyb + chouaiCyb;
-
-  document.getElementById('total-wep').innerText = totalWep;
-  document.getElementById('total-mut').innerText = totalMut;
-  document.getElementById('total-cyb').innerText = totalCyb;
+  document.getElementById('total-wep').textContent = wep;
+  document.getElementById('total-mut').textContent = mut;
+  document.getElementById('total-cyb').textContent = cyb;
 }
 
-function resetUsed() {
-  document.querySelectorAll('tr.broken input[type="checkbox"]').forEach(cb => {
-    cb.checked = false;
-    cb.closest('tr').classList.remove('broken');
-  });
-}
-
-function addSkillRow(group, name = '', memo = '') {
+function addSkillRow(type, name, memo) {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
+
   tr.innerHTML = `
-    <td><input type="text" value="${group}" class="s-group" readonly style="background:#18181c;border:none"></td>
-    <td><input type="text" value="${name}" class="s-name"></td>
-    <td><textarea rows="1" class="s-memo">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+    <td><input type="text" class="s-type" value="${type}"></td>
+    <td><input type="text" class="s-name" value="${name}"></td>
+    <td><textarea class="s-memo" rows="1" style="height:28px">${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
   `;
   tbody.appendChild(tr);
 }
 
 function addPosSkillRow() {
   const pos = document.getElementById('pos').value;
-  addSkillRow(pos);
-}
-function addMcSkillRow() {
-  const mc = document.getElementById('mc').value;
-  addSkillRow(mc);
-}
-function addScSkillRow() {
-  const sc = document.getElementById('sc').value;
-  addSkillRow(sc);
+  const list = SKILL_DATABASE[pos] || [];
+  const s = list[0] || { name: '', memo: '' };
+  addSkillRow('ポジション', s.name, s.memo);
 }
 
-function addRow(target = '', emotion = '', madness = '0') {
+function addMcSkillRow() {
+  const mc = document.getElementById('mc').value;
+  const list = SKILL_DATABASE[mc] || [];
+  const s = list[0] || { name: '', memo: '' };
+  addSkillRow('メイン', s.name, s.memo);
+}
+
+function addScSkillRow() {
+  const sc = document.getElementById('sc').value;
+  const list = SKILL_DATABASE[sc] || [];
+  const s = list[0] || { name: '', memo: '' };
+  addSkillRow('サブ', s.name, s.memo);
+}
+
+function addRow() {
   const tbody = document.getElementById('list');
   const tr = document.createElement('tr');
+
   tr.innerHTML = `
-    <td><input type="text" value="${target}"></td>
-    <td><input type="text" value="${emotion}"></td>
-    <td><input type="text" value="${madness}"></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="0" min="0"></td>
+    <td><button type="button" class="del" onclick="deleteRow(this)">削除</button></td>
   `;
   tbody.appendChild(tr);
 }
 
 function saveData() {
-  alert('ブラウザへの保存機能です。');
-}
-function loadData() {
-  alert('データの読み込み機能です。');
-}
-function exportCcfolia() {
-  alert('ココフォリア出力機能です。');
-}
-function exportJSON() {
-  alert('JSON保存機能です。');
+  alert('保存機能は準備中です');
 }
 
-// 初期化実行
+function loadData() {
+  alert('読込機能は準備中です');
+}
+
+function exportCcfolia() {
+  alert('ココフォリア出力は準備中です');
+}
+
+function exportJSON() {
+  alert('JSON保存は準備中です');
+}
+
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  addRow('', '', '0');
-  addPosSkillRow();
+  addRow();
 };
 </script>
 </body>
