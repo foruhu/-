@@ -116,7 +116,7 @@ button.del { background: #522; color: #f88; padding: 2px 6px; }
   color: #f0a0a0;
   border: 1px dashed var(--border);
   border-radius: 3px;
-  font-size: .8rem;
+  font-size: .85rem;
   cursor: pointer;
 }
 tr.broken input, tr.broken textarea {
@@ -295,7 +295,7 @@ tr.broken input, tr.broken textarea {
 </div>
 
 <script>
-// 画像から読み取った正確なスキルデータベース
+// 画像・ルールブックに基づくスキルデータベース
 const SKILL_DATABASE = {
   'アリス': [
     { name: '少女', memo: '【少女】 R/0/0\n対象の姉妹1人と対話判定を行う' },
@@ -423,7 +423,7 @@ const CLASS_PARTS = {
   'ロマネスク': [0,0,2]
 };
 
-// 基本パーツデータ定義
+// 基本パーツデータ
 const DEFAULT_PARTS = {
   head: [
     { name: 'あたま', type: '基本', timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
@@ -432,7 +432,7 @@ const DEFAULT_PARTS = {
   ],
   arm: [
     { name: 'うで', type: '基本', timing: 'ジャッジ', cost: '1', range: '0', memo: '妨害1' },
-    { name: 'こぶし', type: '基本', timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1' }
+    { name: 'こぶし', type: '基本', timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' }
   ],
   body: [
     { name: 'たてまえ', type: '基本', timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1' },
@@ -443,7 +443,7 @@ const DEFAULT_PARTS = {
   ]
 };
 
-// 全追加パーツデータベース（武装・変異・改造）
+// 武装・変異・改造パーツデータベース
 const EXTRA_PARTS_DB = {
   head: [
     { name: 'スコープ', type: '武装', timing: 'オート', cost: '無', range: '自身', memo: '射撃の攻撃判定出目+1' },
@@ -480,7 +480,7 @@ const EXTRA_PARTS_DB = {
   ]
 };
 
-// パーツ構造生成
+// UI・部位表示のレンダリング
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
@@ -495,6 +495,17 @@ function renderPartsContainer() {
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
+    
+    // パーツ選択オプションの生成
+    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
+    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+    
+    if (EXTRA_PARTS_DB[sec.id]) {
+      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
+        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type}] ${p.name}</option>`;
+      });
+    }
+
     secDiv.innerHTML = `
       <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
       <div class="table-scroll">
@@ -514,17 +525,15 @@ function renderPartsContainer() {
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <div style="display:flex;gap:4px;margin-top:6px;">
+      <div style="margin-top:6px;">
         <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
-          <option value="">+ 【${sec.title}】にパーツを追加...</option>
-          <option value="custom">-- 自由入力パーツを追加 --</option>
-          ${generateExtraPartsOptions(sec.id)}
+          ${optionsHtml}
         </select>
       </div>
     `;
     container.appendChild(secDiv);
 
-    // デフォルトパーツ追加
+    // 初期基本パーツの配置
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
     if (DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
@@ -532,15 +541,6 @@ function renderPartsContainer() {
       });
     }
   });
-}
-
-function generateExtraPartsOptions(secId) {
-  const parts = EXTRA_PARTS_DB[secId];
-  if (!parts) return '';
-  return parts.map(p => {
-    const val = JSON.stringify(p);
-    return `<option value='${val}'>[${p.type}] ${p.name}</option>`;
-  }).join('');
 }
 
 function onExtraPartSelect(secId, selectElem) {
@@ -553,12 +553,14 @@ function onExtraPartSelect(secId, selectElem) {
   if (val === 'custom') {
     addPartRow(tbody, '新規パーツ', '武装', 'アクション', '1', '0', '', true);
   } else {
-    try {
-      const p = JSON.parse(val);
+    const [sId, idxStr] = val.split('_');
+    const idx = parseInt(idxStr, 10);
+    const p = EXTRA_PARTS_DB[sId][idx];
+    if (p) {
       addPartRow(tbody, p.name, p.type, p.timing, p.cost, p.range, p.memo, true);
-    } catch(e){}
+    }
   }
-  selectElem.value = '';
+  selectElem.value = ''; // 選択解除に戻す
 }
 
 function addPartRow(tbody, name='', type='基本', timing='オート', cost='無', range='自身', memo='', isCustom=true) {
