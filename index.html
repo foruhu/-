@@ -260,7 +260,10 @@ tr.broken input, tr.broken textarea {
 <div class="card">
   <div class="title" style="display:flex;justify-content:space-between;align-items:center">
     <span>配置パーツ・マニューバ</span>
-    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+    <div style="display:flex; gap:6px;">
+      <button type="button" class="sec" onclick="addCustomSection()" style="font-size:.7rem;padding:2px 6px">+ 任意の部位を追加</button>
+      <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+    </div>
   </div>
   <div id="parts-container"></div>
 </div>
@@ -513,20 +516,25 @@ const PART_LIMIT_TABLE = {
   9: [3, 3, 3]
 };
 
+let customSections = [];
+
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
   container.innerHTML = '';
 
-  const sections = [
+  const baseSections = [
     { id: 'head', title: '頭部', val: '（最大数値：2）' },
     { id: 'arm', title: '腕部', val: '（最大数値：2）' },
     { id: 'body', title: '胴部', val: '（最大数値：2）' },
     { id: 'leg', title: '脚部', val: '（最大数値：2）' }
   ];
 
-  sections.forEach(sec => {
+  const allSections = [...baseSections, ...customSections];
+
+  allSections.forEach(sec => {
     const secDiv = document.createElement('div');
+    secDiv.id = `section-box-${sec.id}`;
     
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
@@ -537,8 +545,19 @@ function renderPartsContainer() {
       });
     }
 
+    let deleteBtnHtml = '';
+    if (sec.isCustom) {
+      deleteBtnHtml = `<button type="button" class="del" onclick="removeCustomSection('${sec.id}')" style="margin-left:8px;font-size:.7rem;padding:2px 6px;">部位削除</button>`;
+    }
+
     secDiv.innerHTML = `
-      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
+      <div class="part-header">
+        <div style="display:flex; align-items:center;">
+          ${sec.isCustom ? `<input type="text" value="${sec.title}" oninput="updateCustomTitle('${sec.id}', this.value)" style="background:#18181c; border:1px solid #555; color:#fff; padding:2px 6px; font-size:.9rem; font-weight:bold; width:140px; text-align:left;">` : `<span>${sec.title}</span>`}
+          ${deleteBtnHtml}
+        </div>
+        <span class="val">${sec.val || ''}</span>
+      </div>
       <div class="table-scroll">
         <table>
           <thead>
@@ -571,7 +590,38 @@ function renderPartsContainer() {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
       });
     }
+    if (sec.isCustom && sec.partsData) {
+      sec.partsData.forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
+      });
+    }
   });
+}
+
+function addCustomSection() {
+  const customId = 'custom_' + Date.now();
+  customSections.push({
+    id: customId,
+    title: '新しい部位',
+    val: '（任意追加）',
+    isCustom: true,
+    partsData: [
+      { name: '新規パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '' }
+    ]
+  });
+  renderPartsContainer();
+}
+
+function removeCustomSection(customId) {
+  customSections = customSections.filter(sec => sec.id !== customId);
+  renderPartsContainer();
+}
+
+function updateCustomTitle(customId, newTitle) {
+  const sec = customSections.find(s => s.id === customId);
+  if (sec) {
+    sec.title = newTitle;
+  }
 }
 
 function countExistingParts(categoryType, level) {
@@ -601,7 +651,7 @@ function onExtraPartSelect(secId, selectElem) {
   } else {
     const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId][idx];
+    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
     if (p) {
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
@@ -794,48 +844,43 @@ function addScSkillRow(type='', skillData='', memo='', isRemovable=true) {
   addClassSkillRow('sc', type, skillData, memo, isRemovable);
 }
 
-function onSkillSelectChange(sel) {
-  const tr = sel.closest('tr');
+function onSkillSelectChange(selectElem) {
+  const tr = selectElem.closest('tr');
   const memoTextarea = tr.querySelector('.sk-memo');
-  if (!memoTextarea) return;
-
-  if (!sel.value) {
+  const val = selectElem.value;
+  if (!val) {
     memoTextarea.value = '';
     return;
   }
-
   try {
-    const data = JSON.parse(sel.value);
-    if (data && data.memo) {
-      memoTextarea.value = data.memo;
-    }
-  } catch (e) {
+    const data = JSON.parse(val);
+    memoTextarea.value = data.memo;
+  } catch(e) {
     memoTextarea.value = '';
   }
 }
 
 function calcTotals() {
-  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
-  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
-  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
+  const mcWep = parseInt(document.getElementById('mc-wep').textContent) || 0;
+  const scWep = parseInt(document.getElementById('sc-wep').textContent) || 0;
+  const mcMut = parseInt(document.getElementById('mc-mut').textContent) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut').textContent) || 0;
+  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb').textContent) || 0;
 
-  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
-  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
-  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
-
-  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
   const bonusRadios = document.getElementsByName('bonus');
-  bonusRadios.forEach(r => {
+  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
+  for (const r of bonusRadios) {
     if (r.checked) {
       if (r.value === 'wep') bonusWep = 1;
       if (r.value === 'mut') bonusMut = 1;
       if (r.value === 'cyb') bonusCyb = 1;
     }
-  });
+  }
 
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
 
   const totalWep = mcWep + scWep + bonusWep + chouaiWep;
   const totalMut = mcMut + scMut + bonusMut + chouaiMut;
@@ -846,15 +891,15 @@ function calcTotals() {
   document.getElementById('total-cyb').textContent = totalCyb;
 }
 
-function addRow(target='', emotion='', mad='0') {
+function addRow(target='', emotion='', madness='', isRemovable=true) {
   const tbody = document.getElementById('list');
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="tr-target" value="${target}" placeholder="対象の姉妹"></td>
-    <td><input type="text" class="tr-emotion" value="${emotion}" placeholder="未練（感情）"></td>
-    <td><input type="text" class="tr-mad" value="${mad}" placeholder="狂気点"></td>
-    <td><button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button></td>
+    <td><input type="text" class="r-target" value="${target}"></td>
+    <td><input type="text" class="r-emotion" value="${emotion}"></td>
+    <td><input type="text" class="r-madness" value="${madness}"></td>
+    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
   `;
   tbody.appendChild(tr);
 }
@@ -877,63 +922,64 @@ function saveData() {
     act: document.getElementById('act').value,
     fav: document.getElementById('fav').value,
     tr: document.getElementById('tr').value,
+    customSections: customSections,
     skills: [],
     parts: {},
-    relations: []
+    madnessList: []
   };
 
-  const skillRows = document.querySelectorAll('#skill-tbody tr');
-  skillRows.forEach(tr => {
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const typeInput = tr.querySelector('.sk-type');
     const selectElem = tr.querySelector('.sk-select');
-    const memoArea = tr.querySelector('.sk-memo');
+    const memoTextarea = tr.querySelector('.sk-memo');
     data.skills.push({
-      role: typeInput?.getAttribute('data-role') || 'pos',
-      type: typeInput?.value || '',
-      skillData: selectElem?.value || '',
-      memo: memoArea?.value || ''
+      type: typeInput ? typeInput.value : '',
+      role: typeInput ? typeInput.getAttribute('data-role') : '',
+      skillData: selectElem ? selectElem.value : '',
+      memo: memoTextarea ? memoTextarea.value : ''
     });
   });
 
-  ['head', 'arm', 'body', 'leg'].forEach(secId => {
+  const allSecIds = ['head', 'arm', 'body', 'leg', ...customSections.map(s => s.id)];
+  allSecIds.forEach(secId => {
     data.parts[secId] = [];
-    const rows = document.querySelectorAll(`#parts-tbody-${secId} tr`);
-    rows.forEach(tr => {
-      data.parts[secId].push({
-        broken: tr.querySelector('input[type="checkbox"]').checked,
-        name: tr.querySelector('.p-name').value,
-        type: tr.querySelector('.p-type').value,
-        level: tr.querySelector('.p-level').value,
-        timing: tr.querySelector('.p-timing').value,
-        cost: tr.querySelector('.p-cost').value,
-        range: tr.querySelector('.p-range').value,
-        memo: tr.querySelector('.p-memo').value,
-        isRemovable: tr.querySelector('.del') !== null
+    const tbody = document.getElementById(`parts-tbody-${secId}`);
+    if (tbody) {
+      tbody.querySelectorAll('tr').forEach(tr => {
+        data.parts[secId].push({
+          broken: tr.querySelector('input[type="checkbox"]').checked,
+          name: tr.querySelector('.p-name').value,
+          type: tr.querySelector('.p-type').value,
+          level: tr.querySelector('.p-level').value,
+          timing: tr.querySelector('.p-timing').value,
+          cost: tr.querySelector('.p-cost').value,
+          range: tr.querySelector('.p-range').value,
+          memo: tr.querySelector('.p-memo').value
+        });
       });
+    }
+  });
+
+  document.querySelectorAll('#list tr').forEach(tr => {
+    data.madnessList.push({
+      target: tr.querySelector('.r-target').value,
+      emotion: tr.querySelector('.r-emotion').value,
+      madness: tr.querySelector('.r-madness').value
     });
   });
 
-  const relationRows = document.querySelectorAll('#list tr');
-  relationRows.forEach(tr => {
-    data.relations.push({
-      target: tr.querySelector('.tr-target').value,
-      emotion: tr.querySelector('.tr-emotion').value,
-      mad: tr.querySelector('.tr-mad').value
-    });
-  });
-
-  localStorage.setItem('nechronica_sheet_data', JSON.stringify(data));
-  alert('ブラウザにデータを保存しました。');
+  localStorage.setItem('necronica_sheet_data', JSON.stringify(data));
+  alert('ブラウザにデータを保存しました！');
 }
 
 function loadData() {
-  const jsonStr = localStorage.getItem('nechronica_sheet_data');
-  if (!jsonStr) {
+  const json = localStorage.getItem('necronica_sheet_data');
+  if (!json) {
     alert('保存されたデータが見つかりません。');
     return;
   }
   try {
-    const data = JSON.parse(jsonStr);
+    const data = JSON.parse(json);
     document.getElementById('pl').value = data.pl || '';
     document.getElementById('name').value = data.name || '';
     document.getElementById('pos').value = data.pos || 'アリス';
@@ -945,125 +991,29 @@ function loadData() {
       if (radio) radio.checked = true;
     }
 
-    document.getElementById('chouai-wep').value = data.chouaiWep || '0';
-    document.getElementById('chouai-mut').value = data.chouaiMut || '0';
-    document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
+    document.getElementById('chouai-wep').value = data.chouaiWep || 0;
+    document.getElementById('chouai-mut').value = data.chouaiMut || 0;
+    document.getElementById('chouai-cyb').value = data.chouaiCyb || 0;
     document.getElementById('age').value = data.age || '';
     document.getElementById('ps').value = data.ps || '煉獄';
     document.getElementById('hint').value = data.hint || '';
     document.getElementById('mem').value = data.mem || '';
-    document.getElementById('act').value = data.act || '9';
-    document.getElementById('fav').value = data.fav || '0';
+    document.getElementById('act').value = data.act || 9;
+    document.getElementById('fav').value = data.fav || 0;
     document.getElementById('tr').value = data.tr || '';
+
+    customSections = data.customSections || [];
 
     onClassChange();
 
     const skillTbody = document.getElementById('skill-tbody');
     if (skillTbody) skillTbody.innerHTML = '';
     if (data.skills && data.skills.length > 0) {
-      data.skills.forEach(s => {
-        if (s.role === 'pos') {
+      data.skills.forEach((s, idx) => {
+        if (idx === 0) {
           addPosSkillRow(s.type, s.skillData, s.memo, true);
         } else {
-          addClassSkillRow(s.role, s.type, s.skillData, s.memo, true);
+          addClassSkillRow(s.role || 'mc', s.type, s.skillData, s.memo, true);
         }
       });
     } else {
-      addPosSkillRow();
-      addMcSkillRow('mc');
-      addScSkillRow('sc');
-    }
-
-    if (data.parts) {
-      ['head', 'arm', 'body', 'leg'].forEach(secId => {
-        const tbody = document.getElementById(`parts-tbody-${secId}`);
-        if (tbody) tbody.innerHTML = '';
-        if (data.parts[secId]) {
-          data.parts[secId].forEach(p => {
-            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isRemovable);
-            if (p.broken) {
-              const lastTr = tbody.lastElementChild;
-              const chk = lastTr.querySelector('input[type="checkbox"]');
-              if (chk) {
-                chk.checked = true;
-                toggleBroken(chk);
-              }
-            }
-          });
-        }
-      });
-    }
-
-    const relationTbody = document.getElementById('list');
-    if (relationTbody) relationTbody.innerHTML = '';
-    if (data.relations && data.relations.length > 0) {
-      data.relations.forEach(r => {
-        addRow(r.target, r.emotion, r.mad);
-      });
-    }
-
-    alert('保存データを読み込みました。');
-  } catch (e) {
-    alert('データの読み込みに失敗しました。');
-  }
-}
-
-function exportJSON() {
-  const data = {
-    pl: document.getElementById('pl').value,
-    name: document.getElementById('name').value,
-    pos: document.getElementById('pos').value,
-    mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
-    age: document.getElementById('age').value,
-    ps: document.getElementById('ps').value,
-    hint: document.getElementById('hint').value,
-    mem: document.getElementById('mem').value,
-    act: document.getElementById('act').value,
-    fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value
-  };
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = (data.name || 'nechronica_sheet') + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportCcfolia() {
-  const name = document.getElementById('name').value || '無名ドール';
-  const pl = document.getElementById('pl').value || '未設定';
-  const pos = document.getElementById('pos').value;
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const act = document.getElementById('act').value;
-
-  let text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${pos}\n【メインクラス】${mc}\n【サブクラス】${sc}\n【行動値】${act}`;
-  
-  navigator.clipboard.writeText(text).then(() => {
-    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました。');
-  }).catch(() => {
-    alert('クリップボードへのコピーに失敗しました。');
-  });
-}
-
-window.onload = function() {
-  renderPartsContainer();
-  onClassChange();
-  const skillTbody = document.getElementById('skill-tbody');
-  if (skillTbody && skillTbody.children.length === 0) {
-    addPosSkillRow();
-    addMcSkillRow('mc');
-    addScSkillRow('sc');
-  }
-};
-</script>
-</body>
-</html>
