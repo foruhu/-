@@ -408,10 +408,12 @@ function updateSkillRowsFromClass() {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
 
+  // 初期化（ポジション1つ、メインクラス2つ、サブクラス1つ＝計4つ）
   if (tbody.children.length === 0) {
-    addPosSkillRow();
-    addClassSkillRow();
-    addClassSkillRow();
+    addPosSkillRow();       // ポジション枠
+    addClassSkillRow();    // メインクラス枠1
+    addClassSkillRow();    // メインクラス枠2
+    addClassSkillRow();    // サブクラス枠
   }
 
   const rows = tbody.querySelectorAll('tr');
@@ -419,7 +421,7 @@ function updateSkillRowsFromClass() {
   // 【ポジション枠の更新】
   if (rows[0]) {
     const typeInput = rows[0].querySelector('.sk-type');
-    if (typeInput) typeInput.value = pos; // 余分な文字を入れず名前のみ設定
+    if (typeInput) typeInput.value = pos;
     updateSkillSelectOptions(rows[0].querySelector('.sk-select'), [pos]);
   }
 
@@ -429,8 +431,8 @@ function updateSkillRowsFromClass() {
   for (let i = 1; i < rows.length; i++) {
     const typeInput = rows[i].querySelector('.sk-type');
     if (typeInput && !typeInput.dataset.manual) {
-      if (i === 1) typeInput.value = mc; // メインクラス名のみ
-      else if (i === 2) typeInput.value = sc; // サブクラス名のみ
+      if (i === 1 || i === 2) typeInput.value = mc; // メインクラス枠（2つ）
+      else if (i === 3) typeInput.value = sc;       // サブクラス枠
       else typeInput.value = mc;
     }
     updateSkillSelectOptions(rows[i].querySelector('.sk-select'), classCategories);
@@ -469,7 +471,7 @@ function addPosSkillRow(type='', name='', memo='') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const pos = document.getElementById('pos').value;
-  const displayType = type || pos; // 名前のみ
+  const displayType = type || pos;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" class="sk-type" value="${displayType}" readonly style="background:#151518;color:#aaa;"></td>
