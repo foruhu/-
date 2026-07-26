@@ -626,7 +626,31 @@ function addRow(target = '', emotion = '', madness = '0') {
     <td><input type="number" value="${madness}" style="width:50px;"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
+  function addRow(target = '', emotion = '', madness = '0') {
+  const list = document.getElementById('list');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${target}"></td>
+    <td><input type="text" value="${emotion}"></td>
+    <td><input type="number" value="${madness}" style="width:50px;"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
+  `;
   list.appendChild(tr);
-  // スクリプトのスコープ外（HTMLのonclickなど）から呼べるようにする
-window.removeCustomSection = removeCustomSection;
 }
+
+// スクリプトのスコープ外（HTMLのonclickなど）から呼べるようにする
+window.removeCustomSection = removeCustomSection;
+window.renderPartsContainer = renderPartsContainer;
+window.addCustomSection = addCustomSection;
+window.updateCustomTitle = updateCustomTitle;
+window.onExtraPartSelect = onExtraPartSelect;
+window.addPartRow = addPartRow;
+window.toggleBroken = toggleBroken;
+window.resetUsed = resetUsed;
+window.onClassChange = onClassChange;
+window.calcTotals = calcTotals;
+window.addPosSkillRow = addPosSkillRow;
+window.addMcSkillRow = addMcSkillRow;
+window.addScSkillRow = addScSkillRow;
+window.onSkillSelectChange = onSkillSelectChange;
+window.addRow = addRow;
