@@ -671,9 +671,19 @@ function loadData() {
     document.getElementById('fav').value = data.fav || 0;
     document.getElementById('tr').value = data.tr || '';
 
-    customSections = data.customSections || [];
-    renderPartsContainer();
+    // カスタム部位がある場合は、各部位のパーツデータも含めて復元する
+    if (data.customSections && Array.isArray(data.customSections)) {
+      customSections = data.customSections.map(sec => {
+        if (data.parts && data.parts[sec.id]) {
+          return { ...sec, partsData: data.parts[sec.id] };
+        }
+        return sec;
+      });
+    } else {
+      customSections = [];
+    }
 
+    renderPartsContainer();
     onClassChange();
 
     if (data.parts) {
