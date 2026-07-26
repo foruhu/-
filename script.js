@@ -315,8 +315,6 @@ function renderPartsContainer() {
     }
     if (sec.isCustom && sec.partsData) {
       sec.partsData.forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
-      });
     }
   });
 }
