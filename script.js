@@ -307,10 +307,12 @@ function renderPartsContainer() {
     container.appendChild(secDiv);
 
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-    if (DEFAULT_PARTS && DEFAULT_PARTS[sec.id]) {
-      DEFAULT_PARTS[sec.id].forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
-      });
+    if (sec.id === 'head' || sec.id === 'arm' || sec.id === 'body' || sec.id === 'leg') {
+      if (DEFAULT_PARTS && DEFAULT_PARTS[sec.id]) {
+        DEFAULT_PARTS[sec.id].forEach(p => {
+          addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
+        });
+      }
     }
     if (sec.isCustom && sec.partsData) {
       sec.partsData.forEach(p => {
@@ -341,29 +343,19 @@ function onExtraPartSelect(secId, selectElem) {
       else if (p.type === '変異') categoryKey = 'mut';
       else if (p.type === '改造') categoryKey = 'cyb';
 
-      if (categoryKey) {
-        const totalValElem = document.getElementById(`total-${categoryKey}`);
-        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 1 : 1;
-        
-        const tableLimits = PART_LIMIT_TABLE[currentTotal] || PART_LIMIT_TABLE[9];
-        const maxLimit = tableLimits[p.level - 1] ?? 0;
-        const currentCount = countExistingParts(p.type, p.level);
-
-        if (currentCount >= maxLimit) {
-          alert(`【${p.type}】の強化値（現在 ${currentTotal}）におけるLv${p.level}パーツの取得上限（${maxLimit}個）に達しているため追加できません。`);
-          selectElem.value = '';
-          return;
-        }
-      }
-
+      // 必要に応じて上限チェックやアラートを行うことができます
       addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
     }
   }
   selectElem.value = '';
 }
 
+// パーツの行を追加する共通関数（重複や構文エラーを整理）
 function addPartRow(tbody, name='', type='基本', level=1, timing='オート', cost='0', range='0', memo='', isRemovable=true) {
   const tr = document.createElement('tr');
+  if (type === '基本') {
+    tr.classList.add('default-part');
+  }
   tr.innerHTML = `
     <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
     <td><input type="text" class="p-name" value="${name}"></td>
