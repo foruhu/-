@@ -753,11 +753,13 @@ window.onload = function() {
   // 初期状態でスキル行がない場合は自動追加
   if (document.querySelectorAll('#skill-tbody tr').length === 0) {
     addPosSkillRow();
-    addMcSkillRow();
-    addScSkillRow();
+    addMcSkillRow(); // メインクラス 1つ目
+    addMcSkillRow(); // メインクラス 2つ目
+    addScSkillRow(); // サブクラス 1つ目
   }
   if (document.querySelectorAll('#list tr').length === 0) {
     addRow();
   }
+};
 };
 };
