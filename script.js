@@ -150,9 +150,10 @@ const DEFAULT_PARTS = {
 
 const EXTRA_PARTS_DB = {
   head: [
+    // 既存・前回の追加分
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
-    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range:'自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' },
@@ -161,9 +162,16 @@ const EXTRA_PARTS_DB = {
     { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' },
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
     { name: 'すすりじた', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1。この攻撃で敵のパーツを損傷させた際、自身のはらわたを損傷しているなら、1つだけ損傷前の状態に戻してよい。' },
-    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '1ターンに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' }
+    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '1ターンに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' },
+    { name: '発勁(2Lv)', type: '武装', level: 2, timing: 'ラピッド', cost: '0', range: '0', memo: '自身に対しては使用不可。移動1。' },
+    { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
+    { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の末練から、狂気点を1減少させてよい。' },
+    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
+    // 追加（2レベル変異・頭部など）
+    { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
   ],
   arm: [
+    // 既存・前回の追加分
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
     { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵3' },
@@ -175,35 +183,90 @@ const EXTRA_PARTS_DB = {
     { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
     { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
     { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
-    { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発，攻撃判定+1' },
+    { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発、攻撃判定+1' },
     { name: 'マシンガン', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃1+全体攻撃' },
     { name: '熊撃ち銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜2', memo: '射撃3' },
     { name: '二丁拳銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃2+連撃1' },
-    { name: 'ジョギリ', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵4，+攻撃判定+1' },
+    { name: 'ジョギリ', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵4、+攻撃判定+1' },
     { name: '芝刈り機', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵3+連撃2' },
-    { name: '名刀', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵2+切断，攻撃判定+1' },
+    { name: '名刀', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵2+切断、攻撃判定+1' },
     { name: '空飛ぶギロチン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵1+切断+転倒' },
     { name: '対戦車ライフル', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～3', memo: '射撃5' },
     { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2', memo: '射撃1+爆発+連撃1' },
-    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃3+爆発+連撃1' },
-    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' }
+    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃1+爆発+連撃1' },
+    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' },
+    { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
+    { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1。' },
+    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
+    { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃2。' },
+    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援1。' },
+    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '妨害1。' },
+    { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
+    { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
+    { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
+    // 追加（2レベル変異・1/2レベル改造・腕部）
+    { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
+    { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
+    { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1', memo: '妨害1＋転倒。' },
+    { name: 'よぷんななめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
+    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1。' },
+    { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋切断。' },
+    { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
+    { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
+    { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。' },
+    { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵攻撃2＋連撃1。' },
+    { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3', memo: '射撃攻撃1＋切断。' },
+    { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '腕のみ、ダメージに対して常に「防御1」。腕部にある白兵・肉弾攻撃マニューバのダメージ+1。' },
+    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '脚のみ、ダメージに対して常に「防御1」。バトルパートで移動時、白兵・肉弾攻撃マニューバを1つ、「ラピッド」で使用可。' },
+    { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '移動妨害1＋転倒。' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
+    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援2か妨害2。' },
+    { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
+    { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
   ],
   body: [
+    // 既存・前回の追加分
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
     { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
     { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
-    { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' }
+    { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' },
+    { name: '手榴弾(2Lv)', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '砲撃攻撃2＋爆発、攻撃判定の出目-1。' },
+    { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
+    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
+    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
+    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
+    // 追加（1/2レベル改造など・胴部）
+    { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
+    { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
+    { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '「切断」を常に無効化してよい。' }
   ],
   leg: [
+    // 既存・前回の追加分
     { name: 'ローラーシューズ', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '多節足', type: '変異', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '移動2' },
     { name: '尻尾', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '転倒' },
     { name: 'キャタピラ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2、移動マニューバのコスト-1' },
-    { name: 'ブースター', type: '改造', level: 1, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' }
+    { name: 'ブースター', type: '改造', level: 1, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' },
+    { name: 'よぶんなあし', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: 'これ以外の脚部パーツが破損しても、マニューバをそのまま使用してよい。' },
+    { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2。' },
+    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
+    { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
+    { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
+    // 追加（2レベル改造・脚部）
+    { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
+    { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
+    { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
   ]
 };
+
 
 const PART_LIMIT_TABLE = {
   1: [1, 0, 0],
