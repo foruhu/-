@@ -377,7 +377,6 @@ function addPartRow(tbody, name='', type='基本', level=1, timing='オート', 
   tbody.appendChild(tr);
 }
 
-function addPartRow(tbody, name='', type='基本', level=1, timing='オート', cost='0', range='0', memo='', isRemovable=true) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
