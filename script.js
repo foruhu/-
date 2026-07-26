@@ -252,7 +252,6 @@ const EXTRA_PARTS_DB = {
     { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
   ],
-  // 任意パーツ（火炎ビンや手榴弾など）を武装などに含める場合の例
   optional: [
     { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
     { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
@@ -620,7 +619,6 @@ function onSkillSelectChange(selectElem) {
 function addRow(target = '', emotion = '', madness = '0') {
   const list = document.getElementById('list');
   const tr = document.createElement('tr');
-  // 切れかかっていた部分を正常に補完
   tr.innerHTML = `
     <td><input type="text" value="${target}"></td>
     <td><input type="text" value="${emotion}"></td>
