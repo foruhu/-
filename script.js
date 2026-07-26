@@ -628,9 +628,9 @@ function addRow(target = '', emotion = '', madness = '0') {
   const list = document.getElementById('list');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="target" value="${target}"></td>
-    <td><input type="text" class="emotion" value="${emotion}"></td>
-    <td><input type="text" class="madness" value="${madness}"></td>
+    <td><input type="text" value="${target}" style="width:100%;"></td>
+    <td><input type="text" value="${emotion}" style="width:100%;"></td>
+    <td><input type="number" value="${madness}" style="width:60px;"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   list.appendChild(tr);
