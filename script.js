@@ -180,7 +180,6 @@ const EXTRA_PARTS_DB = {
     { name: 'チェーンソー', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2+切断' },
     { name: '大型拳銃', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵2' },
     { name: '狙撃ライフル', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '2〜3', memo: '射撃1、攻撃判定+1' },
-    { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
     { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
     { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
     { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発、攻撃判定+1' },
@@ -195,10 +194,7 @@ const EXTRA_PARTS_DB = {
     { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2', memo: '射撃1+爆発+連撃1' },
     { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃1+爆発+連撃1' },
     { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' },
-    { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
     { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1。' },
-    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
-    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
     { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃2。' },
     { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援1。' },
     { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '妨害1。' },
@@ -232,7 +228,6 @@ const EXTRA_PARTS_DB = {
   body: [
     // 既存・前回の追加分
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
-    { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
     { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
@@ -267,8 +262,12 @@ const EXTRA_PARTS_DB = {
   ],
   // 任意パーツや汎用パーツのデータ例
 const OPTIONAL_PARTS_DATA = {
-  "火炎ビン": { effect: "攻撃 / 射程:遠隔 / コスト:行動力1 / 効果:範囲内の敵に出血または炎上..." },
-  "有刺鉄線": { effect: "防御 / 射程:近接 / コスト:行動力1 / 効果:絡みつき効果..." },
+    { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
+   { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
+    { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
+  { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
+
   // 他の任意パーツなど
 };
 };
