@@ -687,7 +687,8 @@ function loadData() {
         if (tbody) {
           tbody.innerHTML = '';
           data.parts[id].forEach(p => {
-            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, id !== 'head' && id !== 'arm' && id !== 'body' && id !== 'leg' ? true : false);
+            const isBase = ['head', 'arm', 'body', 'leg'].includes(id);
+addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !isBase);
             const lastTr = tbody.lastElementChild;
             if (lastTr && p.broken) {
               const chk = lastTr.querySelector('input[type="checkbox"]');
