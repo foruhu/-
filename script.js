@@ -754,6 +754,7 @@ window.onload = function() {
   if (document.querySelectorAll('#skill-tbody tr').length === 0) {
     addPosSkillRow();
     addMcSkillRow();
+    addMcSkillRow();
     addScSkillRow();
   }
   if (document.querySelectorAll('#list tr').length === 0) {
