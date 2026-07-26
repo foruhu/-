@@ -778,114 +778,69 @@ function updateSkillSelectOptions(selectElem, categories) {
   });
   selectElem.value = currentVal;
 }
-  });
-  selectElem.value = currentVal;
-}
-  });
 
-  if (currentVal) {
-    selectElem.value = currentVal;
-  }
-}
-
-function addPosSkillRow(type='', skillData='', memo='', isRemovable=true) {
+function addSkillRow(typeText, categories, roleAttr='') {
   const tbody = document.getElementById('skill-tbody');
-  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="sk-type" value="${typeText}" ${roleAttr ? `data-role="${roleAttr}"` : ''} readonly style="background:#151518;color:#aaa;"></td>
+    <td>
+      <select class="sk-select" onchange="onSkillChange(this)">
+        <option value="">-- スキルを選択 --</option>
+      </select>
+    </td>
+    <td><textarea class="sk-memo" rows="1"></textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
+  `;
+  tbody.appendChild(tr);
+  updateSkillSelectOptions(tr.querySelector('.sk-select'), categories);
+}
+
+function addPosSkillRow() {
   const pos = document.getElementById('pos').value;
-  const displayType = type || pos;
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" class="sk-type" value="${displayType}" readonly style="background:#151518;color:#aaa;"></td>
-    <td>
-      <select class="sk-select" onchange="onSkillSelectChange(this)">
-        <option value="">-- スキルを選択 --</option>
-      </select>
-    </td>
-    <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
-  `;
-  tbody.appendChild(tr);
-  const sel = tr.querySelector('.sk-select');
-  updateSkillSelectOptions(sel, [pos]);
-  if (skillData) {
-    sel.value = skillData;
-  }
+  addSkillRow(pos, [pos]);
 }
 
-function addClassSkillRow(role = 'mc', type='', skillData='', memo='', isRemovable=true) {
-  const tbody = document.getElementById('skill-tbody');
-  if (!tbody) return;
+function addMcSkillRow() {
   const mc = document.getElementById('mc').value;
+  addSkillRow(mc, [mc], 'mc');
+}
+
+function addScSkillRow() {
   const sc = document.getElementById('sc').value;
-  const targetClass = (role === 'sc') ? sc : mc;
-  const displayType = type || targetClass;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <input type="text" class="sk-type" data-role="${role}" value="${displayType}" readonly style="background:#151518;color:#aaa;">
-    </td>
-    <td>
-      <select class="sk-select" onchange="onSkillSelectChange(this)">
-        <option value="">-- スキルを選択 --</option>
-      </select>
-    </td>
-    <td><textarea class="sk-memo" rows="2" placeholder="効果メモ・注記">${memo}</textarea></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
-  `;
-  tbody.appendChild(tr);
-  const sel = tr.querySelector('.sk-select');
-  updateSkillSelectOptions(sel, [targetClass]);
-  if (skillData) {
-    sel.value = skillData;
-  }
+  addSkillRow(sc, [sc], 'sc');
 }
 
-function addMcSkillRow(type='', skillData='', memo='', isRemovable=true) {
-  addClassSkillRow('mc', type, skillData, memo, isRemovable);
-}
-
-function addScSkillRow(type='', skillData='', memo='', isRemovable=true) {
-  addClassSkillRow('sc', type, skillData, memo, isRemovable);
-}
-
-function onSkillSelectChange(selectElem) {
+function onSkillChange(selectElem) {
+  const selectedOpt = selectElem.options[selectElem.selectedIndex];
+  const memoText = selectedOpt ? (selectedOpt.dataset.memo || '') : '';
   const tr = selectElem.closest('tr');
   const memoTextarea = tr.querySelector('.sk-memo');
-  const val = selectElem.value;
-  if (!val) {
-    memoTextarea.value = '';
-    return;
-  }
-  try {
-    const data = JSON.parse(val);
-    memoTextarea.value = data.memo;
-  } catch(e) {
-    memoTextarea.value = '';
+  if (memoTextarea) {
+    memoTextarea.value = memoText;
   }
 }
 
 function calcTotals() {
-  const mcWep = parseInt(document.getElementById('mc-wep').textContent) || 0;
-  const scWep = parseInt(document.getElementById('sc-wep').textContent) || 0;
-  const mcMut = parseInt(document.getElementById('mc-mut').textContent) || 0;
-  const scMut = parseInt(document.getElementById('sc-mut').textContent) || 0;
-  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent) || 0;
-  const scCyb = parseInt(document.getElementById('sc-cyb').textContent) || 0;
+  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
+  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
+  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
 
-  const bonusRadios = document.getElementsByName('bonus');
+  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
+
   let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
-  for (const r of bonusRadios) {
-    if (r.checked) {
-      if (r.value === 'wep') bonusWep = 1;
-      if (r.value === 'mut') bonusMut = 1;
-      if (r.value === 'cyb') bonusCyb = 1;
-    }
+  const bonusVal = document.querySelector('input[name="bonus"]:checked');
+  if (bonusVal) {
+    if (bonusVal.value === 'wep') bonusWep = 1;
+    if (bonusVal.value === 'mut') bonusMut = 1;
+    if (bonusVal.value === 'cyb') bonusCyb = 1;
   }
 
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
   const totalWep = mcWep + scWep + bonusWep + chouaiWep;
   const totalMut = mcMut + scMut + bonusMut + chouaiMut;
@@ -896,15 +851,14 @@ function calcTotals() {
   document.getElementById('total-cyb').textContent = totalCyb;
 }
 
-function addRow(target='', emotion='', madness='', isRemovable=true) {
+function addRow() {
   const tbody = document.getElementById('list');
-  if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="r-target" value="${target}"></td>
-    <td><input type="text" class="r-emotion" value="${emotion}"></td>
-    <td><input type="text" class="r-madness" value="${madness}"></td>
-    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="0" min="0" style="width:60px;"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   tbody.appendChild(tr);
 }
@@ -927,60 +881,16 @@ function saveData() {
     act: document.getElementById('act').value,
     fav: document.getElementById('fav').value,
     tr: document.getElementById('tr').value,
-    customSections: customSections,
-    skills: [],
-    parts: {},
-    madnessList: []
+    customSections: customSections
   };
-
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    const typeInput = tr.querySelector('.sk-type');
-    const selectElem = tr.querySelector('.sk-select');
-    const memoTextarea = tr.querySelector('.sk-memo');
-    data.skills.push({
-      type: typeInput ? typeInput.value : '',
-      role: typeInput ? typeInput.getAttribute('data-role') : '',
-      skillData: selectElem ? selectElem.value : '',
-      memo: memoTextarea ? memoTextarea.value : ''
-    });
-  });
-
-  const allSecIds = ['head', 'arm', 'body', 'leg', ...customSections.map(s => s.id)];
-  allSecIds.forEach(secId => {
-    data.parts[secId] = [];
-    const tbody = document.getElementById(`parts-tbody-${secId}`);
-    if (tbody) {
-      tbody.querySelectorAll('tr').forEach(tr => {
-        data.parts[secId].push({
-          broken: tr.querySelector('input[type="checkbox"]').checked,
-          name: tr.querySelector('.p-name').value,
-          type: tr.querySelector('.p-type').value,
-          level: tr.querySelector('.p-level').value,
-          timing: tr.querySelector('.p-timing').value,
-          cost: tr.querySelector('.p-cost').value,
-          range: tr.querySelector('.p-range').value,
-          memo: tr.querySelector('.p-memo').value
-        });
-      });
-    }
-  });
-
-  document.querySelectorAll('#list tr').forEach(tr => {
-    data.madnessList.push({
-      target: tr.querySelector('.r-target').value,
-      emotion: tr.querySelector('.r-emotion').value,
-      madness: tr.querySelector('.r-madness').value
-    });
-  });
-
-  localStorage.setItem('necronica_sheet_data', JSON.stringify(data));
-  alert('ブラウザにデータを保存しました！');
+  localStorage.setItem('nechronica_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました。');
 }
 
 function loadData() {
-  const json = localStorage.getItem('necronica_sheet_data');
+  const json = localStorage.getItem('nechronica_sheet');
   if (!json) {
-    alert('保存されたデータが見つかりません。');
+    alert('保存されたデータがありません。');
     return;
   }
   try {
@@ -990,39 +900,55 @@ function loadData() {
     document.getElementById('pos').value = data.pos || 'アリス';
     document.getElementById('mc').value = data.mc || 'ロマネスク';
     document.getElementById('sc').value = data.sc || 'ロマネスク';
-
     if (data.bonus) {
-      const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-      if (radio) radio.checked = true;
+      const r = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+      if (r) r.checked = true;
     }
-
-    document.getElementById('chouai-wep').value = data.chouaiWep || 0;
-    document.getElementById('chouai-mut').value = data.chouaiMut || 0;
-    document.getElementById('chouai-cyb').value = data.chouaiCyb || 0;
+    document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+    document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+    document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
     document.getElementById('age').value = data.age || '';
     document.getElementById('ps').value = data.ps || '煉獄';
     document.getElementById('hint').value = data.hint || '';
     document.getElementById('mem').value = data.mem || '';
-    document.getElementById('act').value = data.act || 9;
-    document.getElementById('fav').value = data.fav || 0;
+    document.getElementById('act').value = data.act || '9';
+    document.getElementById('fav').value = data.fav || '0';
     document.getElementById('tr').value = data.tr || '';
-
     customSections = data.customSections || [];
-
+    
     onClassChange();
+    alert('データを読み込みました。');
+  } catch (e) {
+    alert('データの読み込みに失敗しました。');
+  }
+}
 
-    const skillTbody = document.getElementById('skill-tbody');
-    if (skillTbody) skillTbody.innerHTML = '';
-    if (data.skills && data.skills.length > 0) {
-      data.skills.forEach((s, idx) => {
-        if (idx === 0) {
-          addPosSkillRow(s.type, s.skillData, s.memo, true);
-        } else {
-          addClassSkillRow(s.role || 'mc', s.type, s.skillData, s.memo, true);
-        }
-      });
-    } else {
-    };
+function exportJSON() {
+  const data = {
+    pl: document.getElementById('pl').value,
+    name: document.getElementById('name').value
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nechronica_chara.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCcfolia() {
+  const name = document.getElementById('name').value || 'ドール';
+  alert(`【ココフォリア出力】\n${name} のデータをクリップボードにコピーする処理などをここに実装できます。`);
+}
+
+window.onload = function() {
+  onClassChange();
+  renderPartsContainer();
+  addPosSkillRow();
+  addMcSkillRow();
+  addRow();
+};
 </script>
 </body>
 </html>
