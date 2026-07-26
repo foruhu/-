@@ -757,25 +757,27 @@ function updateSkillRowsFromClass() {
 
 function updateSkillSelectOptions(selectElem, categories) {
   if (!selectElem) return;
-
   const currentVal = selectElem.value;
   selectElem.innerHTML = '<option value="">-- スキルを選択 --</option>';
 
   categories.forEach(cat => {
-  const skills = SKILL_DATABASE[cat];
-  if (skills) {
-    const group = document.createElement('optgroup');
-    group.label = `【${cat}】`;
+    const skills = SKILL_DATABASE[cat];
+    if (skills) {
+      const group = document.createElement('optgroup');
+      group.label = `【${cat}】`;
 
-    skills.forEach(s => {
-      const opt = document.createElement('option');
-        opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
+      skills.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name;
         opt.textContent = s.name;
+        opt.dataset.memo = s.memo;
         group.appendChild(opt);
       });
-      
       selectElem.appendChild(group);
     }
+  });
+  selectElem.value = currentVal;
+}
   });
 
   if (currentVal) {
