@@ -150,7 +150,6 @@ const DEFAULT_PARTS = {
 
 const EXTRA_PARTS_DB = {
   head: [
-    // 既存・前回の追加分
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
@@ -167,11 +166,9 @@ const EXTRA_PARTS_DB = {
     { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の末練から、狂気点を1減少させてよい。' },
     { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
-    // 追加（2レベル変異・頭部など）
     { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
   ],
   arm: [
-    // 既存・前回の追加分
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
     { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵3' },
@@ -205,7 +202,6 @@ const EXTRA_PARTS_DB = {
     { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
     { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
     { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
-    // 追加（2レベル変異・1/2レベル改造・腕部）
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
     { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
     { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
@@ -230,7 +226,6 @@ const EXTRA_PARTS_DB = {
     { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
   ],
   body: [
-    // 既存・前回の追加分
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
     { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
     { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
@@ -242,13 +237,11 @@ const EXTRA_PARTS_DB = {
     { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
     { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
     { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
-    // 追加（1/2レベル改造など・胴部）
     { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
     { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '「切断」を常に無効化してよい。' }
   ],
   leg: [
-    // 既存・前回の追加分
     { name: 'ローラーシューズ', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '多節足', type: '変異', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '移動2' },
     { name: '尻尾', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '転倒' },
@@ -259,14 +252,12 @@ const EXTRA_PARTS_DB = {
     { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
     { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
     { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
-    // 追加（2レベル改造・脚部）
     { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
     { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
     { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
   ]
 };
-
 
 const PART_LIMIT_TABLE = {
   1: [1, 0, 0],
@@ -300,14 +291,19 @@ function renderPartsContainer() {
     const secDiv = document.createElement('div');
     secDiv.id = `section-box-${sec.id}`;
     
+    // 全ての部位から「EXTRA_PARTS_DB」内の全パーツを選択肢として拾えるように統一、または部位に合わせたキーを使用
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
-    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+    optionsHtml += `<option value="custom">-- 自由入力のパーツを追加 --</option>`;
     
-    if (EXTRA_PARTS_DB[sec.id]) {
-      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-      });
-    }
+    // カスタム部位の場合はheadやarmなどのプールを共有するか、すべてから選べるように全パーツのリストを結合して表示
+    const targetDbKey = EXTRA_PARTS_DB[sec.id] ? sec.id : 'head'; 
+    const dbSource = EXTRA_PARTS_DB[sec.id] || [...EXTRA_PARTS_DB.head, ...EXTRA_PARTS_DB.arm, ...EXTRA_PARTS_DB.body, ...EXTRA_PARTS_DB.leg];
+
+    dbSource.forEach((p, idx) => {
+      // どの部位からでもユニークにひけるようDBキーを付与
+      const dbKeyToUse = EXTRA_PARTS_DB[sec.id] ? sec.id : 'all';
+      optionsHtml += `<option value="${dbKeyToUse}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+    });
 
     let deleteBtnHtml = '';
     if (sec.isCustom) {
@@ -349,7 +345,7 @@ function renderPartsContainer() {
     container.appendChild(secDiv);
 
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-    if (DEFAULT_PARTS[sec.id]) {
+    if (DEFAULT_PARTS && DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
       });
@@ -369,9 +365,7 @@ function addCustomSection() {
     title: '新しい部位',
     val: '（任意追加）',
     isCustom: true,
-    partsData: [
-      { name: '新規パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '' }
-    ]
+    partsData: []
   });
   renderPartsContainer();
 }
@@ -413,9 +407,19 @@ function onExtraPartSelect(secId, selectElem) {
   if (val === 'custom') {
     addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true);
   } else {
-    const [sId, idxStr] = val.split('_');
+    const underscoreIdx = val.indexOf('_');
+    const sId = val.substring(0, underscoreIdx);
+    const idxStr = val.substring(underscoreIdx + 1);
     const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
+
+    let p = null;
+    if (sId === 'all') {
+      const allPartsList = [...EXTRA_PARTS_DB.head, ...EXTRA_PARTS_DB.arm, ...EXTRA_PARTS_DB.body, ...EXTRA_PARTS_DB.leg];
+      p = allPartsList[idx];
+    } else {
+      p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
+    }
+
     if (p) {
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
@@ -441,6 +445,22 @@ function onExtraPartSelect(secId, selectElem) {
     }
   }
   selectElem.value = '';
+}
+
+function addPartRow(tbody, name='', type='基本', level=1, timing='オート', cost='0', range='0', memo='', isRemovable=true) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="checkbox" onchange="toggleBroken(this)" style="width:16px;height:16px;cursor:pointer;"></td>
+    <td><input type="text" class="p-name" value="${name}"></td>
+    <td><input type="text" class="p-type" value="${type}" ${isRemovable ? '' : 'readonly style="background:#151518;color:#aaa;"'}></td>
+    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:40px;" ${isRemovable ? '' : 'readonly style="background:#151518;color:#aaa;"'}></td>
+    <td><input type="text" class="p-timing" value="${timing}"></td>
+    <td><input type="text" class="p-cost" value="${cost}"></td>
+    <td><input type="text" class="p-range" value="${range}"></td>
+    <td><textarea class="p-memo" rows="1">${memo}</textarea></td>
+    <td>${isRemovable ? '<button type="button" class="del" onclick="this.closest(\'tr\').remove()">削</button>' : '-'}</td>
+  `;
+  tbody.appendChild(tr);
 }
 
 function addPartRow(tbody, name='', type='基本', level=1, timing='オート', cost='0', range='0', memo='', isRemovable=true) {
