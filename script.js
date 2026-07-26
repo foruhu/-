@@ -150,7 +150,6 @@ const DEFAULT_PARTS = {
 
 const EXTRA_PARTS_DB = {
   head: [
-    // 既存・前回の追加分
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
@@ -167,11 +166,9 @@ const EXTRA_PARTS_DB = {
     { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の末練から、狂気点を1減少させてよい。' },
     { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
-    // 追加（2レベル変異・頭部など）
     { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
   ],
   arm: [
-    // 既存・前回の追加分
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
     { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵3' },
@@ -201,7 +198,6 @@ const EXTRA_PARTS_DB = {
     { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
     { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
     { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
-    // 追加（2レベル変異・1/2レベル改造・腕部）
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
     { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
     { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
@@ -226,7 +222,6 @@ const EXTRA_PARTS_DB = {
     { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
   ],
   body: [
-    // 既存・前回の追加分
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
     { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
@@ -237,13 +232,11 @@ const EXTRA_PARTS_DB = {
     { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
     { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
     { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
-    // 追加（1/2レベル改造など・胴部）
     { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
     { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '「切断」を常に無効化してよい。' }
   ],
   leg: [
-    // 既存・前回の追加分
     { name: 'ローラーシューズ', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '多節足', type: '変異', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '移動2' },
     { name: '尻尾', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '転倒' },
@@ -254,24 +247,19 @@ const EXTRA_PARTS_DB = {
     { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
     { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
     { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
-    // 追加（2レベル改造・脚部）
     { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
     { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
     { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
   ],
-  // 任意パーツや汎用パーツのデータ例
-const OPTIONAL_PARTS_DATA = {
+  // 任意パーツ（火炎ビンや手榴弾など）を武装などに含める場合の例
+  optional: [
     { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
-   { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
     { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
-  { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
-    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
-
-  // 他の任意パーツなど
+    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' }
+  ]
 };
-};
-
 
 const PART_LIMIT_TABLE = {
   1: [1, 0, 0],
@@ -632,202 +620,12 @@ function onSkillSelectChange(selectElem) {
 function addRow(target = '', emotion = '', madness = '0') {
   const list = document.getElementById('list');
   const tr = document.createElement('tr');
+  // 切れかかっていた部分を正常に補完
   tr.innerHTML = `
-    <td><input type="text" value="${target}" style="width:100%;"></td>
-    <td><input type="text" value="${emotion}" style="width:100%;"></td>
-    <td><input type="number" value="${madness}" style="width:60px;"></td>
+    <td><input type="text" value="${target}"></td>
+    <td><input type="text" value="${emotion}"></td>
+    <td><input type="number" value="${madness}" style="width:50px;"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   list.appendChild(tr);
 }
-
-function saveData() {
-  const data = {
-    pl: document.getElementById('pl').value,
-    name: document.getElementById('name').value,
-    pos: document.getElementById('pos').value,
-    mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
-    age: document.getElementById('age').value,
-    ps: document.getElementById('ps').value,
-    hint: document.getElementById('hint').value,
-    mem: document.getElementById('mem').value,
-    act: document.getElementById('act').value,
-    fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value,
-    customSections: customSections
-  };
-
-  const skills = [];
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    skills.push({
-      type: tr.querySelector('.sk-type')?.value || '',
-      name: tr.querySelector('.sk-select')?.value || '',
-      memo: tr.querySelector('.sk-memo')?.value || '',
-      role: tr.querySelector('.sk-type')?.getAttribute('data-role') || ''
-    });
-  });
-  data.skills = skills;
-
-  const list = [];
-  document.querySelectorAll('#list tr').forEach(tr => {
-    list.push({
-      target: tr.querySelector('.target')?.value || '',
-      emotion: tr.querySelector('.emotion')?.value || '',
-      madness: tr.querySelector('.madness')?.value || ''
-    });
-  });
-  data.list = list;
-
-  const parts = {};
-  const baseIds = ['head', 'arm', 'body', 'leg'];
-  baseIds.forEach(id => {
-    parts[id] = [];
-    const tbody = document.getElementById(`parts-tbody-${id}`);
-    if (tbody) {
-      tbody.querySelectorAll('tr').forEach(tr => {
-        parts[id].push({
-          broken: tr.querySelector('input[type="checkbox"]')?.checked || false,
-          name: tr.querySelector('.p-name')?.value || '',
-          type: tr.querySelector('.p-type')?.value || '',
-          level: tr.querySelector('.p-level')?.value || 1,
-          timing: tr.querySelector('.p-timing')?.value || '',
-          cost: tr.querySelector('.p-cost')?.value || '',
-          range: tr.querySelector('.p-range')?.value || '',
-          memo: tr.querySelector('.p-memo')?.value || ''
-        });
-      });
-    }
-  });
-  data.parts = parts;
-
-  localStorage.setItem('nechronica_sheet', JSON.stringify(data));
-  alert('ブラウザにデータを保存しました。');
-}
-
-function loadData() {
-  const jsonStr = localStorage.getItem('nechronica_sheet');
-  if (!jsonStr) {
-    alert('保存されたデータが見つかりません。');
-    return;
-  }
-  try {
-    const data = JSON.parse(jsonStr);
-    document.getElementById('pl').value = data.pl || '';
-    document.getElementById('name').value = data.name || '';
-    document.getElementById('pos').value = data.pos || 'アリス';
-    document.getElementById('mc').value = data.mc || 'ロマネスク';
-    document.getElementById('sc').value = data.sc || 'ロマネスク';
-
-    if (data.bonus) {
-      const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-      if (radio) radio.checked = true;
-    }
-
-    document.getElementById('chouai-wep').value = data.chouaiWep || 0;
-    document.getElementById('chouai-mut').value = data.chouaiMut || 0;
-    document.getElementById('chouai-cyb').value = data.chouaiCyb || 0;
-    document.getElementById('age').value = data.age || '';
-    document.getElementById('ps').value = data.ps || '煉獄';
-    document.getElementById('hint').value = data.hint || '';
-    document.getElementById('mem').value = data.mem || '';
-    document.getElementById('act').value = data.act || 9;
-    document.getElementById('fav').value = data.fav || 0;
-    document.getElementById('tr').value = data.tr || '';
-
-    // カスタム部位がある場合は、各部位のパーツデータも含めて復元する
-    if (data.customSections && Array.isArray(data.customSections)) {
-      customSections = data.customSections.map(sec => {
-        if (data.parts && data.parts[sec.id]) {
-          return { ...sec, partsData: data.parts[sec.id] };
-        }
-        return sec;
-      });
-    } else {
-      customSections = [];
-    }
-
-    renderPartsContainer();
-    onClassChange();
-
-    if (data.parts) {
-      Object.keys(data.parts).forEach(id => {
-        const tbody = document.getElementById(`parts-tbody-${id}`);
-        if (tbody) {
-          tbody.innerHTML = '';
-          data.parts[id].forEach(p => {
-            const isBase = ['head', 'arm', 'body', 'leg'].includes(id);
-            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !isBase);
-            const lastTr = tbody.lastElementChild;
-            if (lastTr && p.broken) {
-              const chk = lastTr.querySelector('input[type="checkbox"]');
-              if (chk) {
-                chk.checked = true;
-                toggleBroken(chk);
-              }
-            }
-          });
-        }
-      });
-    }
-
-    const skillTbody = document.getElementById('skill-tbody');
-    skillTbody.innerHTML = '';
-    if (data.skills && data.skills.length > 0) {
-      data.skills.forEach(s => {
-        addSkillRow(s.type, s.role || 'mc', s.name);
-        const lastTr = skillTbody.lastElementChild;
-        if (lastTr && s.memo) {
-          lastTr.querySelector('.sk-memo').value = s.memo;
-        }
-      });
-    }
-
-    const listTbody = document.getElementById('list');
-    listTbody.innerHTML = '';
-    if (data.list && data.list.length > 0) {
-      data.list.forEach(l => {
-        addRow(l.target, l.emotion, l.madness);
-      });
-    }
-
-    alert('データを読み込みました。');
-  } catch (e) {
-    console.error(e);
-    alert('データの読み込みに失敗しました。');
-  }
-}
-
-function exportJSON() {
-  const jsonStr = localStorage.getItem('nechronica_sheet') || '{}';
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = (document.getElementById('name').value || 'nechronica_chara') + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportCcfolia() {
-  alert('ココフォリア出力機能が呼び出されました。');
-}
-
-// 初期化処理
-window.onload = function() {
-  renderPartsContainer();
-  onClassChange();
-  if (document.querySelectorAll('#skill-tbody tr').length === 0) {
-    addPosSkillRow();
-    addMcSkillRow();
-    addMcSkillRow();
-    addScSkillRow();
-  }
-  if (document.querySelectorAll('#list tr').length === 0) {
-    addRow();
-  }
-};
