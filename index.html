@@ -762,13 +762,13 @@ function updateSkillSelectOptions(selectElem, categories) {
   selectElem.innerHTML = '<option value="">-- スキルを選択 --</option>';
 
   categories.forEach(cat => {
-    const skills = SKILL_DATABASE[cat];
-    if (skills) {
-      const group = document.createElement('optgroup');
-      group.label = `【${cat}】`;
-      
-      skills.forEach(s => {
-        const opt = document.createElement('option');
+  const skills = SKILL_DATABASE[cat];
+  if (skills) {
+    const group = document.createElement('optgroup');
+    group.label = `【${cat}】`;
+
+    skills.forEach(s => {
+      const opt = document.createElement('option');
         opt.value = JSON.stringify({ cat: cat, name: s.name, memo: s.memo });
         opt.textContent = s.name;
         group.appendChild(opt);
