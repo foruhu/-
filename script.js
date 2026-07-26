@@ -594,7 +594,6 @@ function saveData() {
     customSections: customSections
   };
 
-  // スキル保存
   const skills = [];
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     skills.push({
@@ -606,7 +605,6 @@ function saveData() {
   });
   data.skills = skills;
 
-  // 未練保存
   const list = [];
   document.querySelectorAll('#list tr').forEach(tr => {
     list.push({
@@ -617,7 +615,6 @@ function saveData() {
   });
   data.list = list;
 
-  // パーツ保存
   const parts = {};
   const baseIds = ['head', 'arm', 'body', 'leg'];
   baseIds.forEach(id => {
@@ -677,10 +674,8 @@ function loadData() {
     customSections = data.customSections || [];
     renderPartsContainer();
 
-    // クラス変更を反映して初期化
     onClassChange();
 
-    // パーツデータの復元
     if (data.parts) {
       Object.keys(data.parts).forEach(id => {
         const tbody = document.getElementById(`parts-tbody-${id}`);
@@ -688,7 +683,7 @@ function loadData() {
           tbody.innerHTML = '';
           data.parts[id].forEach(p => {
             const isBase = ['head', 'arm', 'body', 'leg'].includes(id);
-addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !isBase);
+            addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !isBase);
             const lastTr = tbody.lastElementChild;
             if (lastTr && p.broken) {
               const chk = lastTr.querySelector('input[type="checkbox"]');
@@ -702,7 +697,6 @@ addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !i
       });
     }
 
-    // スキルデータの復元
     const skillTbody = document.getElementById('skill-tbody');
     skillTbody.innerHTML = '';
     if (data.skills && data.skills.length > 0) {
@@ -715,7 +709,6 @@ addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, !i
       });
     }
 
-    // 未練データの復元
     const listTbody = document.getElementById('list');
     listTbody.innerHTML = '';
     if (data.list && data.list.length > 0) {
@@ -743,7 +736,6 @@ function exportJSON() {
 }
 
 function exportCcfolia() {
-  // ココフォリア出力用の簡易ロジック（必要に応じて拡張可能）
   alert('ココフォリア出力機能が呼び出されました。');
 }
 
@@ -751,16 +743,13 @@ function exportCcfolia() {
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  // 初期状態でスキル行がない場合は自動追加
   if (document.querySelectorAll('#skill-tbody tr').length === 0) {
     addPosSkillRow();
-    addMcSkillRow(); // メインクラス 1つ目
-    addMcSkillRow(); // メインクラス 2つ目
-    addScSkillRow(); // サブクラス 1つ目
+    addMcSkillRow();
+    addMcSkillRow();
+    addScSkillRow();
   }
   if (document.querySelectorAll('#list tr').length === 0) {
     addRow();
   }
-};
-};
 };
