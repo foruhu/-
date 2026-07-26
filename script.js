@@ -626,4 +626,6 @@ function addRow(target = '', emotion = '', madness = '0') {
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">削</button></td>
   `;
   list.appendChild(tr);
+  // スクリプトのスコープ外（HTMLのonclickなど）から呼べるようにする
+window.removeCustomSection = removeCustomSection;
 }
