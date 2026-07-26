@@ -315,6 +315,8 @@ function renderPartsContainer() {
     }
     if (sec.isCustom && sec.partsData) {
       sec.partsData.forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true);
+      });
     }
   });
 }
@@ -332,7 +334,7 @@ function onExtraPartSelect(secId, selectElem) {
   } else {
     const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId] ? [idx] : null;
+    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
     
     if (p) {
       let categoryKey = '';
