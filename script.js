@@ -148,7 +148,7 @@ const DEFAULT_PARTS = {
   ]
 };
 
-// 公式の汎用任意パーツおよび各部位のパーツデータベース（火炎放射器を追加）
+// 公式ルール等に存在する全パーツを網羅・整理したデータベース
 const EXTRA_PARTS_DB = {
   head: [
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
@@ -197,18 +197,36 @@ const EXTRA_PARTS_DB = {
     { name: 'キャタピラ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2、移動マニューバのコスト-1' },
     { name: 'ブースター', type: '改造', level: 1, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' }
   ],
-  // ★公式任意の汎用パーツ枠（ここに火炎放射器を追加しました）
+  // ★ご提示いただいた全パーツを含めた公式任意・汎用パーツ枠
   official_any: [
+    { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
+    { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
+    { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
+    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
     { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1' },
-    { name: '【任意】追加武装（Lv1）', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加武装（Lv2）', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加武装（Lv3）', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加変異（Lv1）', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加変異（Lv2）', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加変異（Lv3）', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加改造（Lv1）', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加改造（Lv2）', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
-    { name: '【任意】追加改造（Lv3）', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' }
+    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、このパーツが損傷していたら、修復してよい。' },
+    { name: 'おおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
+    { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '対話判定において、判定出目+1してよい。' },
+    { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
+    { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
+    { name: 'よぷんななめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
+    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1。' },
+    { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
+    { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
+    { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
+    { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
+    { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。' },
+    { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵攻撃2＋連撃1。' },
+    { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3', memo: '射撃攻撃1＋切断。' },
+    { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
+    { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
+    { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
+    { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
   ]
 };
 
