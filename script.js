@@ -264,7 +264,13 @@ const EXTRA_PARTS_DB = {
     { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
     { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
-  ]
+  ],
+  // 任意パーツや汎用パーツのデータ例
+const OPTIONAL_PARTS_DATA = {
+  "火炎ビン": { effect: "攻撃 / 射程:遠隔 / コスト:行動力1 / 効果:範囲内の敵に出血または炎上..." },
+  "有刺鉄線": { effect: "防御 / 射程:近接 / コスト:行動力1 / 効果:絡みつき効果..." },
+  // 他の任意パーツなど
+};
 };
 
 
