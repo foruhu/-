@@ -148,11 +148,12 @@ const DEFAULT_PARTS = {
   ]
 };
 
+// 公式の汎用任意パーツおよび各部位のパーツデータベース（火炎放射器を追加）
 const EXTRA_PARTS_DB = {
   head: [
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
-    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大限行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' },
@@ -162,68 +163,23 @@ const EXTRA_PARTS_DB = {
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
     { name: 'すすりじた', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1。この攻撃で敵のパーツを損傷させた際、自身のはらわたを損傷しているなら、1つだけ損傷前の状態に戻してよい。' },
     { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '1ターンに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' },
-    { name: '発勁(2Lv)', type: '武装', level: 2, timing: 'ラピッド', cost: '0', range: '0', memo: '自身に対しては使用不可。移動1。' },
-    { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
-    { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の末練から、狂気点を1減少させてよい。' },
-    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
     { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
   ],
   arm: [
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
     { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋攻撃判定+1' },
     { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵3' },
-    { name: '肉切り包丁', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵2' },
     { name: '日本刀', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋切断' },
     { name: 'チェーンソー', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2+切断' },
     { name: '大型拳銃', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵2' },
     { name: '狙撃ライフル', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '2〜3', memo: '射撃1、攻撃判定+1' },
     { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
-    { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
-    { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
     { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発、攻撃判定+1' },
     { name: 'マシンガン', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃1+全体攻撃' },
-    { name: '熊撃ち銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜2', memo: '射撃3' },
-    { name: '二丁拳銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃2+連撃1' },
-    { name: 'ジョギリ', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵4、+攻撃判定+1' },
-    { name: '芝刈り機', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵3+連撃2' },
-    { name: '名刀', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵2+切断、攻撃判定+1' },
-    { name: '空飛ぶギロチン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵1+切断+転倒' },
-    { name: '対戦車ライフル', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～3', memo: '射撃5' },
-    { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2', memo: '射撃1+爆発+連撃1' },
-    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃1+爆発+連撃1' },
-    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' },
+    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1' },
     { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
-    { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1。' },
-    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
-    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
-    { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃2。' },
-    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援1。' },
-    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '妨害1。' },
-    { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
-    { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
-    { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
-    { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
-    { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
-    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1', memo: '妨害1＋転倒。' },
-    { name: 'よぷんななめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
-    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
-    { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1。' },
-    { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋切断。' },
-    { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
-    { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
-    { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
-    { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋転倒。' },
-    { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。' },
-    { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵攻撃2＋連撃1。' },
-    { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3', memo: '射撃攻撃1＋切断。' },
-    { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '腕のみ、ダメージに対して常に「防御1」。腕部にある白兵・肉弾攻撃マニューバのダメージ+1。' },
-    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '脚のみ、ダメージに対して常に「防御1」。バトルパートで移動時、白兵・肉弾攻撃マニューバを1つ、「ラピッド」で使用可。' },
-    { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '移動妨害1＋転倒。' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
-    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援2か妨害2。' },
-    { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
-    { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
+    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' }
   ],
   body: [
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
@@ -232,47 +188,31 @@ const EXTRA_PARTS_DB = {
     { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
     { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' },
-    { name: '手榴弾(2Lv)', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '砲撃攻撃2＋爆発、攻撃判定の出目-1。' },
-    { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
-    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
-    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
-    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
-    { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
-    { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
-    { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '「切断」を常に無効化してよい。' }
+    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: 'バトルパートにてターン終了時、このパーツが損傷していたら、修復してよい。' }
   ],
   leg: [
     { name: 'ローラーシューズ', type: '武装', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1' },
     { name: '多節足', type: '変異', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '移動2' },
     { name: '尻尾', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '転倒' },
     { name: 'キャタピラ', type: '改造', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+2、移動マニューバのコスト-1' },
-    { name: 'ブースター', type: '改造', level: 1, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' },
-    { name: 'よぶんなあし', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: 'これ以外の脚部パーツが破損しても、マニューバをそのまま使用してよい。' },
-    { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2。' },
-    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
-    { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '最大行動値+1。' },
-    { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
-    { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
-    { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
-    { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
-    { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
+    { name: 'ブースター', type: '改造', level: 1, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動2' }
+  ],
+  // ★公式任意の汎用パーツ枠（ここに火炎放射器を追加しました）
+  official_any: [
+    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1' },
+    { name: '【任意】追加武装（Lv1）', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加武装（Lv2）', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加武装（Lv3）', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加変異（Lv1）', type: '変異', level: 1, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加変異（Lv2）', type: '変異', level: 2, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加変異（Lv3）', type: '変異', level: 3, timing: 'オート', cost: '無', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加改造（Lv1）', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加改造（Lv2）', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' },
+    { name: '【任意】追加改造（Lv3）', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '公式サプリ等の汎用追加パーツ。効果は個別に記入' }
   ]
 };
 
-const PART_LIMIT_TABLE = {
-  1: [1, 0, 0],
-  2: [1, 1, 0],
-  3: [1, 1, 1],
-  4: [2, 1, 1],
-  5: [2, 2, 1],
-  6: [2, 2, 2],
-  7: [3, 2, 2],
-  8: [3, 3, 2],
-  9: [3, 3, 3]
-};
-
-let customSections = [];
-
+// パーツコンテナおよびセレクトボックスを生成する関数
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
@@ -287,24 +227,29 @@ function renderPartsContainer() {
 
   const allSections = [...baseSections, ...customSections];
 
+  let allPartsOptionsHtml = `<option value="">+ 【任意の部位】にパーツを選択して追加...</option>`;
+  allPartsOptionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+
+  const categoryNameMap = { 
+    head: '頭部', 
+    arm: '腕部', 
+    body: '胴部', 
+    leg: '脚部', 
+    official_any: '公式任意・汎用' 
+  };
+
+  Object.keys(EXTRA_PARTS_DB).forEach(categoryKey => {
+    const catLabel = categoryNameMap[categoryKey] || categoryKey;
+    
+    EXTRA_PARTS_DB[categoryKey].forEach((p, idx) => {
+      allPartsOptionsHtml += `<option value="${categoryKey}_${idx}">[${catLabel} / ${p.type} Lv${p.level}] ${p.name}</option>`;
+    });
+  });
+
   allSections.forEach(sec => {
     const secDiv = document.createElement('div');
     secDiv.id = `section-box-${sec.id}`;
     
-    // 全ての部位から「EXTRA_PARTS_DB」内の全パーツを選択肢として拾えるように統一、または部位に合わせたキーを使用
-    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
-    optionsHtml += `<option value="custom">-- 自由入力のパーツを追加 --</option>`;
-    
-    // カスタム部位の場合はheadやarmなどのプールを共有するか、すべてから選べるように全パーツのリストを結合して表示
-    const targetDbKey = EXTRA_PARTS_DB[sec.id] ? sec.id : 'head'; 
-    const dbSource = EXTRA_PARTS_DB[sec.id] || [...EXTRA_PARTS_DB.head, ...EXTRA_PARTS_DB.arm, ...EXTRA_PARTS_DB.body, ...EXTRA_PARTS_DB.leg];
-
-    dbSource.forEach((p, idx) => {
-      // どの部位からでもユニークにひけるようDBキーを付与
-      const dbKeyToUse = EXTRA_PARTS_DB[sec.id] ? sec.id : 'all';
-      optionsHtml += `<option value="${dbKeyToUse}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-    });
-
     let deleteBtnHtml = '';
     if (sec.isCustom) {
       deleteBtnHtml = `<button type="button" class="del" onclick="removeCustomSection('${sec.id}')" style="margin-left:8px;font-size:.7rem;padding:2px 6px;">部位削除</button>`;
@@ -338,7 +283,7 @@ function renderPartsContainer() {
       </div>
       <div style="margin-top:6px;">
         <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
-          ${optionsHtml}
+          ${allPartsOptionsHtml}
         </select>
       </div>
     `;
@@ -358,45 +303,7 @@ function renderPartsContainer() {
   });
 }
 
-function addCustomSection() {
-  const customId = 'custom_' + Date.now();
-  customSections.push({
-    id: customId,
-    title: '新しい部位',
-    val: '（任意追加）',
-    isCustom: true,
-    partsData: []
-  });
-  renderPartsContainer();
-}
-
-function removeCustomSection(customId) {
-  customSections = customSections.filter(sec => sec.id !== customId);
-  renderPartsContainer();
-}
-
-function updateCustomTitle(customId, newTitle) {
-  const sec = customSections.find(s => s.id === customId);
-  if (sec) {
-    sec.title = newTitle;
-  }
-}
-
-function countExistingParts(categoryType, level) {
-  let count = 0;
-  const rows = document.querySelectorAll('#parts-container tr');
-  rows.forEach(tr => {
-    const typeInput = tr.querySelector('.p-type');
-    const lvInput = tr.querySelector('.p-level');
-    if (typeInput && lvInput) {
-      if (typeInput.value === categoryType && parseInt(lvInput.value, 10) === level) {
-        count++;
-      }
-    }
-  });
-  return count;
-}
-
+// 選択時の処理（制限チェック対応）
 function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
@@ -407,19 +314,10 @@ function onExtraPartSelect(secId, selectElem) {
   if (val === 'custom') {
     addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true);
   } else {
-    const underscoreIdx = val.indexOf('_');
-    const sId = val.substring(0, underscoreIdx);
-    const idxStr = val.substring(underscoreIdx + 1);
+    const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
-
-    let p = null;
-    if (sId === 'all') {
-      const allPartsList = [...EXTRA_PARTS_DB.head, ...EXTRA_PARTS_DB.arm, ...EXTRA_PARTS_DB.body, ...EXTRA_PARTS_DB.leg];
-      p = allPartsList[idx];
-    } else {
-      p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
-    }
-
+    const p = EXTRA_PARTS_DB[sId] ? EXTRA_PARTS_DB[sId][idx] : null;
+    
     if (p) {
       let categoryKey = '';
       if (p.type === '武装') categoryKey = 'wep';
