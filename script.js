@@ -284,6 +284,7 @@ function renderPartsContainer() {
     { id: 'arm', title: '腕部', val: '（最大数値：2）' },
     { id: 'body', title: '胴部', val: '（最大数値：2）' },
     { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+    { id: 'optional', title: '任意', val: '（最大数値：2）' }
   ];
 
   const allSections = [...baseSections, ...customSections];
