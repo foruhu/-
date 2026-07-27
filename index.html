@@ -33,7 +33,7 @@
         <tr>
           <td class="label-cell">ポジション：</td>
           <td>
-            <select id="pos" onchange="onClassChange()">
+            <select id="pos" onchange="onClassChange(); updateSkillSelects();">
               <option>アリス</option>
               <option>ホリック</option>
               <option>オートマトン</option>
@@ -53,7 +53,7 @@
         <tr>
           <td class="label-cell">メインクラス：</td>
           <td>
-            <select id="mc" onchange="onClassChange()">
+            <select id="mc" onchange="onClassChange(); updateSkillSelects();">
               <option selected>ロマネスク</option>
               <option>ステーシー</option>
               <option>タナトス</option>
@@ -68,7 +68,7 @@
         <tr>
           <td class="label-cell">サブクラス：</td>
           <td>
-            <select id="sc" onchange="onClassChange()">
+            <select id="sc" onchange="onClassChange(); updateSkillSelects();">
               <option selected>ロマネスク</option>
               <option>ステーシー</option>
               <option>タナトス</option>
@@ -137,20 +137,15 @@
         </tr>
       </thead>
       <tbody id="skill-tbody">
-        <!-- 初期表示：ポジション、メイン、メイン、サブ（スキル名はセレクトボックスを選択式に） -->
+        <!-- 初期表示：ポジション、メイン、メイン、サブ -->
         <tr>
-          <td><input type="text" class="skill-cat" value="ポジション" style="width:100%;"></td>
           <td>
-            <select class="skill-name skill-select" style="width:100%;">
-              <option value="">-- スキルを選択 --</option>
-              <!-- ここにポジション用のスキル選択肢を追加またはJSで動的生成 -->
+            <select class="skill-cat" style="width:100%;" onchange="updateRowSkillOptions(this)">
+              <option value="ポジション" selected>ポジション</option>
+              <option value="メインクラス">メインクラス</option>
+              <option value="サブクラス">サブクラス</option>
             </select>
           </td>
-          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
-          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
-        </tr>
-        <tr>
-          <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
           <td>
             <select class="skill-name skill-select" style="width:100%;">
               <option value="">-- スキルを選択 --</option>
@@ -160,7 +155,13 @@
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
         <tr>
-          <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
+          <td>
+            <select class="skill-cat" style="width:100%;" onchange="updateRowSkillOptions(this)">
+              <option value="ポジション">ポジション</option>
+              <option value="メインクラス" selected>メインクラス</option>
+              <option value="サブクラス">サブクラス</option>
+            </select>
+          </td>
           <td>
             <select class="skill-name skill-select" style="width:100%;">
               <option value="">-- スキルを選択 --</option>
@@ -170,7 +171,29 @@
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
         <tr>
-          <td><input type="text" class="skill-cat" value="サブクラス" style="width:100%;"></td>
+          <td>
+            <select class="skill-cat" style="width:100%;" onchange="updateRowSkillOptions(this)">
+              <option value="ポジション">ポジション</option>
+              <option value="メインクラス" selected>メインクラス</option>
+              <option value="サブクラス">サブクラス</option>
+            </select>
+          </td>
+          <td>
+            <select class="skill-name skill-select" style="width:100%;">
+              <option value="">-- スキルを選択 --</option>
+            </select>
+          </td>
+          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
+          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
+        </tr>
+        <tr>
+          <td>
+            <select class="skill-cat" style="width:100%;" onchange="updateRowSkillOptions(this)">
+              <option value="ポジション">ポジション</option>
+              <option value="メインクラス">メインクラス</option>
+              <option value="サブクラス" selected>サブクラス</option>
+            </select>
+          </td>
           <td>
             <select class="skill-name skill-select" style="width:100%;">
               <option value="">-- スキルを選択 --</option>
