@@ -136,7 +136,33 @@
           <th style="width:10%;">操作</th>
         </tr>
       </thead>
-      <tbody id="skill-tbody"></tbody>
+      <tbody id="skill-tbody">
+        <!-- 初期表示：ポジション、メイン、メイン、サブ -->
+        <tr>
+          <td><input type="text" class="skill-cat" value="ポジション" style="width:100%;"></td>
+          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
+          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
+        </tr>
+        <tr>
+          <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
+          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
+          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
+        </tr>
+        <tr>
+          <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
+          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
+          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
+        </tr>
+        <tr>
+          <td><input type="text" class="skill-cat" value="サブクラス" style="width:100%;"></td>
+          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
+          <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
+        </tr>
+      </tbody>
     </table>
   </div>
   <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
@@ -182,6 +208,7 @@
 </div>
 <div class="btns">
   <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
+  <button type="button" class="sec" onclick="exportHokanjo()">保管所用テキスト出力</button>
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
