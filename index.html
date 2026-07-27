@@ -137,28 +137,45 @@
         </tr>
       </thead>
       <tbody id="skill-tbody">
-        <!-- 初期表示：ポジション、メイン、メイン、サブ -->
+        <!-- 初期表示：ポジション、メイン、メイン、サブ（スキル名はセレクトボックスを選択式に） -->
         <tr>
           <td><input type="text" class="skill-cat" value="ポジション" style="width:100%;"></td>
-          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td>
+            <select class="skill-name skill-select" style="width:100%;">
+              <option value="">-- スキルを選択 --</option>
+              <!-- ここにポジション用のスキル選択肢を追加またはJSで動的生成 -->
+            </select>
+          </td>
           <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
         <tr>
           <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
-          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td>
+            <select class="skill-name skill-select" style="width:100%;">
+              <option value="">-- スキルを選択 --</option>
+            </select>
+          </td>
           <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
         <tr>
           <td><input type="text" class="skill-cat" value="メインクラス" style="width:100%;"></td>
-          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td>
+            <select class="skill-name skill-select" style="width:100%;">
+              <option value="">-- スキルを選択 --</option>
+            </select>
+          </td>
           <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
         <tr>
           <td><input type="text" class="skill-cat" value="サブクラス" style="width:100%;"></td>
-          <td><input type="text" class="skill-name" value="" style="width:100%;"></td>
+          <td>
+            <select class="skill-name skill-select" style="width:100%;">
+              <option value="">-- スキルを選択 --</option>
+            </select>
+          </td>
           <td><input type="text" class="skill-memo" value="" style="width:100%;"></td>
           <td><button type="button" class="sec" onclick="this.closest('tr').remove()" style="padding:2px 6px;">削除</button></td>
         </tr>
