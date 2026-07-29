@@ -587,20 +587,20 @@ function renderPartsContainer() {
     secDiv.innerHTML = `
       <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
       <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:8%">破損</th>
-              <th style="width:20%">パーツ名</th>
-              <th style="width:10%">種別</th>
-              <th style="width:8%">Lv</th>
-              <th style="width:12%">タイミング</th>
-              <th style="width:8%">コスト</th>
-              <th style="width:10%">射程</th>
-              <th style="width:18%">効果メモ</th>
-              <th style="width:6%">操作</th>
-            </tr>
-          </thead>
+        <thead>
+  <tr>
+    <th style="width:6%">破損</th>
+    <th style="width:12%">部位</th>
+    <th style="width:18%">パーツ名</th>
+    <th style="width:10%">種別</th>
+    <th style="width:6%">Lv</th>
+    <th style="width:12%">タイミング</th>
+    <th style="width:8%">コスト</th>
+    <th style="width:10%">射程</th>
+    <th style="width:12%">効果メモ</th>
+    <th style="width:6%">操作</th>
+  </tr>
+</thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
