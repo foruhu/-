@@ -1,4 +1,670 @@
-alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ネクロニカ キャラクターシート</title>
+<style>
+:root {
+  --bg: #0f0f12;
+  --card: #18181c;
+  --red: #8b0000;
+  --text: #e0e0e0;
+  --border: #3a3a42;
+  --input: #222228;
+  --header-bg: #1a1a20;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Georgia", serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 12px;
+  font-size: 13px;
+}
+h1 {
+  text-align: center;
+  color: #f0a0a0;
+  font-size: 1.4rem;
+  margin: 0 0 12px 0;
+  font-weight: bold;
+  letter-spacing: 3px;
+  border-bottom: 1px solid var(--red);
+  padding-bottom: 6px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.title {
+  font-size: .95rem;
+  font-weight: bold;
+  color: #f0a0a0;
+  border-bottom: 2px solid var(--red);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  font-family: serif;
+}
+.part-header {
+  background: #2a0808;
+  border: 1px solid var(--red);
+  color: #ffffff;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-size: .9rem;
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 1px;
+}
+.part-header .val {
+  font-size: .75rem;
+  color: #ddd;
+  font-weight: normal;
+}
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+label { display: block; font-size: .75rem; color: #aaa; margin-bottom: 2px; }
+input, select, textarea {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--input);
+  color: #fff;
+  font-size: .85rem;
+  font-family: sans-serif;
+  text-align: center;
+}
+input[type="text"] { text-align: left; }
+textarea { text-align: left; resize: vertical; }
+.table-scroll { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 4px; min-width: 100%; }
+th, td { border: 1px solid var(--border); padding: 4px 2px; text-align: center; font-size: .8rem; }
+th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spacing: 1px; }
+.calc-table { background: #121215; margin-bottom: 8px; }
+.calc-table th { background: #22222a; color: #ccc; font-weight: bold; }
+.calc-table td.label-cell { background: #1e1e24; text-align: right; padding-right: 8px; font-weight: bold; color: #ddd; }
+.calc-table input[type="number"] { width: 100%; background: #18181c; border: 1px solid #444; color: #fff; font-weight: bold; }
+.calc-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; margin: 0 auto; }
+.calc-table .total-row td { background: #2a0808; color: #fff; font-size: 1rem; font-weight: bold; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+button {
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  background: var(--red);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: .85rem;
+  font-family: sans-serif;
+}
+button:hover { opacity: 0.9; }
+button.sec { background: #4a4a52; }
+button.del { background: #522; color: #f88; padding: 2px 6px; }
+.add-part-select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px;
+  background: #25252d;
+  color: #f0a0a0;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  font-size: .85rem;
+  cursor: pointer;
+}
+tr.broken input, tr.broken textarea {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+</style>
+</head>
+<body>
+
+<h1>永い後日談のネクロニカ</h1>
+
+<div class="card">
+  <div class="title">基本情報・強化値計算</div>
+  <div class="g2">
+    <div><label>PL名</label><input type="text" id="pl"></div>
+    <div><label>ドール名</label><input type="text" id="name"></div>
+  </div>
+  <div class="table-scroll">
+    <table class="calc-table">
+      <thead>
+        <tr>
+          <th style="width:30%">区分</th>
+          <th style="width:34%">選択</th>
+          <th style="width:12%">武装</th>
+          <th style="width:12%">変異</th>
+          <th style="width:12%">改造</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label-cell">ポジション：</td>
+          <td>
+            <select id="pos" onchange="onClassChange()">
+              <option>アリス</option>
+              <option>ホリック</option>
+              <option>オートマトン</option>
+              <option>ジャンク</option>
+              <option>コート</option>
+              <option>ソロリティ</option>
+            </select>
+          </td>
+          <td>-</td><td>-</td><td>-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">メインクラス：</td>
+          <td>
+            <select id="mc" onchange="onClassChange()">
+              <option selected>ロマネスク</option>
+              <option>ステーシー</option>
+              <option>タナトス</option>
+              <option>レクイエム</option>
+              <option>バロック</option>
+              <option>ホリック</option>
+              <option>ゴシック</option>
+            </select>
+          </td>
+          <td id="mc-wep">0</td><td id="mc-mut">0</td><td id="mc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">サブクラス：</td>
+          <td>
+            <select id="sc" onchange="onClassChange()">
+              <option selected>ロマネスク</option>
+              <option>ステーシー</option>
+              <option>タナトス</option>
+              <option>レクイエム</option>
+              <option>バロック</option>
+              <option>ホリック</option>
+              <option>ゴシック</option>
+            </select>
+          </td>
+          <td id="sc-wep">0</td><td id="sc-mut">0</td><td id="sc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">ボーナス：</td>
+          <td style="color:#aaa;font-size:.75rem">いずれか+1</td>
+          <td><input type="radio" name="bonus" value="wep" checked onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="mut" onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="cyb" onchange="calcTotals()"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">寵愛による修正：</td>
+          <td style="color:#aaa;font-size:.75rem">手入力加算</td>
+          <td><input type="number" id="chouai-wep" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-mut" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-cyb" value="0" min="0" oninput="calcTotals()"></td>
+        </tr>
+        <tr class="total-row">
+          <td class="label-cell" style="color:#ffaaaa">総計</td>
+          <td style="font-size:.75rem;color:#ccc">パーツ配置上限</td>
+          <td id="total-wep">1</td>
+          <td id="total-mut">0</td>
+          <td id="total-cyb">5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="g2">
+    <div><label>享年/外見</label><input type="text" id="age"></div>
+    <div><label>初期配置</label>
+      <select id="ps">
+        <option>煉獄</option>
+        <option>花園</option>
+        <option>楽園</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div><label>暗示</label><input type="text" id="hint"></div>
+    <div><label>記憶のカケラ</label><input type="text" id="mem"></div>
+  </div>
+  <div class="g2">
+    <div><label>最大行動値</label><input type="number" id="act" value="9"></div>
+    <div><label>獲得寵愛点</label><input type="number" id="fav" value="0"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title">習得スキル</div>
+  <div class="table-scroll">
+    <table class="sheet-table">
+      <thead>
+        <tr>
+          <th style="width:20%;">区分</th>
+          <th style="width:30%;">スキル名</th>
+          <th>効果メモ</th>
+          <th style="width:10%;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="skill-tbody"></tbody>
+    </table>
+  </div>
+  <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+    <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジション</button>
+    <button type="button" class="sec" onclick="addMcSkillRow()" style="width:100%;padding:6px">+ メインクラス</button>
+    <button type="button" class="sec" onclick="addScSkillRow()" style="width:100%;padding:6px">+ サブクラス</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>配置パーツ・マニューバ</span>
+    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+  </div>
+  <div id="parts-container"></div>
+</div>
+
+<div class="card">
+  <div class="title">たからもの・未練（姉妹への感情）</div>
+  <div style="margin-bottom:6px"><label>たからもの</label><input type="text" id="tr"></div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">対象（姉妹）</th>
+          <th style="width:25%">未練（感情）</th>
+          <th style="width:35%">狂気点</th>
+          <th style="width:15%">操作</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+  <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
+</div>
+
+<div class="btns">
+  <button type="button" onclick="saveData()">ブラウザ保存</button>
+  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
+</div>
+<div class="btns">
+  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
+  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
+</div>
+
+<script>
+const SKILL_DATABASE = {
+  'アリス': [
+    { name: '少女', memo: '【少女】 R/0/0\n対象の姉妹1人と対話判定を行う' },
+    { name: 'お嬢様', memo: '【お嬢様】 D/0/0〜1\n自身がダメージを受けた際のみ使用可能\n他の姉妹1人の次のアクションのコストを-1' },
+    { name: '癒し', memo: '【癒し】 O/無し/参照\n他の姉妹からの、あなたに対する対話判定は全て出目-1' },
+    { name: '楽園の天使', memo: '【楽園の天使】 R/2/自\n現在の位置に関係なく、「楽園」に配置する。これは移動ではない。' },
+    { name: '負けない心', memo: '【負けない心】 O/無し/自\n対話判定の出目+1' },
+    { name: '祈り', memo: '【祈り】 A/0/参照\nこれが宣言されたカウントを1として数え始めて5カウント目の終了時に効果が発動する\n宣言時から効果発動までの間、自身が狂気点追加、損傷がともになければ、あなたを含む姉妹全員は各自の未練から1つを選んで狂気点-1\n1ターンに1度、残りカウントが5以上なければ宣言できない' },
+    { name: '輝く表情', memo: '【輝く表情】 O/無し/自\nあなたが対話判定で大成功したなら、対話対象はあなたへの未練から狂気点-1できる。記憶のカケラの減少制限に含まれる' }
+  ],
+  'ホリック': [
+    { name: '加速する狂気', memo: '【加速する狂気】 O/無し/自\nバトルパートで発狂状態の未練がある際、攻撃判定+1' },
+    { name: '業怒', memo: '【業怒】 D/参照/自\n自身が与えたダメージに対してのみ使用可能\nコストとして、あなたは任意の未練に狂気点+1する。ダメージ+2' },
+    { name: '衝動', memo: '【衝動】 O/参照/自\n1ターンに1回、コストを支払う代わりに、任意の未練に狂気点+1をコストとして扱う' },
+    { name: '奈落の引力', memo: '【奈落の引力】 O/無し/自\n現在位置から奈落方向への移動マニューバを自身に使う際、コスト-1' },
+    { name: '修羅', memo: '【修羅】 J/参照/自\nコストとして、あなたは任意の未練に狂気点+1\n支援3' },
+    { name: '堕地獄', memo: '【堕地獄】 A/参照/自\nコストの代わりに、任意の未練へ狂気点+1\n配置エリア地獄に変更' },
+    { name: '狂気の果て', memo: '【狂気の果て】 D/0/自\n任意の未練から狂気点-1\n同じエリアに他の姉妹がいるなら、その姉妹は未練を1つ選び、狂気点+1' }
+  ],
+  'オートマトン': [
+    { name: '援護', memo: '【援護】 O/参照/0〜1\n1ターンに1回、射程内の他の姉妹のアクションマニューバを宣言した際、自身の現在行動値-1する代わりに、宣言されたマニューバのコストを0にする' },
+    { name: '私は人形', memo: '【私は人形】 O/無し/自\nバトルパートで1ターン目のみ、あらゆる発狂状態の効果を無効視してよい' },
+    { name: '無茶', memo: '【無茶】 O/参照/自\nコストとして、あなたは任意の基本パーツ1つ損傷する\n行動・攻撃・切断判定において、振り直しできる' },
+    { name: '煉獄の檻', memo: '【煉獄の檻】 O/無し/自\nターン終了時に煉獄にいるなら、行動値がマイナスになっていても最大行動値まで回復させる' },
+    { name: '氷の心', memo: '【氷の心】 O/無し/自\n狂気判定の出目+1' },
+    { name: '血の涙', memo: '【血の涙】 O/参照/自\n精神攻撃によって与えられる狂気点を無効視できる\n基本パーツ1つ損傷。基本パーツがない場合は使用不可' },
+    { name: '敵は敵', memo: '【敵は敵】 O/無し/自\nあなたに対する精神攻撃の判定値を7以上にする' }
+  ],
+  'ジャンク': [
+    { name: '随行', memo: '【随行】 R/0/自\n他の姉妹が移動マニューバを使用した場合のみ、使用可。移動1' },
+    { name: '足掻く', memo: '【足掻く】 O/無し/自\n狂気点追加での振り直しのとき、出目+1' },
+    { name: '半壊', memo: '【半壊】 O/無し/自\nターン終了までにたからものを損傷していた場合、ターン経過での狂気点は追加させない' },
+    { name: '奈落への抗い', memo: '【奈落への抗い】 O/無し/自\n奈落にいる際、アクションマニューバのコスト-1' },
+    { name: '地獄の住人', memo: '【地獄の住人】 O/無し/自\n地獄にいる際、攻撃判定の出目+1' },
+    { name: '楽園の守護者', memo: '【楽園の守護者】 O/無し/参照\n楽園か花園にいる場合、楽園にいる手駒のコストを+1させる\n完全解体状態でも有効' },
+    { name: '手負いの獣', memo: '【手負いの獣】 O/無し/自\n攻撃判定において、パーツがすべて損傷した箇所1つにつき修正+1' }
+  ],
+  'コート': [
+    { name: '助言', memo: '【助言】 J/0/0〜2\n支援1か妨害1' },
+    { name: '作戦', memo: '【作戦】 O/無し/参照\nバトルパート開始時、敵配置を見てから姉妹1人の配置を奈落以外の望むエリアに変更してもよい' },
+    { name: '冷静', memo: '【冷静】 O/無し/自\n行動判定の出目+1' },
+    { name: '先読み', memo: '【先読み】 A/1/0〜1\n対象が次に使うアクションのコストを-1' },
+    { name: '看破', memo: '【看破】 R/0/0〜3\n対象のラピッド、ダメージ、ジャッジのうち1つの効果を打ち消す' },
+    { name: '抑制', memo: '【抑制】 O/参照/自\n狂気判定で失敗した際、その結果を成功に変えてもよい（大失敗は含まない）\n自身の任意のパーツを損傷させる' },
+    { name: '憎まれ役', memo: '【憎まれ役】 O/参照/参照\n他の姉妹が、狂気判定に失敗または大失敗した際、その結果を成功に変えてもよい\n任意の未練に狂気点+1' }
+  ],
+  'ソロリティ': [
+    { name: '号令', memo: '【号令】 R/2/参照\nあなたを含む舞台上にいる姉妹全員、攻撃マニューバ1つをラピッドとして使用してよい' },
+    { name: '内緒話', memo: '【内緒話】 O/無し/参照\nバトルパート開始時と終了時、任意の姉妹1人と互いに対話判定できる' },
+    { name: '克己心', memo: '【克己心】 O/無し/自\n発狂状態のとき、狂気・対話判定の出目+1' },
+    { name: '優雅', memo: '【優雅】 O/無し/参照\n狂気点で振り直す際、任意の姉妹1人にあなたを対象とした対話判定をさせてよい' },
+    { name: '花園の集い', memo: '【花園の集い】 R/2/参照\nあなたを含む姉妹全員、花園に配置を変更する\nこれは移動ではない' },
+    { name: '姉妹のくちづけ', memo: '【姉妹のくちづけ】 R/1/0\nサヴァントに対してのみ使用可\n対象サヴァントは現在行動値-4' },
+    { name: '心を鬼にして', memo: '【心を鬼にして】 O/無し/参照\nあなたの攻撃によって、姉妹のパーツを損傷させたなら、その姉妹は発狂状態の未練を1つ選び、狂気点-1させる。' }
+  ],
+  'ステーシー': [
+    { name: '蠢く肉片', memo: '【蠢く肉片】 J/0/0〜2\nダメージを受けている際のみ使用可\n妨害3' },
+    { name: '平気', memo: '【平気】 O/無し/自\n損傷しても、ターン終了まではそのパーツは使える' },
+    { name: '死に続け', memo: '【死に続け】 R/0/自\n損傷している基本パーツを1つ修復' },
+    { name: '庇う', memo: '【庇う】 D/0/0〜1\n対象のダメージを自身が肩代わりできる\n1ターンに何度でも使用可' },
+    { name: '肉の盾', memo: '【肉の盾】 D/0/0〜1\nダメージに付随する効果すべてを打ち消す' },
+    { name: '失敗作', memo: '【失敗作】 O/無し/自\n攻撃・切断判定の出目+1\n毎ターン終了時および戦闘終了時に任意のパーツ1つ損傷させる' },
+    { name: '臓物豚', memo: '【臓物豚】 O/無し/参照\n戦闘終了時、あなたを含む姉妹全員、損傷している【はらわた】を修復できる' },
+    { name: '死人の流儀', memo: '【死人の流儀】 J/参照/0〜1\nコストの代わりに、任意の基本パーツを1つ損傷\n支援2か妨害2' }
+  ],
+  'タナトス': [
+    { name: '無限解体', memo: '【無限解体】 D/0/自\nダメージを与えた際のみ使用可\n次カウントまで所有する攻撃マニューバは、同対象に使う限りタイミングがダメージとなる' },
+    { name: '死神', memo: '【死神】 O/無し/自\n白兵の出目+1' },
+    { name: '災禍', memo: '【災禍】 D/2/自\n白兵のみ使用可\n全体攻撃の効果を得る。これによる自身へのダメージはない。' },
+    { name: '殺劇', memo: '【殺劇】 O/無し/自\n同カウント内に他の姉妹が攻撃対象とした敵に攻撃判定する際、自身の攻撃判定の出目+1、ダメージ+1してよい' },
+    { name: '刹那', memo: '【刹那】 O/無し/自\n攻撃マニューバを使用した際、自身以外はラピッド、ジャッジを使うことができない' },
+    { name: '必中', memo: '【必中】 O/無し/自\n攻撃判定値が6だった際、任意の箇所にダメージを与えてよい' },
+    { name: '断罪', memo: '【断罪】 J/0/自\n自身の白兵攻撃判定のみ使用可\n出目は必ず6となる。振り直し不可。' },
+    { name: '冥王', memo: '【冥王】 O/無し/自\nレギオンによる移動妨害を常に無効化\nあなたへのレギオンの攻撃の判定値は7以上でなければダメージを与えられない' }
+  ],
+  'ゴシック': [
+    { name: '暴食', memo: '【暴食】 R/0/自\n損傷した強化パーツを1つ修復する' },
+    { name: '肉の宴', memo: '【肉の宴】 A/1/自\n損傷した基本パーツを1つ修復する' },
+    { name: '捕食者', memo: '【捕食者】 D/2/0\n自身のいるエリア内の敵全てに転倒' },
+    { name: '舌なめずり', memo: '【舌なめずり】 R/0/0〜1\n移動妨害1' },
+    { name: '悪食', memo: '【悪食】 O/無し/参照\n自身の攻撃によって対象に発生させた切断判定に出目-2' },
+    { name: '背徳の悦び', memo: '【背徳の悦び】 D/0/自\n使用済みのラピッド、ジャッジ、ダメージを1つ再使用可能にする' },
+    { name: '引き裂き', memo: '【引き裂き】 O/無し/自\n【あご】【こぶし】を肉弾1+切断にする' },
+    { name: '完全捕食', memo: '【完全捕食】 O/無し/0\n射程0の対象に肉弾攻撃を成功させた際、対象の残りパーツ総数が［判定値-5］以下だったなら、対象は全てのパーツが損傷する' }
+  ],
+  'レクイエム': [
+    { name: '魔弾', memo: '【魔弾】 O/無し/自\n射撃の最大射程+1' },
+    { name: '銃神', memo: '【銃神】 O/無し/自\n射撃の攻撃判定の出目+1' },
+    { name: '死の手', memo: '【死の手】 R/0/自\n任意の攻撃マニューバ1つをラピッドで使用してよい' },
+    { name: '子守唄', memo: '【子守唄】 O/無し/自\n射撃の攻撃判定の出目-1、コスト-1' },
+    { name: '銃型', memo: '【銃型】 J/2/0〜1\n妨害2\nその後、同対象に射撃1を行ってよい' },
+    { name: '集中', memo: '【集中】 R/2/自\nターン終了まで攻撃判定の出目+1' },
+    { name: '後衛の誇り', memo: '【後衛の誇り】 O/無し/自\n射撃・砲撃において攻撃判定値が1以下でも失敗として扱う' },
+    { name: '最高の戦友', memo: '【最高の戦友】 R/1/自\n損傷中の白兵か射撃の効果を持つパーツ1つを修復できる' }
+  ],
+  'バロック': [
+    { name: '異形存在', memo: '【異形存在】 O/無し/自\n攻撃を受ける際の命中箇所を任意に決めてよい。大成功は含めない。' },
+    { name: '狂鬼', memo: '【狂鬼】 O/無し/自\n肉弾の攻撃判定の出目+1' },
+    { name: '怪力', memo: '【怪力】 O/無し/自\n肉弾・白兵攻撃のダメージ+1' },
+    { name: '歪極', memo: '【歪極】 参照/無し/自\nレベル3変異パーツを得る' },
+    { name: '業躯', memo: '【業躯】 O/無し/自\nバトルパート終了時、望むパーツ2つ修復' },
+    { name: '再生', memo: '【再生】 D/1/自\n防御1、1ターンに何度でも使用可' },
+    { name: '凶化器官', memo: '【凶化器官】 O/無し/自\nあらゆる攻撃マニューバが与えるダメージを、使用宣言時に1上昇させてもよい。しかし、付随する効果はすべて失われる。' },
+    { name: '結晶化', memo: '【結晶化】 D/1/自\n受けたダメージに付属した切断、爆発、移動は全て無効化\n1ターンに何度でも使用可' }
+  ],
+  'ロマネスク': [
+    { name: '戦乙女', memo: '【戦乙女】 O/無し/自\n最大行動値+2' },
+    { name: '円舞曲', memo: '【円舞曲】 R/1/自\nターン終了まで、あなたを対象とするすべての攻撃判定の出目-1\n同ターン中の重複は不可' },
+    { name: '死の舞踏', memo: '【死の舞踏】 J/0/自\n攻撃判定の振り直し' },
+    { name: '調律', memo: '【調律】 R/0/0\n損傷したパーツを1つ選び、選んだパーツはターン終了まで使用可' },
+    { name: '愛撫', memo: '【愛撫】 R/0/0\n転倒' },
+    { name: '時計仕掛け', memo: '【時計仕掛け】 参照/無し/自\nレベル3改造パーツを得る' },
+    { name: '多数の手管', memo: '【多数の手管】 O/無し/自\n【うで】【あし】を使用する際、コスト-1' },
+    { name: '狂った歯車', memo: '【狂った歯車】 O/無し/参照\nあなたがいるエリアで、敵が大失敗した際、その結果によって発生するダメージ+1上昇' }
+  ]
+};
+
+const CLASS_PARTS = {
+  'ステーシー': [1,0,1],
+  'タナトス':   [2,0,0],
+  'ゴシック':   [0,0,2],
+  'レクイエム': [1,1,0],
+  'バロック':   [0,2,0],
+  'ホリック':   [0,1,1],
+  'ロマネスク': [0,0,2]
+};
+
+const DEFAULT_PARTS = {
+  head: [
+    { name: 'あたま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
+    { name: 'めだま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
+    { name: 'あご', type: '基本', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' }
+  ],
+  arm: [
+    { name: 'こぶし', type: '基本', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' },
+    { name: 'うで', type: '基本', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援1' },
+    { name: 'かた', type: '基本', level: 1, timing: 'アクション', cost: '4', range: '自身', memo: '移動1' }
+  ],
+  body: [
+    { name: 'せぼね', type: '基本', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '同ターン内の次カウントで使う。マニューバ1つのカウント-1(最低0)' },
+    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '無し', memo: 'なし' },
+    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '無し', memo: 'なし' }
+  ],
+  leg: [
+    { name: 'ほね', type: '基本', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1' },
+    { name: 'ほね', type: '基本', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1' },
+    { name: 'あし', type: '基本', level: 1, timing: 'ジャッジ', cost: '1', range: '0', memo: '妨害1' }
+  ]
+};
+
+const EXTRA_PARTS_DB = {
+  head: [
+    { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵2＋攻撃判定+1' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1', memo: '妨害1＋転倒。' },
+    { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
+    { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の未練から、狂気点を1減少させてよい。' },
+    { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾2' },
+    { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
+    { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' },
+    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '支援2,射撃、砲撃のみ' },
+    { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
+    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '1ターンに1回だけ、コストの代わりに加えられる狂気点1点を無効化できる。' },
+    { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
+    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
+    { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
+  ],
+  arm: [
+    { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋爆発' },
+    { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2＋攻撃判定+1' },
+    { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵3' },
+    { name: '肉切り包丁', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵2' },
+    { name: '日本刀', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋切断' },
+    { name: 'チェーンソー', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2+切断' },
+    { name: '大型拳銃', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵2' },
+    { name: '狙撃ライフル', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '2〜3', memo: '射撃1、攻撃判定+1' },
+    { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
+    { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
+    { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
+    { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1+爆発、攻撃判定+1' },
+    { name: 'マシンガン', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃1+全体攻撃' },
+    { name: '熊撃ち銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜2', memo: '射撃3' },
+    { name: '二丁拳銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1', memo: '射撃2+連撃1' },
+    { name: 'ジョギリ', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵4、+攻撃判定+1' },
+    { name: '芝刈り機', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵3+連撃2' },
+    { name: '名刀', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵2+切断、攻撃判定+1' },
+    { name: '空飛ぶギロチン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵1+切断+転倒' },
+    { name: '対戦車ライフル', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～3', memo: '射撃5' },
+    { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2', memo: '射撃1+爆発+連撃1' },
+    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1', memo: '砲撃1+爆発+連撃1' },
+    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2', memo: '砲撃4+爆発' },
+    { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
+    { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1。' },
+    { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵攻撃1＋切断＋連撃1。' },
+    { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
+    { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃2。' },
+    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援1。' },
+    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '妨害1。' },
+    { name: 'おのおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
+    { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋爆発＋転倒。' },
+    { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
+    { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
+    { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
+    { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1', memo: '妨害1＋転倒。' },
+    { name: 'よぷんななめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
+    { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1。' },
+    { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋切断。' },
+    { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
+    { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
+    { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋転倒。' },
+    { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。' },
+    { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '白兵攻撃2＋連撃1。' },
+    { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3', memo: '射撃攻撃1＋切断。' },
+    { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '腕のみ、ダメージに対して常に「防御1」。腕部にある白兵・肉弾攻撃マニューバのダメージ+1。' },
+    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '脚のみ、ダメージに対して常に「防御1」。バトルパートで移動時、白兵・肉弾攻撃マニューバを1つ、「ラピッド」で使用可。' },
+    { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '移動妨害1＋転倒。' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
+    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0', memo: '支援2か妨害2。' },
+    { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
+    { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
+  ],
+  body: [
+    { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3', memo: '射撃3' },
+    { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
+    { name: '肉殻', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
+    { name: '骨組', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御2' },
+    { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身', memo: '防御3' },
+    { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
+    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1', memo: '自身がダメージを受けた際、そのダメージを与えた対象にのみ使用可。肉弾攻撃2。' },
+    { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
+    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
+    { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1。' },
+    { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身', memo: '防御1＋「切断」無効化。' },
+    { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '「切断」を常に無効化してよい。' }
+  ],
+  leg: [
+    { name: 'よぶんなあし', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: 'これ以外の脚部パーツが破損しても、マニューバをそのまま使用してよい。' },
+    { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2。' },
+    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '任意の箇所を望む数選び、ダメージを振り分けてよい。切断判定は、ダメージを受けた箇所の1つを選んで行う。' },
+    { name: 'しっぽ(1Lv)', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
+    { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' },
+    { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2。' },
+    { name: 'テントクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1', memo: '移動妨害1。' },
+    { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2', memo: '移動1。' },
+    { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '移動1、この移動に対して「移動妨害」は全て無効。' }
+  ]
+};
+
+const PART_LIMIT_TABLE = {
+  1: [1, 0, 0],
+  2: [1, 1, 0],
+  3: [1, 1, 1],
+  4: [2, 1, 1],
+  5: [2, 2, 1],
+  6: [2, 2, 2],
+  7: [3, 2, 2],
+  8: [3, 3, 2],
+  9: [3, 3, 3]
+};
+
+function renderPartsContainer() {
+  const container = document.getElementById('parts-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const sections = [
+    { id: 'head', title: '頭部', val: '（最大数値：2）' },
+    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
+    { id: 'body', title: '胴部', val: '（最大数値：2）' },
+    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+  ];
+
+  sections.forEach(sec => {
+    const secDiv = document.createElement('div');
+    
+    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
+    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+    
+    if (EXTRA_PARTS_DB[sec.id]) {
+      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
+        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+      });
+    }
+
+    secDiv.innerHTML = `
+      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:8%">破損</th>
+              <th style="width:20%">パーツ名</th>
+              <th style="width:10%">種別</th>
+              <th style="width:8%">Lv</th>
+              <th style="width:12%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:18%">効果メモ</th>
+              <th style="width:6%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody-${sec.id}"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:6px;">
+        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
+          ${optionsHtml}
+        </select>
+      </div>
+    `;
+    container.appendChild(secDiv);
+
+    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
+    if (DEFAULT_PARTS[sec.id]) {
+      DEFAULT_PARTS[sec.id].forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
+      });
+    }
+  });
+}
+
+function countExistingParts(categoryType, level) {
+  let count = 0;
+  const rows = document.querySelectorAll('#parts-container tr');
+  rows.forEach(tr => {
+    const typeInput = tr.querySelector('.p-type');
+    const lvInput = tr.querySelector('.p-level');
+    if (typeInput && lvInput) {
+      if (typeInput.value === categoryType && parseInt(lvInput.value, 10) === level) {
+        count++;
+      }
+    }
+  });
+  return count;
+}
+
+function onExtraPartSelect(secId, selectElem) {
+  const val = selectElem.value;
+  if (!val) return;
+
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  if (!tbody) return;
+
+  if (val === 'custom') {
+    addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true);
+  } else {
+    const [sId, idxStr] = val.split('_');
+    const idx = parseInt(idxStr, 10);
+    const p = EXTRA_PARTS_DB[sId][idx];
+    if (p) {
+      let categoryKey = '';
+      if (p.type === '武装') categoryKey = 'wep';
+      else if (p.type === '変異') categoryKey = 'mut';
+      else if (p.type === '改造') categoryKey = 'cyb';
+
+      if (categoryKey) {
+        const totalValElem = document.getElementById(`total-${categoryKey}`);
+        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 1 : 1;
+        
+        const tableLimits = PART_LIMIT_TABLE[currentTotal] || PART_LIMIT_TABLE[9];
+        const maxLimit = tableLimits[p.level - 1] ?? 0;
+        const currentCount = countExistingParts(p.type, p.level);
+
+        if (currentCount >= maxLimit) {
+          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
           selectElem.value = '';
           return;
         }
