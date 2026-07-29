@@ -683,22 +683,24 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
+// 【修正】引数に defaultLoc = '頭部' を追加
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
   const tr = document.createElement('tr');
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
 
-  // 配置できる部位の選択肢
-  const locations = ['頭部', '腕部', '胴部', '脚部'];
+  // 配置できる部位の選択肢を作成
+  const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
   let locOptions = '';
   locations.forEach(loc => {
     const selected = (loc === defaultLoc) ? 'selected' : '';
     locOptions += `<option value="${loc}" ${selected}>${loc}</option>`;
   });
 
+  // 【修正】<td>でセレクトボックスを挟み込む
   tr.innerHTML = `
     <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
-    <td><select class="p-location">${locOptions}</select></td>
+    <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr}>
