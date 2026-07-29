@@ -613,11 +613,15 @@ function renderPartsContainer() {
     container.appendChild(secDiv);
 
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-    if (DEFAULT_PARTS[sec.id]) {
-      DEFAULT_PARTS[sec.id].forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
-      });
-    }
+// 部位IDを日本語名に変換する対応表
+const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+const currentLocName = locMap[sec.id] || '頭部';
+
+if (DEFAULT_PARTS[sec.id]) {
+  DEFAULT_PARTS[sec.id].forEach(p => {
+    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+  });
+}
   });
 }
 
