@@ -652,7 +652,15 @@ function onExtraPartSelect(secId, selectElem) {
   if (!tbody) return;
 
   if (val === 'custom') {
-    addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true);
+    const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+const currentLocName = locMap[secId] || '頭部';
+
+if (val === 'custom') {
+  addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
+} else {
+  // （中略：制限チェック等のコード）
+  addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+}
   } else {
     const [sId, idxStr] = val.split('_');
     const idx = parseInt(idxStr, 10);
