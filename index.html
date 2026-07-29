@@ -572,6 +572,9 @@ function renderPartsContainer() {
     { id: 'leg', title: '脚部', val: '（最大数値：2）' }
   ];
 
+  // 部位IDを日本語名に変換する対応表
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
     
@@ -584,23 +587,25 @@ function renderPartsContainer() {
       });
     }
 
+    // 【修正】<thead>の中に <th style="width:12%">部位</th> を追加
     secDiv.innerHTML = `
       <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
       <div class="table-scroll">
-        <thead>
-  <tr>
-    <th style="width:6%">破損</th>
-    <th style="width:12%">部位</th>
-    <th style="width:18%">パーツ名</th>
-    <th style="width:10%">種別</th>
-    <th style="width:6%">Lv</th>
-    <th style="width:12%">タイミング</th>
-    <th style="width:8%">コスト</th>
-    <th style="width:10%">射程</th>
-    <th style="width:12%">効果メモ</th>
-    <th style="width:6%">操作</th>
-  </tr>
-</thead>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:6%">破損</th>
+              <th style="width:12%">部位</th>
+              <th style="width:18%">パーツ名</th>
+              <th style="width:10%">種別</th>
+              <th style="width:6%">Lv</th>
+              <th style="width:12%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:12%">効果メモ</th>
+              <th style="width:6%">操作</th>
+            </tr>
+          </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
@@ -613,15 +618,14 @@ function renderPartsContainer() {
     container.appendChild(secDiv);
 
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-// 部位IDを日本語名に変換する対応表
-const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-const currentLocName = locMap[sec.id] || '頭部';
+    const currentLocName = locMap[sec.id] || '頭部';
 
-if (DEFAULT_PARTS[sec.id]) {
-  DEFAULT_PARTS[sec.id].forEach(p => {
-    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
-  });
-}
+    if (DEFAULT_PARTS[sec.id]) {
+      DEFAULT_PARTS[sec.id].forEach(p => {
+        // 【修正】第10引数に現在の部位名（currentLocName）を渡す
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+      });
+    }
   });
 }
 
