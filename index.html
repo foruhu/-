@@ -675,13 +675,22 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
-function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable) {
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
   const tr = document.createElement('tr');
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
 
+  // 配置できる部位の選択肢
+  const locations = ['頭部', '腕部', '胴部', '脚部'];
+  let locOptions = '';
+  locations.forEach(loc => {
+    const selected = (loc === defaultLoc) ? 'selected' : '';
+    locOptions += `<option value="${loc}" ${selected}>${loc}</option>`;
+  });
+
   tr.innerHTML = `
     <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+    <td><select class="p-location">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr}>
