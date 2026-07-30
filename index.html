@@ -616,35 +616,35 @@ function renderPartsContainer() {
   if (!container) return;
   container.innerHTML = '';
 
-  // ネクロニカの基本部位定義
   const sections = [
-    { id: 'head', name: '頭部' },
-    { id: 'arm', name: '腕部' },
-    { id: 'body', name: '胴部' },
-    { id: 'leg', name: '脚部' }
+    { id: 'head', name: '頭部パーツ' },
+    { id: 'arm', name: '腕部パーツ' },
+    { id: 'body', name: '胴部パーツ' },
+    { id: 'leg', name: '脚部パーツ' }
   ];
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
-    secDiv.className = 'part-section';
+    secDiv.className = 'card';
+    secDiv.style.marginBottom = '10px';
     secDiv.innerHTML = `
-      <h3>${sec.name}</h3>
-      <div style="overflow-x:auto;">
-        <table>
+      <div class="title" style="font-size:0.85rem; padding:4px 8px;">${sec.name}</div>
+      <div class="table-scroll">
+        <table class="calc-table">
           <thead>
             <tr>
-              <th style="width:30px;">損耗</th>
-              <th style="width:70px;">部位</th>
-              <th>パーツ名</th>
-              <th style="width:70px;">種別</th>
-              <th style="width:50px;">Lv</th>
-              <th style="width:70px;">タイミング</th>
-              <th style="width:50px;">コスト</th>
-              <th style="width:60px;">射程</th>
-              <th>メモ</th>
-              <th style="width:30px;">操作</th>
+              <th style="width:6%">破</th>
+              <th style="width:14%">部位</th>
+              <th style="width:24%">パーツ名</th>
+              <th style="width:12%">種別</th>
+              <th style="width:8%">Lv</th>
+              <th style="width:10%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:8%">射程</th>
+              <th style="width:24%">メモ</th>
+              <th style="width:6%">X</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
@@ -661,7 +661,6 @@ function renderPartsContainer() {
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
     const currentLocName = locMap[sec.id] || '頭部';
 
-    // デフォルトパーツの読み込み
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
@@ -891,12 +890,12 @@ function calcTotals() {
   if (document.getElementById('total-cyb')) document.getElementById('total-cyb').textContent = totalCybClass;
 
   // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得
-function getLimitsByReinforce(val) {
-  const clampedVal = Math.max(0, Math.min(9, Number(val) || 0));
-  if (clampedVal === 0) return [0, 0, 0];
-  const limits = (typeof REINFORCE_LIMIT_TABLE !== 'undefined') ? REINFORCE_LIMIT_TABLE[clampedVal] : [0, 0, 0];
-  return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
-}
+  const getLimitsByReinforce = (val) => {
+    const clampedVal = Math.max(0, Math.min(9, val));
+    if (clampedVal === 0) return [0, 0, 0];
+    const limits = (typeof REINFORCE_LIMIT_TABLE !== 'undefined') ? REINFORCE_LIMIT_TABLE[clampedVal] : [0, 0, 0];
+    return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
+  };
 
   const wepLimits = getLimitsByReinforce(totalWepClass);
   const mutLimits = getLimitsByReinforce(totalMutClass);
