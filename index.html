@@ -293,6 +293,27 @@ tr.broken input, tr.broken textarea {
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
+<div class="card">
+  <div class="title">パーツ配置・空き状況（残り枠）</div>
+  <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.9rem; padding: 6px;">
+    <div>
+      <span style="color:#ff6b6b; font-weight:bold;">武装</span><br>
+      使用: <span id="used-wep">0</span> / 上限: <span id="limit-wep">0</span><br>
+      <span style="font-size:0.8rem; color:#aaa;">(残り: <span id="remain-wep">0</span>)</span>
+    </div>
+    <div>
+      <span style="color:#4dabf7; font-weight:bold;">変異</span><br>
+      使用: <span id="used-mut">0</span> / 上限: <span id="limit-mut">0</span><br>
+      <span style="font-size:0.8rem; color:#aaa;">(残り: <span id="remain-mut">0</span>)</span>
+    </div>
+    <div>
+      <span style="color:#ffd43b; font-weight:bold;">改造</span><br>
+      使用: <span id="used-cyb">0</span> / 上限: <span id="limit-cyb">0</span><br>
+      <span style="font-size:0.8rem; color:#aaa;">(残り: <span id="remain-cyb">0</span>)</span>
+    </div>
+  </div>
+</div>
+
 <script>
 const SKILL_DATABASE = {
   'アリス': [
