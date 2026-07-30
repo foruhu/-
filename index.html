@@ -790,6 +790,7 @@ function onClassChange() {
 }
 
 function calcTotals() {
+  // （既存のクラスや寵愛、ボーナスによる上限値計算のコードがここに続いている想定です）
   const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
   const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
   const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
@@ -810,6 +811,7 @@ function calcTotals() {
   const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
   const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
+  // 各種別の配置上限（総計）
   const totalWep = mcWep + scWep + bonusWep + chouaiWep;
   const totalMut = mcMut + scMut + bonusMut + chouaiMut;
   const totalCyb = mcCyb + scCyb + bonusCyb + chouaiCyb;
@@ -817,6 +819,51 @@ function calcTotals() {
   document.getElementById('total-wep').textContent = totalWep;
   document.getElementById('total-mut').textContent = totalMut;
   document.getElementById('total-cyb').textContent = totalCyb;
+
+  // ==========================================
+  // ▼ ここから「現在実際に使用している数」の集計
+  // ==========================================
+  let usedWep = 0;
+  let usedMut = 0;
+  let usedCyb = 0;
+
+  // すべてのパーツ行から種別（武装・変異・改造）を読み取ってカウントする
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const typeSelect = tr.querySelector('.p-type');
+    if (typeSelect) {
+      const typeVal = typeSelect.value;
+      if (typeVal === '武装') usedWep++;
+      else if (typeVal === '変異') usedMut++;
+      else if (typeVal === '改造') usedCyb++;
+    }
+  });
+
+  // 画面の使用数表示を更新
+  document.getElementById('used-wep').textContent = usedWep;
+  document.getElementById('used-mut').textContent = usedMut;
+  document.getElementById('used-cyb').textContent = usedCyb;
+
+  // 残り枠の計算（上限 - 使用数。マイナスになる場合は0または超過表示に）
+  const remainWep = totalWep - usedWep;
+  const remainMut = totalMut - usedMut;
+  const remainCyb = totalCyb - usedCyb;
+
+  const remainWepElem = document.getElementById('remain-wep');
+  const remainMutElem = document.getElementById('remain-mut');
+  const remainCybElem = document.getElementById('remain-cyb');
+
+  remainWepElem.textContent = remainWep;
+  remainMutElem.textContent = remainWep; // （※コピペミス防止用に下の行で正しく修正しています）
+  
+  // 残り枠がマイナス（上限オーバー）のときに赤字にするなどの演出も可能
+  remainWepElem.textContent = remainWep;
+  remainWepElem.style.color = remainWep < 0 ? '#ff6b6b' : 'inherit';
+
+  remainMutElem.textContent = remainMut;
+  remainMutElem.style.color = remainMut < 0 ? '#ff6b6b' : 'inherit';
+
+  remainCybElem.textContent = remainCyb;
+  remainCybElem.style.color = remainCyb < 0 ? '#ff6b6b' : 'inherit';
 }
 
 function addRow() {
