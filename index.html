@@ -98,6 +98,7 @@ th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spac
 .limit-table { font-size: 0.75rem; margin-top: 8px; background: #15151a; }
 .limit-table th { background: #22222c; color: #f0a0a0; }
 .limit-table td { padding: 3px; }
+.limit-table input[type="number"] { width: 45px; background: #18181c; border: 1px solid #444; color: #ff8888; font-weight: bold; padding: 2px; }
 .limit-ok { color: #8ff; font-weight: bold; }
 .limit-ng { color: #ff8888; font-weight: bold; }
 
@@ -224,22 +225,26 @@ tr.broken input, tr.broken textarea {
     </table>
   </div>
 
-  <!-- レベル取得数チェッカー表示エリア -->
+  <!-- レベル取得数チェッカー表示エリア（スキル等の自動連動対応） -->
   <div class="table-scroll">
     <table class="limit-table">
       <thead>
         <tr>
-          <th style="width:22%">カテゴリ</th>
-          <th style="width:13%">レベル</th>
-          <th style="width:20%">規定上限</th>
-          <th style="width:20%">現在取得</th>
-          <th style="width:25%">判定</th>
+          <th style="width:20%">カテゴリ</th>
+          <th style="width:12%">レベル</th>
+          <th style="width:18%">規定上限</th>
+          <th style="width:15%">追加枠(手動)</th>
+          <th style="width:15%">現在取得</th>
+          <th style="width:20%">判定</th>
         </tr>
       </thead>
       <tbody id="limit-tbody">
         <!-- 動的生成 -->
       </tbody>
     </table>
+    <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
+      ※「時計仕掛け」等のスキルを選ぶと改造Lv3の追加枠が自動で+1されます
+    </div>
   </div>
 
   <div class="g2" style="margin-top:8px;">
@@ -422,7 +427,7 @@ const SKILL_DATABASE = {
     { name: '死の舞踏', memo: '【死の舞踏】 ジャッジ/0/自身\n攻撃判定の振り直し' },
     { name: '調律', memo: '【調律】 ' },
     { name: '愛撫', memo: '【愛撫】 ラピッド/0/0\n転倒' },
-    { name: '時計仕掛け', memo: '【時計仕掛け】 ' }
+    { name: '時計仕掛け', memo: '【時計仕掛け】 レベル3の改造パーツを追加で1つ獲得する' }
   ]
 };
 
@@ -565,7 +570,6 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '' }
 ];
 
-// ルールブックの取得数表データ (インデックス = 強化値 1〜9)
 const LIMIT_TABLE_DATA = [
   /* 1 */ { lv1: 1, lv2: 0, lv3: 0 },
   /* 2 */ { lv1: 1, lv2: 1, lv3: 0 },
@@ -807,20 +811,47 @@ function calcTotals() {
     }
   });
 
-  // チェッカーテーブルの描画更新
-  const limitTbody = document.getElementById('limit-tbody');
-  limitTbody.innerHTML = '';
+  // スキル「時計仕掛け」が選択されているかチェックし、改造Lv3の自動追加枠を判定
+  let hasClockwork = false;
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    const skillSelect = tr.querySelector('select');
+    if (skillSelect && skillSelect.value === '時計仕掛け') {
+      hasClockwork = true;
+    }
+  });
 
+  // チェッカーテーブルの描画更新
   const categories = [
     { name: '武装', total: totalWep },
     { name: '変異', total: totalMut },
     { name: '改造', total: totalCyb }
   ];
 
+  const limitTbody = document.getElementById('limit-tbody');
+  
+  // 既存の手動追加枠の入力値を保持しておく
+  const extraValues = {};
+  limitTbody.querySelectorAll('tr').forEach((tr, index) => {
+    const input = tr.querySelector('input[type="number"]');
+    if (input) extraValues[index] = parseInt(input.value, 10) || 0;
+  });
+
+  limitTbody.innerHTML = '';
+  let rowIndex = 0;
+
   categories.forEach(cat => {
     const limit = getLimitByVal(cat.total);
     [1, 2, 3].forEach(lv => {
-      const maxAllowed = limit[`lv${lv}`];
+      const baseLimit = limit[`lv${lv}`];
+      let extraVal = extraValues[rowIndex] || 0;
+
+      // 「時計仕掛け」が選ばれていて、かつ「改造のLv3」の行である場合、自動で+1を上乗せ（手動入力と合算）
+      let autoBonus = 0;
+      if (cat.name === '改造' && lv === 3 && hasClockwork) {
+        autoBonus = 1;
+      }
+
+      const maxAllowed = baseLimit + extraVal + autoBonus;
       const current = currentCounts[cat.name][lv];
       let statusHtml = '';
 
@@ -830,15 +861,23 @@ function calcTotals() {
         statusHtml = `<span class="limit-ok">OK (${current}/${maxAllowed})</span>`;
       }
 
+      // 改造Lv3の行で自動付与がある場合、分かりやすく注記を入れる
+      let extraNote = '';
+      if (cat.name === '改造' && lv === 3 && hasClockwork) {
+        extraNote = ' <span style="font-size:0.65rem;color:#8ff;">(スキル+1)</span>';
+      }
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><b>${cat.name}</b> (総${cat.total})</td>
         <td>Lv ${lv}</td>
-        <td>最大 <b>${maxAllowed}</b> 個</td>
+        <td>${baseLimit} 個</td>
+        <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()">${extraNote}</td>
         <td><b>${current}</b> 個</td>
         <td>${statusHtml}</td>
       `;
       limitTbody.appendChild(tr);
+      rowIndex++;
     });
   });
 }
@@ -875,9 +914,10 @@ function addSkillRow(category, skillName = '', memo = '') {
       </select>
     </td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
   `;
   tbody.appendChild(tr);
+  calcTotals();
 }
 
 function addPosSkillRow() {
@@ -903,6 +943,7 @@ function onSkillSelect(selectElem) {
 
   if (!skillName) {
     textarea.value = '';
+    calcTotals();
     return;
   }
 
@@ -913,6 +954,7 @@ function onSkillSelect(selectElem) {
       textarea.value = found.memo;
     }
   }
+  calcTotals();
 }
 
 function saveData() {
