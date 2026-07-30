@@ -806,10 +806,13 @@ function calcTotals() {
   const chouaiMut = parseInt(document.getElementById('chouai-mut')?.value, 10) || 0;
   const chouaiCyb = parseInt(document.getElementById('chouai-cyb')?.value, 10) || 0;
 
-  // 各系統の強化値の合計を算出
+  // 各系統の強化値の合計（クラス基礎 + ボーナス + 寵愛）を算出
   const totalWepClass = mcWep + scWep + bonusWep + chouaiWep;
   const totalMutClass = mcMut + scMut + bonusMut + chouaiMut;
   const totalCybClass = mcCyb + scCyb + bonusCyb + chouaiCyb;
+
+  // ※もし画面上に「総強化値」を表示するテキストエリア等があれば、ここで値を反映させることも可能です
+  // 例: document.getElementById('total-wep-class').textContent = totalWepClass; 等
 
   // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得
   const getLimitsByReinforce = (val) => {
@@ -847,6 +850,21 @@ function calcTotals() {
       else if (typeVal === '改造') usedCybCount++;
     }
   });
+
+  // ステータスバーの使用総数を反映
+  if (document.getElementById('used-wip-total')) {
+    document.getElementById('used-wip-total').textContent = usedWepCount;
+    document.getElementById('used-wip-total').style.color = (usedWepCount > maxWepTotal) ? '#ff6b6b' : 'inherit';
+  }
+  if (document.getElementById('used-mut-total')) {
+    document.getElementById('used-mut-total').textContent = usedMutCount;
+    document.getElementById('used-mut-total').style.color = (usedMutCount > maxMutTotal) ? '#ff6b6b' : 'inherit';
+  }
+  if (document.getElementById('used-cyb-total')) {
+    document.getElementById('used-cyb-total').textContent = usedCybCount;
+    document.getElementById('used-cyb-total').style.color = (usedCybCount > maxCybTotal) ? '#ff6b6b' : 'inherit';
+  }
+}
 
   // ステータスバーの使用総数を反映
   if (document.getElementById('used-wep-total')) {
