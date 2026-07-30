@@ -946,6 +946,9 @@ function calcTotals() {
   updateLvStatus('wep', usedWep, wepLimits);
   updateLvStatus('mut', usedMut, mutLimits);
   updateLvStatus('cyb', usedCyb, cybLimits);
+  
+  // 追加プルダウンの選択肢（上限に達したものを除外）を更新
+  updateExtraPartOptions();
 }
 
 function addRow() {
