@@ -665,6 +665,19 @@ function renderPartsContainer() {
   });
 }
 
+// すでに同じ名前のパーツがキャラクターに存在するかチェックする関数
+function isPartAlreadyExists(partName) {
+  if (!partName || partName === '新規パーツ') return false;
+  let exists = false;
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const nameInput = tr.querySelector('.p-name');
+    if (nameInput && nameInput.value.trim() === partName.trim()) {
+      exists = true;
+    }
+  });
+  return exists;
+}
+
 function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
@@ -672,6 +685,29 @@ function onExtraPartSelect(secId, selectElem) {
   const tbody = document.getElementById(`parts-tbody-${secId}`);
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
   const currentLocName = locMap[secId] || '頭部';
+
+  let targetPartName = '';
+
+  if (val === 'custom') {
+    targetPartName = '新規パーツ';
+  } 
+  else if (val.startsWith('common_')) {
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = COMMON_EXTRA_PARTS[idx];
+    if (p) targetPartName = p.name;
+  } 
+  else if (val.startsWith(secId + '_')) {
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = EXTRA_PARTS_DB[secId][idx];
+    if (p) targetPartName = p.name;
+  }
+
+  // 重複チェック（自由入力の「新規パーツ」以外で、すでに名前が存在する場合）
+  if (targetPartName !== '新規パーツ' && isPartAlreadyExists(targetPartName)) {
+    alert(`「${targetPartName}」はすでに配置されています。同じパーツを重複して取得することはできません。`);
+    selectElem.value = '';
+    return;
+  }
 
   if (val === 'custom') {
     addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
