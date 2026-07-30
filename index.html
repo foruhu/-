@@ -139,25 +139,15 @@ tr.broken input, tr.broken textarea {
   }
   /* ---------------------- */
 
-  /* ▼ 【追加】画面下部固定バー用のスタイル ▼ */
-  .sticky-footer-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    margin: 0;
-    border-radius: 0;
-    border-top: 2px solid #444;
-    background-color: #1e1e24; /* 背景色を塗って下の文字が透けないようにする */
-    z-index: 9999;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.6);
-    box-sizing: border-box;
-  }
-
-  /* ページの一番下が固定バーに隠れてしまわないように下部に余白をあける */
-  body {
-    padding-bottom: 60px; 
-  }
+  /* 画面上部に固定するバーのスタイル */
+.sticky-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: #1e1e24; /* 背景色（お使いのテーマに合わせて調整してください） */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  margin-bottom: 15px;
+}
   /* ▲ ここまで ▲ */
 </style>
 </head>
@@ -165,6 +155,34 @@ tr.broken input, tr.broken textarea {
 
 <h1>永い後日談のネクロニカ</h1>
 
+<body>
+  <div class="container"> <!-- メインのコンテナがある場合その中、または直下 -->
+
+    <!-- ========================================== -->
+    <!-- ▼ 【変更】画面上部に固定するステータスバー -->
+    <!-- ========================================== -->
+    <div class="card sticky-top-bar">
+      <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.85rem; padding: 4px;">
+        <div>
+          <span style="color:#ff6b6b; font-weight:bold;">武装</span>
+          使用: <span id="used-wep">0</span> / 上限: <span id="total-wep">0</span> 
+          (残り: <span id="remain-wep">0</span>)
+        </div>
+        <div>
+          <span style="color:#4dabf7; font-weight:bold;">変異</span>
+          使用: <span id="used-mut">0</span> / 上限: <span id="total-mut">0</span> 
+          (残り: <span id="remain-mut">0</span>)
+        </div>
+        <div>
+          <span style="color:#ffd43b; font-weight:bold;">改造</span>
+          使用: <span id="used-cyb">0</span> / 上限: <span id="total-cyb">0</span> 
+          (残り: <span id="remain-cyb">0</span>)
+        </div>
+      </div>
+    </div>
+    <!-- ========================================== -->
+
+    <!-- 以降に通常のカードや入力欄が続きます -->
 <div class="card">
   <div class="title">基本情報・強化値計算</div>
   <div class="g2">
