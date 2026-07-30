@@ -786,7 +786,6 @@ function onClassChange() {
   calcTotals();
 }
 
-// 総合計算・ステータスバー更新処理
 function calcTotals() {
   const mcWep = parseInt(document.getElementById('mc-wep')?.textContent, 10) || 0;
   const scWep = parseInt(document.getElementById('sc-wep')?.textContent, 10) || 0;
@@ -820,53 +819,48 @@ function calcTotals() {
     return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
   };
 
-  const wepLimits = getLimitsByReinforce(totalWepClass); // [1Lv上限, 2Lv上限, 3Lv上限]
+  const wepLimits = getLimitsByReinforce(totalWepClass);
   const mutLimits = getLimitsByReinforce(totalMutClass);
   const cybLimits = getLimitsByReinforce(totalCybClass);
 
-  // ステータスバーの「上限」を反映
-  if (document.getElementById('max-wep-lv1')) document.getElementById('max-wep-lv1').textContent = wepLimits[0];
-  if (document.getElementById('max-wep-lv2')) document.getElementById('max-wep-lv2').textContent = wepLimits[1];
-  if (document.getElementById('max-wep-lv3')) document.getElementById('max-wep-lv3').textContent = wepLimits[2];
+  // 各レベルの上限を合算して「総上限数」を算出
+  const maxWepTotal = wepLimits[0] + wepLimits[1] + wepLimits[2];
+  const maxMutTotal = mutLimits[0] + mutLimits[1] + mutLimits[2];
+  const maxCybTotal = cybLimits[0] + cybLimits[1] + cybLimits[2];
 
-  if (document.getElementById('max-mut-lv1')) document.getElementById('max-mut-lv1').textContent = mutLimits[0];
-  if (document.getElementById('max-mut-lv2')) document.getElementById('max-mut-lv2').textContent = mutLimits[1];
-  if (document.getElementById('max-mut-lv3')) document.getElementById('max-mut-lv3').textContent = mutLimits[2];
+  // ステータスバーの上限総数を反映
+  if (document.getElementById('max-wip-total')) document.getElementById('max-wip-total').textContent = maxWepTotal;
+  if (document.getElementById('max-mut-total')) document.getElementById('max-mut-total').textContent = maxMutTotal;
+  if (document.getElementById('max-cyb-total')) document.getElementById('max-cyb-total').textContent = maxCybTotal;
 
-  if (document.getElementById('max-cyb-lv1')) document.getElementById('max-cyb-lv1').textContent = cybLimits[0];
-  if (document.getElementById('max-cyb-lv2')) document.getElementById('max-cyb-lv2').textContent = cybLimits[1];
-  if (document.getElementById('max-cyb-lv3')) document.getElementById('max-cyb-lv3').textContent = cybLimits[2];
-
-  // 現在配置されているパーツの使用数をレベル別に集計
-  let usedWep = [0, 0, 0, 0];
-  let usedMut = [0, 0, 0, 0];
-  let usedCyb = [0, 0, 0, 0];
+  // 現在配置されているパーツの使用数を集計
+  let usedWepCount = 0;
+  let usedMutCount = 0;
+  let usedCybCount = 0;
 
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const typeSelect = tr.querySelector('.p-type');
-    const lvInput = tr.querySelector('.p-level');
-    if (typeSelect && lvInput) {
+    if (typeSelect) {
       const typeVal = typeSelect.value;
-      const lvVal = parseInt(lvInput.value, 10) || 1;
-
-      if (typeVal === '武装' && lvVal >= 1 && lvVal <= 3) usedWep[lvVal]++;
-      else if (typeVal === '変異' && lvVal >= 1 && lvVal <= 3) usedMut[lvVal]++;
-      else if (typeVal === '改造' && lvVal >= 1 && lvVal <= 3) usedCyb[lvVal]++;
+      if (typeVal === '武装') usedWepCount++;
+      else if (typeVal === '変異') usedMutCount++;
+      else if (typeVal === '改造') usedCybCount++;
     }
   });
 
-  // ステータスバーの「使用数」を反映
-  if (document.getElementById('used-wep-lv1')) document.getElementById('used-wep-lv1').textContent = usedWep[1];
-  if (document.getElementById('used-wep-lv2')) document.getElementById('used-wep-lv2').textContent = usedWep[2];
-  if (document.getElementById('used-wep-lv3')) document.getElementById('used-wep-lv3').textContent = usedWep[3];
-
-  if (document.getElementById('used-mut-lv1')) document.getElementById('used-mut-lv1').textContent = usedMut[1];
-  if (document.getElementById('used-mut-lv2')) document.getElementById('used-mut-lv2'].textContent = usedMut[2];
-  if (document.getElementById('used-mut-lv3')) document.getElementById('used-mut-lv3').textContent = usedMut[3];
-
-  if (document.getElementById('used-cyb-lv1')) document.getElementById('used-cyb-lv1').textContent = usedCyb[1];
-  if (document.getElementById('used-cyb-lv2')) document.getElementById('used-cyb-lv2').textContent = usedCyb[2];
-  if (document.getElementById('used-cyb-lv3')) document.getElementById('used-cyb-lv3').textContent = usedCyb[3];
+  // ステータスバーの使用総数を反映
+  if (document.getElementById('used-wip-total')) {
+    document.getElementById('used-wip-total').textContent = usedWepCount;
+    document.getElementById('used-wip-total').style.color = (usedWepCount > maxWepTotal) ? '#ff6b6b' : 'inherit';
+  }
+  if (document.getElementById('used-mut-total')) {
+    document.getElementById('used-mut-total').textContent = usedMutCount;
+    document.getElementById('used-mut-total').style.color = (usedMutCount > maxMutTotal) ? '#ff6b6b' : 'inherit';
+  }
+  if (document.getElementById('used-cyb-total')) {
+    document.getElementById('used-cyb-total').textContent = usedCybCount;
+    document.getElementById('used-cyb-total').style.color = (usedCybCount > maxCybTotal) ? '#ff6b6b' : 'inherit';
+  }
 }
   
   // ステータスバーの使用数をセット
