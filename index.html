@@ -520,7 +520,7 @@ const EXTRA_PARTS_DB = {
 // どの部位にでもつけられる共通の追加パーツ・マニューバ
 const COMMON_EXTRA_PARTS = [
   { name: '汎用パーツA', type: '変異', level: 1, timing: '常時', cost: '無し', range: '自身', memo: '効果メモをここに' },
-  { name: '汎用パーツB', type: '改造', level: 1, timing: 'アクション', cost: '1', range: '1', memo: '効果メモをここに' }
+  { name: '汎用パーツB', type: '改造', level: 1, timing: 'アクション', cost: '1', range: '1', memo: '効果メモをここに' },
   { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '砲撃1+爆発+連撃1攻撃判定-1' },
   { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1。' },
   { name: '手榴弾', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '射撃1＋爆発' },
@@ -528,7 +528,7 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1', memo: '砲撃攻撃2＋爆発＋全体攻撃、攻撃判定の出目-1。' },
   { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパートにてターン終了時、パート終了時、このパーツが損傷していたら、修復してよい。' },
   { name: 'おおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1。' },
-  { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '対話判定において、判定出目+1してよい。' }
+  { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '対話判定において、判定出目+1してよい。' },
   { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1＋連撃1。' },
   { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃3。' },
   { name: 'よぷんなめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '支援2。' },
@@ -538,7 +538,7 @@ const COMMON_EXTRA_PARTS = [
   { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '肉弾攻撃2＋連撃1。' },
   { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御2。' },
   { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
-  { name: 'リミッター', type: '改造', level: 1, timing: 'オート', cost: '0無し, range: '自身', memo: '。' },
+  { name: 'リミッター', type: '改造', level: 1, timing: 'オート', cost: '0', range: '自身', memo: '特になし' },
   { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。コストとして、あなたは任意の基本パーツを1つ損傷する。白兵・肉弾ダメージ+1（重複不可）。1度に何度も使用してよい。' },
   { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒。' },
   { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0', memo: 'このパーツが損傷した際のみ使用可。判定値8（ジャッジタイミング発生）の「砲撃攻撃2＋爆発＋全体攻撃」を与える。' },
@@ -552,7 +552,6 @@ const COMMON_EXTRA_PARTS = [
   { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1', memo: '移動妨害1＋転倒。' },
   { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、この攻撃に対して「防御」は全て無効。攻撃が命中したなら対象を「移動1」してもよい。' },
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
-  // 必要に応じてここに追加・書き換えしてください
 ];
 
 const PART_LIMIT_TABLE = {
