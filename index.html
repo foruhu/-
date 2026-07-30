@@ -844,7 +844,6 @@ function onClassChange() {
 }
 
 function calcTotals() {
-  // （既存のクラスや寵愛、ボーナスによる上限値計算のコードがここに続いている想定です）
   const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
   const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
   const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
@@ -860,11 +859,23 @@ function calcTotals() {
     else if (bonusSelected.value === 'mut') bonusMut = 1;
     else if (bonusSelected.value === 'cyb') bonusCyb = 1;
   }
-  
- // ==========================================
+
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
+
+  // ★先に対象の総計（上限）を計算しておく
+  const totalWep = mcWep + scWep + bonusWep + chouaiWep;
+  const totalMut = mcMut + scMut + bonusMut + chouaiMut;
+  const totalCyb = mcCyb + scCyb + bonusCyb + chouaiCyb;
+
+  document.getElementById('total-wep').textContent = totalWep;
+  document.getElementById('total-mut').textContent = totalMut;
+  document.getElementById('total-cyb').textContent = totalCyb;
+
+  // ==========================================
   // ▼ 強化値テーブルに基づくパーツ数の上限チェック
   // ==========================================
-  // 強化値に応じた各レベル（1, 2, 3）の取得上限数を返すテーブル
   const limitTable = {
     1: { 1: 1, 2: 0, 3: 0 },
     2: { 1: 1, 2: 1, 3: 0 },
@@ -875,11 +886,8 @@ function calcTotals() {
     7: { 1: 3, 2: 2, 3: 2 },
     8: { 1: 3, 2: 3, 3: 2 },
     9: { 1: 3, 2: 3, 3: 3 }
-    // 10以上の場合は、9の値をベースにするかループさせるなどの対応が可能です
   };
 
-  // 各種別（武装・変異・改造）ごとに、現在の「強化値」と「Lv別パーツ数」を集計してチェックする
-  // 例として「武装」のチェック処理（変異・改造も同様のロジックで判定できます）
   let wepLv1Count = 0, wepLv2Count = 0, wepLv3Count = 0;
 
   document.querySelectorAll('#parts-container tr').forEach(tr => {
@@ -894,38 +902,20 @@ function calcTotals() {
         if (lvVal === 2) wepLv2Count++;
         if (lvVal === 3) wepLv3Count++;
       }
-      // 変異・改造も同様に集計変数を用意してカウントできます
     }
   });
 
-  // 武装の合計強化値（totalWep）に対応する上限を取得（最大9でクランプ、または超過対応）
+  // ここで先ほど計算した totalWep が安全に使えるようになります
   const effectiveWepVal = Math.min(Math.max(totalWep, 1), 9);
   const allowedWep = limitTable[effectiveWepVal] || { 1: 3, 2: 3, 3: 3 };
 
-  // 判定と警告表示（例：Lv1パーツが上限を超えているか）
-  // 残り枠や超過をわかりやすく表示する要素などに反映できます
-
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
-
-  // 各種別の配置上限（総計）
-  const totalWep = mcWep + scWep + bonusWep + chouaiWep;
-  const totalMut = mcMut + scMut + bonusMut + chouaiMut;
-  const totalCyb = mcCyb + scCyb + bonusCyb + chouaiCyb;
-
-  document.getElementById('total-wep').textContent = totalWep;
-  document.getElementById('total-mut').textContent = totalMut;
-  document.getElementById('total-cyb').textContent = totalCyb;
-
   // ==========================================
-  // ▼ ここから「現在実際に使用している数」の集計
+  // ▼ 「現在実際に使用している数」の集計
   // ==========================================
   let usedWep = 0;
   let usedMut = 0;
   let usedCyb = 0;
 
-  // すべてのパーツ行から種別（武装・変異・改造）を読み取ってカウントする
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const typeSelect = tr.querySelector('.p-type');
     if (typeSelect) {
@@ -936,12 +926,10 @@ function calcTotals() {
     }
   });
 
-  // 画面の使用数表示を更新
   document.getElementById('used-wep').textContent = usedWep;
   document.getElementById('used-mut').textContent = usedMut;
   document.getElementById('used-cyb').textContent = usedCyb;
 
-  // 残り枠の計算（上限 - 使用数。マイナスになる場合は0または超過表示に）
   const remainWep = totalWep - usedWep;
   const remainMut = totalMut - usedMut;
   const remainCyb = totalCyb - usedCyb;
@@ -950,7 +938,6 @@ function calcTotals() {
   const remainMutElem = document.getElementById('remain-mut');
   const remainCybElem = document.getElementById('remain-cyb');
 
-  // 【修正】それぞれ対応する変数を正しく代入する
   remainWepElem.textContent = remainWep;
   remainWepElem.style.color = remainWep < 0 ? '#ff6b6b' : 'inherit';
 
