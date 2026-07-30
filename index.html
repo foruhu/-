@@ -863,6 +863,33 @@ function calcTotals() {
     }
   });
 
+  // 使用中の数値を画面に反映
+  document.getElementById('used-wep').textContent = usedWep;
+  document.getElementById('used-mut').textContent = usedMut;
+  document.getElementById('used-cyb').textContent = usedCyb;
+
+  const remainWep = totalWep - usedWep;
+  const remainMut = totalMut - usedMut;
+  const remainCyb = totalCyb - usedCyb;
+
+  const remainWepElem = document.getElementById('remain-wep');
+  const remainMutElem = document.getElementById('remain-mut');
+  const remainCybElem = document.getElementById('remain-cyb');
+
+  if (remainWepElem) {
+    remainWepElem.textContent = remainWep;
+    remainWepElem.style.color = remainWep < 0 ? '#ff6b6b' : 'inherit';
+  }
+  if (remainMutElem) {
+    remainMutElem.textContent = remainMut;
+    remainMutElem.style.color = remainMut < 0 ? '#ff6b6b' : 'inherit';
+  }
+  if (remainCybElem) {
+    remainCybElem.textContent = remainCyb;
+    remainCybElem.style.color = remainCyb < 0 ? '#ff6b6b' : 'inherit';
+  }
+}
+
   document.getElementById('used-wep').textContent = usedWep;
   document.getElementById('used-mut').textContent = usedMut;
   document.getElementById('used-cyb').textContent = usedCyb;
