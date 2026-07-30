@@ -664,50 +664,34 @@ function countExistingParts(categoryType, level) {
   return count;
 }
 
-function onExtraPartSelect(secId, selectElem) {
+ function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
 
   const tbody = document.getElementById(`parts-tbody-${secId}`);
-  if (!tbody) return;
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+  const currentLocName = locMap[secId] || '頭部';
 
   if (val === 'custom') {
-    const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-const currentLocName = locMap[secId] || '頭部';
-
-if (val === 'custom') {
-  addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
-} else {
-  // （中略：制限チェック等のコード）
-  addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
-}
-  } else {
-    const [sId, idxStr] = val.split('_');
-    const idx = parseInt(idxStr, 10);
-    const p = EXTRA_PARTS_DB[sId][idx];
+    addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
+  } 
+  else if (val.startsWith('common_')) {
+    // 共通パーツが選ばれた場合
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = COMMON_EXTRA_PARTS[idx];
     if (p) {
-      let categoryKey = '';
-      if (p.type === '武装') categoryKey = 'wep';
-      else if (p.type === '変異') categoryKey = 'mut';
-      else if (p.type === '改造') categoryKey = 'cyb';
-
-      if (categoryKey) {
-        const totalValElem = document.getElementById(`total-${categoryKey}`);
-        const currentTotal = totalValElem ? parseInt(totalValElem.textContent, 10) || 1 : 1;
-        
-        const tableLimits = PART_LIMIT_TABLE[currentTotal] || PART_LIMIT_TABLE[9];
-        const maxLimit = tableLimits[p.level - 1] ?? 0;
-        const currentCount = countExistingParts(p.type, p.level);
-
-        if (currentCount >= maxLimit) {
-          alert(`【${p.type} Lv${p.level}】の配置上限（${maxLimit}個）に達しているため追加できません。\n総計（配置上限）を上げるか、他のパーツを外してください。`);
-          selectElem.value = '';
-          return;
-        }
-      }
-      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false);
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+    }
+  } 
+  else if (val.startsWith(secId + '_')) {
+    // 各部位固有のパーツが選ばれた場合
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = EXTRA_PARTS_DB[secId][idx];
+    if (p) {
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
     }
   }
+
   selectElem.value = '';
 }
 
