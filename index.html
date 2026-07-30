@@ -444,7 +444,7 @@ const EXTRA_PARTS_DB = {
     { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '' },
     { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
     { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' },
-    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: ' },
+    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身', memo: '' },
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
     { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '' },
     { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' }
@@ -503,7 +503,7 @@ const EXTRA_PARTS_DB = {
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身', memo: '' }
   ]
 };
-// どの部位にでもつけられる共通の追加パーツ・マニューバ
+
 const COMMON_EXTRA_PARTS = [
   { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1', memo: '' },
   { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1' },
@@ -538,18 +538,6 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '' }
 ];
 
-const PART_LIMIT_TABLE = {
-  1: [1, 0, 0],
-  2: [1, 1, 0],
-  3: [1, 1, 1],
-  4: [2, 1, 1],
-  5: [2, 2, 1],
-  6: [2, 2, 2],
-  7: [3, 2, 2],
-  8: [3, 3, 2],
-  9: [3, 3, 3]
-};
-
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
@@ -562,16 +550,13 @@ function renderPartsContainer() {
     { id: 'leg', title: '脚部', val: '（最大数値：2）' }
   ];
 
-  // 部位IDを日本語名に変換する対応表
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
     
-    // 1. 最初は「選択してください」のデフォルト項目のみ
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
     
-    // 2. 【専用パーツ】を最初にする場合（もし専用パーツを上にしたい場合）
     if (EXTRA_PARTS_DB[sec.id]) {
       optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
       EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
@@ -580,7 +565,6 @@ function renderPartsContainer() {
       optionsHtml += `</optgroup>`;
     }
 
-    // 3. 【共通・汎用パーツ】をその次にする場合
     if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
       optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
       COMMON_EXTRA_PARTS.forEach((p, idx) => {
@@ -589,12 +573,8 @@ function renderPartsContainer() {
       optionsHtml += `</optgroup>`;
     }
 
-    // 4. 【自由入力枠】を一番最後（共通の下）にする
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
 
-  // （以降のHTML生成コードに続く...）
-
-    // 【修正】<thead>の中に <th style="width:12%">部位</th> を追加
     secDiv.innerHTML = `
       <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
       <div class="table-scroll">
@@ -629,29 +609,13 @@ function renderPartsContainer() {
 
     if (DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
-        // 【修正】第10引数に現在の部位名（currentLocName）を渡す
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
       });
     }
   });
 }
 
-function countExistingParts(categoryType, level) {
-  let count = 0;
-  const rows = document.querySelectorAll('#parts-container tr');
-  rows.forEach(tr => {
-    const typeInput = tr.querySelector('.p-type');
-    const lvInput = tr.querySelector('.p-level');
-    if (typeInput && lvInput) {
-      if (typeInput.value === categoryType && parseInt(lvInput.value, 10) === level) {
-        count++;
-      }
-    }
-  });
-  return count;
-}
-
- function onExtraPartSelect(secId, selectElem) {
+function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
 
@@ -663,7 +627,6 @@ function countExistingParts(categoryType, level) {
     addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
   } 
   else if (val.startsWith('common_')) {
-    // 共通パーツが選ばれた場合
     const idx = parseInt(val.split('_')[1], 10);
     const p = COMMON_EXTRA_PARTS[idx];
     if (p) {
@@ -671,7 +634,6 @@ function countExistingParts(categoryType, level) {
     }
   } 
   else if (val.startsWith(secId + '_')) {
-    // 各部位固有のパーツが選ばれた場合
     const idx = parseInt(val.split('_')[1], 10);
     const p = EXTRA_PARTS_DB[secId][idx];
     if (p) {
@@ -682,13 +644,11 @@ function countExistingParts(categoryType, level) {
   selectElem.value = '';
 }
 
-// 【修正】引数に defaultLoc = '頭部' を追加
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
   const tr = document.createElement('tr');
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
 
-  // 配置できる部位の選択肢を作成
   const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
   let locOptions = '';
   locations.forEach(loc => {
@@ -696,7 +656,6 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     locOptions += `<option value="${loc}" ${selected}>${loc}</option>`;
   });
 
-  // 【修正】<td>でセレクトボックスを挟み込む
   tr.innerHTML = `
     <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
