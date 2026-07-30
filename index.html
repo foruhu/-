@@ -861,36 +861,49 @@ function calcTotals() {
     else if (bonusSelected.value === 'cyb') bonusCyb = 1;
   }
   
-  // (スクリプトの最後のほうの処理...)
-  window.onload = function() {
-    renderPartsContainer();
-    onClassChange();
+ // ==========================================
+  // ▼ 強化値テーブルに基づくパーツ数の上限チェック
+  // ==========================================
+  // 強化値に応じた各レベル（1, 2, 3）の取得上限数を返すテーブル
+  const limitTable = {
+    1: { 1: 1, 2: 0, 3: 0 },
+    2: { 1: 1, 2: 1, 3: 0 },
+    3: { 1: 1, 2: 1, 3: 1 },
+    4: { 1: 2, 2: 1, 3: 1 },
+    5: { 1: 2, 2: 2, 3: 1 },
+    6: { 1: 2, 2: 2, 3: 2 },
+    7: { 1: 3, 2: 2, 3: 2 },
+    8: { 1: 3, 2: 3, 3: 2 },
+    9: { 1: 3, 2: 3, 3: 3 }
+    // 10以上の場合は、9の値をベースにするかループさせるなどの対応が可能です
   };
-</script>
 
-<!-- 画面上部に固定するステータスバー（必要に応じてお好きな位置へ） -->
-<div class="card sticky-top-bar">
-  <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.85rem; padding: 4px;">
-    <div>
-      <span style="color:#ff6b6b; font-weight:bold;">武装</span>
-      使用: <span id="used-wep">0</span> / 上限: <span id="total-wep">0</span> 
-      (残り: <span id="remain-wep">0</span>)
-    </div>
-    <div>
-      <span style="color:#4dabf7; font-weight:bold;">変異</span>
-      使用: <span id="used-mut">0</span> / 上限: <span id="total-mut">0</span> 
-      (残り: <span id="remain-mut">0</span>)
-    </div>
-    <div>
-      <span style="color:#ffd43b; font-weight:bold;">改造</span>
-      使用: <span id="used-cyb">0</span> / 上限: <span id="total-cyb">0</span> 
-      (残り: <span id="remain-cyb">0</span>)
-    </div>
-  </div>
-</div>
+  // 各種別（武装・変異・改造）ごとに、現在の「強化値」と「Lv別パーツ数」を集計してチェックする
+  // 例として「武装」のチェック処理（変異・改造も同様のロジックで判定できます）
+  let wepLv1Count = 0, wepLv2Count = 0, wepLv3Count = 0;
 
-</body>
-</html>
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const typeSelect = tr.querySelector('.p-type');
+    const lvInput = tr.querySelector('.p-level');
+    if (typeSelect && lvInput) {
+      const typeVal = typeSelect.value;
+      const lvVal = parseInt(lvInput.value, 10);
+
+      if (typeVal === '武装') {
+        if (lvVal === 1) wepLv1Count++;
+        if (lvVal === 2) wepLv2Count++;
+        if (lvVal === 3) wepLv3Count++;
+      }
+      // 変異・改造も同様に集計変数を用意してカウントできます
+    }
+  });
+
+  // 武装の合計強化値（totalWep）に対応する上限を取得（最大9でクランプ、または超過対応）
+  const effectiveWepVal = Math.min(Math.max(totalWep, 1), 9);
+  const allowedWep = limitTable[effectiveWepVal] || { 1: 3, 2: 3, 3: 3 };
+
+  // 判定と警告表示（例：Lv1パーツが上限を超えているか）
+  // 残り枠や超過をわかりやすく表示する要素などに反映できます
 
   const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
   const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
