@@ -891,12 +891,12 @@ function calcTotals() {
   if (document.getElementById('total-cyb')) document.getElementById('total-cyb').textContent = totalCybClass;
 
   // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得
-  const getLimitsByReinforce = (val) => {
-    const clampedVal = Math.max(0, Math.min(9, val));
-    if (clampedVal === 0) return [0, 0, 0];
-    const limits = (typeof REINFORCE_LIMIT_TABLE !== 'undefined') ? REINFORCE_LIMIT_TABLE[clampedVal] : [0, 0, 0];
-    return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
-  };
+function getLimitsByReinforce(val) {
+  const clampedVal = Math.max(0, Math.min(9, Number(val) || 0));
+  if (clampedVal === 0) return [0, 0, 0];
+  const limits = (typeof REINFORCE_LIMIT_TABLE !== 'undefined') ? REINFORCE_LIMIT_TABLE[clampedVal] : [0, 0, 0];
+  return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
+}
 
   const wepLimits = getLimitsByReinforce(totalWepClass);
   const mutLimits = getLimitsByReinforce(totalMutClass);
