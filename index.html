@@ -200,7 +200,7 @@ tr.broken input, tr.broken textarea {
           <tr>
             <td class="label-cell">メインクラス：</td>
             <td>
-              <select id="mc" onchange="onClassChange()">
+              <select id="mc" onchange="onClassChange()">...</select>
                 <option selected>ロマネスク</option>
                 <option>ステーシー</option>
                 <option>タナトス</option>
@@ -215,7 +215,7 @@ tr.broken input, tr.broken textarea {
           <tr>
             <td class="label-cell">サブクラス：</td>
             <td>
-              <select id="sc" onchange="onClassChange()">
+              <select id="sc" onchange="onClassChange()">...</select>
                 <option selected>ロマネスク</option>
                 <option>ステーシー</option>
                 <option>タナトス</option>
@@ -767,6 +767,7 @@ function resetUsed() {
   });
 }
 
+// クラス変更時の処理（必ず calcTotals() を呼んでステータスバー等を更新する）
 function onClassChange() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
@@ -774,55 +775,105 @@ function onClassChange() {
   const mcParts = (typeof CLASS_PARTS !== 'undefined' ? CLASS_PARTS[mc] : null) || [0,0,2];
   const scParts = (typeof CLASS_PARTS !== 'undefined' ? CLASS_PARTS[sc] : null) || [0,0,2];
 
-  document.getElementById('mc-wep').textContent = mcParts[0];
-  document.getElementById('mc-mut').textContent = mcParts[1];
-  document.getElementById('mc-cyb').textContent = mcParts[2];
+  const mcWepElem = document.getElementById('mc-wep');
+  const mcMutElem = document.getElementById('mc-mut');
+  const mcCybElem = document.getElementById('mc-cyb');
+  const scWepElem = document.getElementById('sc-wep');
+  const scMutElem = document.getElementById('sc-mut');
+  const scCybElem = document.getElementById('sc-cyb');
 
-  document.getElementById('sc-wep').textContent = scParts[0];
-  document.getElementById('sc-mut').textContent = scParts[1];
-  document.getElementById('sc-cyb').textContent = scParts[2];
+  if (mcWepElem) mcWepElem.textContent = mcParts[0];
+  if (mcMutElem) mcMutElem.textContent = mcParts[1];
+  if (mcCybElem) mcCybElem.textContent = mcParts[2];
+  if (scWepElem) scWepElem.textContent = scParts[0];
+  if (scMutElem) scMutElem.textContent = scParts[1];
+  if (scCybElem) scCybElem.textContent = scParts[2];
 
   calcTotals();
 }
 
+// 総合計算・ステータスバー更新処理
 function calcTotals() {
-  // （中略：クラスやチョウアイ等から各系統の強化値を計算する処理）
+  const mcWep = parseInt(document.getElementById('mc-wep')?.textContent, 10) || 0;
+  const scWep = parseInt(document.getElementById('sc-wep')?.textContent, 10) || 0;
+  const mcMut = parseInt(document.getElementById('mc-mut')?.textContent, 10) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut')?.textContent, 10) || 0;
+  const mcCyb = parseInt(document.getElementById('mc-cyb')?.textContent, 10) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb')?.textContent, 10) || 0;
+
+  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
+  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
+  if (bonusSelected) {
+    if (bonusSelected.value === 'wep') bonusWep = 1;
+    if (bonusSelected.value === 'mut') bonusMut = 1;
+    if (bonusSelected.value === 'cyb') bonusCyb = 1;
+  }
+
+  const chouaiWep = parseInt(document.getElementById('chouai-wep')?.value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut')?.value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb')?.value, 10) || 0;
+
+  // 各系統の強化値の合計を算出
+  const totalWepClass = mcWep + scWep + bonusWep + chouaiWep;
+  const totalMutClass = mcMut + scMut + bonusMut + chouaiMut;
+  const totalCybClass = mcCyb + scCyb + bonusCyb + chouaiCyb;
+
+  // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得
+  const getLimitsByReinforce = (val) => {
+    const clampedVal = Math.max(0, Math.min(9, val));
+    if (clampedVal === 0) return [0, 0, 0];
+    const limits = (typeof REINFORCE_LIMIT_TABLE !== 'undefined') ? REINFORCE_LIMIT_TABLE[clampedVal] : [0, 0, 0];
+    return (limits || [0, 0, 0]).map(l => (l === '-' || l === undefined) ? 0 : l);
+  };
 
   const wepLimits = getLimitsByReinforce(totalWepClass); // [1Lv上限, 2Lv上限, 3Lv上限]
   const mutLimits = getLimitsByReinforce(totalMutClass);
   const cybLimits = getLimitsByReinforce(totalCybClass);
-  
-  // ステータスバーの上限数をセット
-  document.getElementById('max-wep-lv1').textContent = wepLimits[0];
-  document.getElementById('max-wep-lv2').textContent = wepLimits[1];
-  document.getElementById('max-wep-lv3').textContent = wepLimits[2];
-  
-  document.getElementById('max-mut-lv1').textContent = mutLimits[0];
-  document.getElementById('max-mut-lv2').textContent = mutLimits[1];
-  document.getElementById('max-mut-lv3').textContent = mutLimits[2];
-  
-  document.getElementById('max-cyb-lv1').textContent = cybLimits[0];
-  document.getElementById('max-cyb-lv2').textContent = cybLimits[1];
-  document.getElementById('max-cyb-lv3').textContent = cybLimits[2];
-  
+
+  // ステータスバーの「上限」を反映
+  if (document.getElementById('max-wep-lv1')) document.getElementById('max-wep-lv1').textContent = wepLimits[0];
+  if (document.getElementById('max-wep-lv2')) document.getElementById('max-wep-lv2').textContent = wepLimits[1];
+  if (document.getElementById('max-wep-lv3')) document.getElementById('max-wep-lv3').textContent = wepLimits[2];
+
+  if (document.getElementById('max-mut-lv1')) document.getElementById('max-mut-lv1').textContent = mutLimits[0];
+  if (document.getElementById('max-mut-lv2')) document.getElementById('max-mut-lv2').textContent = mutLimits[1];
+  if (document.getElementById('max-mut-lv3')) document.getElementById('max-mut-lv3').textContent = mutLimits[2];
+
+  if (document.getElementById('max-cyb-lv1')) document.getElementById('max-cyb-lv1').textContent = cybLimits[0];
+  if (document.getElementById('max-cyb-lv2')) document.getElementById('max-cyb-lv2').textContent = cybLimits[1];
+  if (document.getElementById('max-cyb-lv3')) document.getElementById('max-cyb-lv3').textContent = cybLimits[2];
+
   // 現在配置されているパーツの使用数をレベル別に集計
-  let usedWep = [0, 0, 0, 0]; // index 1~3を使用
+  let usedWep = [0, 0, 0, 0];
   let usedMut = [0, 0, 0, 0];
   let usedCyb = [0, 0, 0, 0];
-  
+
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const typeSelect = tr.querySelector('.p-type');
     const lvInput = tr.querySelector('.p-level');
-    
     if (typeSelect && lvInput) {
       const typeVal = typeSelect.value;
       const lvVal = parseInt(lvInput.value, 10) || 1;
-      
+
       if (typeVal === '武装' && lvVal >= 1 && lvVal <= 3) usedWep[lvVal]++;
       else if (typeVal === '変異' && lvVal >= 1 && lvVal <= 3) usedMut[lvVal]++;
       else if (typeVal === '改造' && lvVal >= 1 && lvVal <= 3) usedCyb[lvVal]++;
     }
   });
+
+  // ステータスバーの「使用数」を反映
+  if (document.getElementById('used-wep-lv1')) document.getElementById('used-wep-lv1').textContent = usedWep[1];
+  if (document.getElementById('used-wep-lv2')) document.getElementById('used-wep-lv2').textContent = usedWep[2];
+  if (document.getElementById('used-wep-lv3')) document.getElementById('used-wep-lv3').textContent = usedWep[3];
+
+  if (document.getElementById('used-mut-lv1')) document.getElementById('used-mut-lv1').textContent = usedMut[1];
+  if (document.getElementById('used-mut-lv2')) document.getElementById('used-mut-lv2'].textContent = usedMut[2];
+  if (document.getElementById('used-mut-lv3')) document.getElementById('used-mut-lv3').textContent = usedMut[3];
+
+  if (document.getElementById('used-cyb-lv1')) document.getElementById('used-cyb-lv1').textContent = usedCyb[1];
+  if (document.getElementById('used-cyb-lv2')) document.getElementById('used-cyb-lv2').textContent = usedCyb[2];
+  if (document.getElementById('used-cyb-lv3')) document.getElementById('used-cyb-lv3').textContent = usedCyb[3];
+}
   
   // ステータスバーの使用数をセット
   document.getElementById('used-wep-lv1').textContent = usedWep[1];
