@@ -138,32 +138,26 @@ tr.broken input, tr.broken textarea {
 <h1>永い後日談のネクロニカ</h1>
 
 <div class="container">
-  <!-- 画面上部に固定するステータスバー -->
-  <div class="card sticky-top-bar">
-    <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.8rem; padding: 2px;">
-      <!-- 武装 -->
-      <div class="status-group">
-        <span style="color:#ff6b6b; font-weight:bold; font-size:0.85rem;">武装</span><br>
-        Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> |
-        Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span> |
-        Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span>
-      </div>
-      <!-- 変異 -->
-      <div class="status-group">
-        <span style="color:#4dabf7; font-weight:bold; font-size:0.85rem;">変異</span><br>
-        Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span> |
-        Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span> |
-        Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span>
-      </div>
-      <!-- 改造 -->
-      <div class="status-group">
-        <span style="color:#ffd43b; font-weight:bold; font-size:0.85rem;">改造</span><br>
-        Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span> |
-        Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> |
-        Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
-      </div>
+  <!-- 画面上部に固定するステータスバー（総計表示版） -->
+<div class="card sticky-top-bar">
+  <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.9rem; padding: 4px;">
+    <!-- 武装 -->
+    <div class="status-group">
+      <span style="color:#ff6b6b; font-weight:bold;">武装:</span> 
+      <span id="used-wip-total" style="font-weight:bold;">0</span> / <span id="max-wip-total" style="font-weight:bold;">0</span>
+    </div>
+    <!-- 変異 -->
+    <div class="status-group">
+      <span style="color:#4dabf7; font-weight:bold;">変異:</span> 
+      <span id="used-mut-total" style="font-weight:bold;">0</span> / <span id="max-mut-total" style="font-weight:bold;">0</span>
+    </div>
+    <!-- 改造 -->
+    <div class="status-group">
+      <span style="color:#ffd43b; font-weight:bold;">改造:</span> 
+      <span id="used-cyb-total" style="font-weight:bold;">0</span> / <span id="max-cyb-total" style="font-weight:bold;">0</span>
     </div>
   </div>
+</div>
 
   <div class="card">
     <div class="title">基本情報・強化値計算</div>
