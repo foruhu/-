@@ -584,10 +584,11 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
 ];
 
-// REINFORCE_LIMIT_TABLE の定義は、ファイル内のグローバル領域（関数の外）に置いておきます
+// 【サプリメント「ゲシュタルト」準拠】強化値ごとのレベル別パーツ取得数上限テーブル
+// キー: 強化値, 値: [1レベル上限, 2レベル上限, 3レベル上限] ('-' は 0個)
 const REINFORCE_LIMIT_TABLE = {
-  1: [1, '-', '-'], // 1レベル, 2レベル, 3レベル
-  2: [1, 1, '-'],
+  1: [1, 0, 0],
+  2: [1, 1, 0],
   3: [1, 1, 1],
   4: [2, 1, 1],
   5: [2, 2, 1],
@@ -597,180 +598,156 @@ const REINFORCE_LIMIT_TABLE = {
   9: [3, 3, 3]
 };
 
-function calcTotals() {
-  // 1. 各種パーツの数やボーナス、寵愛の入力を取得する既存のコード
-  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
-  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
-  // ... (変異や改造、寵愛、ボーナスの取得処理がここに続く) ...
-
-  let bonusWep = 0;
-  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
-  if (bonusSelected && bonusSelected.value === 'wep') bonusWep = 1;
-
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
-
-  // ==========================================
-  // ★ ここに「強化値の合計」と「テーブル参照」の処理を追加する
-  // ==========================================
-  
-  // 武装・変異・改造それぞれの強化値（クラス＋ボーナス＋寵愛など）の総計を出す場合
-  // ※もし「全体の強化値合計」を1つの数値として見るルールであれば、全タイプの合計を出します
-  const totalReinforce = (mcWep + scWep + bonusWep + chouaiWep) + 
-                         (parseInt(document.getElementById('mc-mut').textContent, 10) || 0 + parseInt(document.getElementById('sc-mut').textContent, 10) || 0 + chouaiMut) + 
-                         (parseInt(document.getElementById('mc-cyb').textContent, 10) || 0 + parseInt(document.getElementById('sc-cyb').textContent, 10) || 0 + chouaiCyb);
-
-  // 現在のレベルを取得（例としてプルダウンやテキストボックスに #lv がある想定）
-  // レベルの項目がまだなければ、デフォルトで 1 として扱えます
-  const currentLv = 1; // 実際の要素に合わせて document.getElementById('lv').value などに変更してください
-
-  // テーブルから上限値の配列を取得（見つからない場合は安全のため1をデフォルトにする）
-  const limits = REINFORCE_LIMIT_TABLE[totalReinforce] || [1, 1, 1];
-  
-  // レベルに応じた上限（1Lvならインデックス0、2Lvなら1、3Lvなら2）
-  // ※ '-'（取得不可）の場合は 0 として扱うなどの処理を入れます
-  const rawLimit = limits[currentLv - 1];
-  const finalLimit = (rawLimit === '-') ? 0 : (parseInt(rawLimit, 10) || 0);
-
-  // 算出した上限を画面の「上限」表示部分（#total-wep など）に反映させる
-  // document.getElementById('total-wep').textContent = finalLimit;
-
-  // ==========================================
-  // 2. 以降は既存の「使用中のパーツ数集計」と「残り計算」のコードへと続く
-  // ==========================================
-  let usedWep = 0, usedMut = 0, usedCyb = 0;
-
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    // ... (既存の集計処理)
-  });
-}
-
-// パーツコンテナのレンダリング
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
   container.innerHTML = '';
 
   const sections = [
-    { id: 'head', title: '頭部', val: '（最大数値：2）' },
-    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
-    { id: 'body', title: '胴部', val: '（最大数値：2）' },
-    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+    { id: 'head', title: '頭部パーツ' },
+    { id: 'arm', title: '腕部パーツ' },
+    { id: 'body', title: '胴部パーツ' },
+    { id: 'leg', title: '脚部パーツ' }
   ];
 
-  sections.forEach(sec => {
-    const secDiv = document.createElement('div');
-    
-    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
-    if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
-      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-      });
-      optionsHtml += `</optgroup>`;
-    }
-    if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
-      COMMON_EXTRA_PARTS.forEach((p, idx) => {
-        optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-      });
-      optionsHtml += `</optgroup>`;
-    }
-    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 
+  sections.forEach(sec => {
+    let optionsHtml = '<option value="">-- パーツを追加 --</option>';
+    if (typeof COMMON_EXTRA_PARTS !== 'undefined' && COMMON_EXTRA_PARTS.length > 0) {
+      COMMON_EXTRA_PARTS.forEach((p, idx) => {
+        optionsHtml += `<option value="common_${idx}">${p.name} (${p.type} Lv${p.level})</option>`;
+      });
+    }
+    if (typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[sec.id] && EXTRA_PARTS_DB[sec.id].length > 0) {
+      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
+        optionsHtml += `<option value="${sec.id}_${idx}">${p.name} (${p.type} Lv${p.level})</option>`;
+      });
+    }
+    optionsHtml += `<option value="custom">【カスタムパーツ作成】</option>`;
+
+    const secDiv = document.createElement('div');
+    secDiv.className = 'part-section';
     secDiv.innerHTML = `
-      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:10%">破損</th>
-              <th style="width:18%">パーツ名</th>
-              <th style="width:12%">区分</th>
-              <th style="width:8%">Lv</th>
-              <th style="width:12%">タイミング</th>
-              <th style="width:10%">コスト</th>
-              <th style="width:10%">射程</th>
-              <th>効果メモ</th>
-              <th style="width:10%">操作</th>
-            </tr>
-          </thead>
-          <tbody id="parts-tbody-${sec.id}"></tbody>
-        </table>
+      <h3>${sec.title}</h3>
+      <table class="parts-table">
+        <thead>
+          <tr>
+            <th style="width:6%">破損</th>
+            <th style="width:12%">部位</th>
+            <th style="width:18%">パーツ名</th>
+            <th style="width:10%">種別</th>
+            <th style="width:6%">Lv</th>
+            <th style="width:12%">タイミング</th>
+            <th style="width:8%">コスト</th>
+            <th style="width:10%">射程</th>
+            <th style="width:12%">効果メモ</th>
+            <th style="width:6%">操作</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody-${sec.id}"></tbody>
+      </table>
+      <div style="margin-top:6px;">
+        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
+          ${optionsHtml}
+        </select>
       </div>
-      <select class="add-part-select" id="select-${sec.id}" onchange="onAddPartSelect('${sec.id}')">
-        ${optionsHtml}
-      </select>
     `;
     container.appendChild(secDiv);
+
+    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
+    const currentLocName = locMap[sec.id] || '頭部';
+
+    if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
+      DEFAULT_PARTS[sec.id].forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+      });
+    }
   });
-
-  // デフォルトパーツの描画
-  for (let key in DEFAULT_PARTS) {
-    const tbody = document.getElementById(`parts-tbody-${key}`);
-    if (!tbody) continue;
-    DEFAULT_PARTS[key].forEach((p, idx) => {
-      appendPartRow(key, p, true, idx);
-    });
-  }
-  calcUsedParts();
 }
 
-function appendPartRow(loc, p, isDefault = false, index = 0) {
-  const tbody = document.getElementById(`parts-tbody-${loc}`);
-  if (!tbody) return;
-  const tr = document.createElement('tr');
-  tr.dataset.type = p.type;
-  tr.dataset.isDefault = isDefault ? "true" : "false";
-
-  tr.innerHTML = `
-    <td><input type="checkbox" onchange="togglePartBreak(this)" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer"></td>
-    <td><input type="text" value="${p.name}"></td>
-    <td><input type="text" value="${p.type}" style="text-align:center"></td>
-    <td><input type="number" value="${p.level}" min="0" style="text-align:center" oninput="calcUsedParts()"></td>
-    <td><input type="text" value="${p.timing}" style="text-align:center"></td>
-    <td><input type="text" value="${p.cost}" style="text-align:center"></td>
-    <td><input type="text" value="${p.range}" style="text-align:center"></td>
-    <td><textarea rows="1">${p.memo || ''}</textarea></td>
-    <td>${isDefault ? '-' : '<button type="button" class="del" onclick="removePartRow(this)">削除</button>'}</td>
-  `;
-  tbody.appendChild(tr);
-  calcUsedParts();
+function countExistingParts(categoryType, level) {
+  let count = 0;
+  const rows = document.querySelectorAll('#parts-container tr');
+  rows.forEach(tr => {
+    const typeInput = tr.querySelector('.p-type');
+    const lvInput = tr.querySelector('.p-level');
+    if (typeInput && lvInput) {
+      if (typeInput.value === categoryType && parseInt(lvInput.value, 10) === level) {
+        count++;
+      }
+    }
+  });
+  return count;
 }
 
-function onAddPartSelect(loc) {
-  const sel = document.getElementById(`select-${loc}`);
-  if (!sel || !sel.value) return;
-  const val = sel.value;
-  sel.value = "";
+function onExtraPartSelect(secId, selectElem) {
+  const val = selectElem.value;
+  if (!val) return;
+
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+  const currentLocName = locMap[secId] || '頭部';
 
   if (val === 'custom') {
-    appendPartRow(loc, { name: '自由パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '' }, false);
-  } else if (val.startsWith('common_')) {
-    const idx = parseInt(val.split('_')[1]);
+    addPartRow(tbody, '新規パーツ', '武装', 1, 'アクション', '1', '0', '', true, currentLocName);
+  } 
+  else if (val.startsWith('common_')) {
+    const idx = parseInt(val.split('_')[1], 10);
     const p = COMMON_EXTRA_PARTS[idx];
-    if (p) appendPartRow(loc, p, false);
-  } else {
-    const parts = val.split('_');
-    const l = parts[0];
-    const idx = parseInt(parts[1]);
-    const p = EXTRA_PARTS_DB[l][idx];
-    if (p) appendPartRow(loc, p, false);
+    if (p) {
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+    }
+  } 
+  else if (val.startsWith(secId + '_')) {
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = EXTRA_PARTS_DB[secId][idx];
+    if (p) {
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+    }
   }
+
+  selectElem.value = '';
 }
 
-function removePartRow(btn) {
-  const tr = btn.closest('tr');
-  if (tr) {
-    tr.remove();
-    calcUsedParts();
-  }
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
+  const tr = document.createElement('tr');
+  const readOnlyAttr = isEditable ? '' : 'readonly';
+  const disabledAttr = isEditable ? '' : 'disabled';
+
+  const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
+  let locOptions = '';
+  locations.forEach(loc => {
+    const selected = (loc === defaultLoc) ? 'selected' : '';
+    locOptions += `<option value="${loc}" ${selected}>${loc}</option>`;
+  });
+
+  tr.innerHTML = `
+    <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+    <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
+    <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
+    <td>
+      <select class="p-type" ${disabledAttr} onchange="calcTotals()">
+        <option ${type==='基本'?'selected':''}>基本</option>
+        <option ${type==='武装'?'selected':''}>武装</option>
+        <option ${type==='変異'?'selected':''}>変異</option>
+        <option ${type==='改造'?'selected':''}>改造</option>
+      </select>
+    </td>
+    <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
+    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
+    <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
+    <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
+    <td><textarea class="p-memo" ${readOnlyAttr}>${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
+  `;
+  tbody.appendChild(tr);
+  calcTotals();
 }
 
-function togglePartBreak(chk) {
-  const tr = chk.closest('tr');
-  if (chk.checked) {
+function togglePartBreak(checkbox) {
+  const tr = checkbox.closest('tr');
+  if (checkbox.checked) {
     tr.classList.add('broken');
   } else {
     tr.classList.remove('broken');
@@ -778,172 +755,297 @@ function togglePartBreak(chk) {
 }
 
 function resetUsed() {
-  document.querySelectorAll('#parts-container input[type="checkbox"]').forEach(chk => {
-    chk.checked = false;
-    chk.closest('tr').classList.remove('broken');
+  document.querySelectorAll('#parts-container tr input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('tr').classList.remove('broken');
   });
-}
-
-function calcUsedParts() {
-  let wep = 0, mut = 0, cyb = 0;
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const typeInput = tr.querySelector('td:nth-child(3) input');
-    const levelInput = tr.querySelector('td:nth-child(4) input');
-    if (typeInput && levelInput) {
-      const type = typeInput.value.trim();
-      const lvl = parseInt(levelInput.value) || 0;
-      if (type === '武装') wep += lvl;
-      if (type === '変異') mut += lvl;
-      if (type === '改造') cyb += lvl;
-    }
-  });
-
-  const usedWepEl = document.getElementById('used-wep');
-  const usedMutEl = document.getElementById('used-mut');
-  const usedCybEl = document.getElementById('used-cyb');
-  if (usedWepEl) usedWepEl.textContent = wep;
-  if (usedMutEl) usedMutEl.textContent = mut;
-  if (usedCybEl) usedCybEl.textContent = cyb;
-
-  const remWep = document.getElementById('remain-wep');
-  const remMut = document.getElementById('remain-mut');
-  const remCyb = document.getElementById('remain-cyb');
-  
-  const totalWep = parseInt(document.getElementById('total-wep').textContent) || 0;
-  const totalMut = parseInt(document.getElementById('total-mut').textContent) || 0;
-  const totalCyb = parseInt(document.getElementById('total-cyb').textContent) || 0;
-
-  if (remWep) remWep.textContent = totalWep - wep;
-  if (remMut) remMut.textContent = totalMut - mut;
-  if (remCyb) remCyb.textContent = totalCyb - cyb;
 }
 
 function onClassChange() {
   const mc = document.getElementById('mc').value;
   const sc = document.getElementById('sc').value;
 
-  const mcP = CLASS_PARTS[mc] || [0,0,0];
-  const scP = CLASS_PARTS[sc] || [0,0,0];
+  const mcParts = (typeof CLASS_PARTS !== 'undefined' ? CLASS_PARTS[mc] : null) || [0,0,2];
+  const scParts = (typeof CLASS_PARTS !== 'undefined' ? CLASS_PARTS[sc] : null) || [0,0,2];
 
-  document.getElementById('mc-wep').textContent = mcP[0];
-  document.getElementById('mc-mut').textContent = mcP[1];
-  document.getElementById('mc-cyb').textContent = mcP[2];
+  document.getElementById('mc-wep').textContent = mcParts[0];
+  document.getElementById('mc-mut').textContent = mcParts[1];
+  document.getElementById('mc-cyb').textContent = mcParts[2];
 
-  document.getElementById('sc-wep').textContent = scP[0];
-  document.getElementById('sc-mut').textContent = scP[1];
-  document.getElementById('sc-cyb').textContent = scP[2];
+  document.getElementById('sc-wep').textContent = scParts[0];
+  document.getElementById('sc-mut').textContent = scParts[1];
+  document.getElementById('sc-cyb').textContent = scParts[2];
 
   calcTotals();
 }
 
 function calcTotals() {
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const mcP = CLASS_PARTS[mc] || [0,0,0];
-  const scP = CLASS_PARTS[sc] || [0,0,0];
+  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
+  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
+  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
+  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
 
   let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
-  const bonusRadio = document.querySelector('input[name="bonus"]:checked');
-  if (bonusRadio) {
-    if (bonusRadio.value === 'wep') bonusWep = 1;
-    if (bonusRadio.value === 'mut') bonusMut = 1;
-    if (bonusRadio.value === 'cyb') bonusCyb = 1;
+  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
+  if (bonusSelected) {
+    if (bonusSelected.value === 'wep') bonusWep = 1;
+    if (bonusSelected.value === 'mut') bonusMut = 1;
+    if (bonusSelected.value === 'cyb') bonusCyb = 1;
   }
 
-  const chouaiWep = parseInt(document.getElementById('chouai-wep').value) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value) || 0;
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  const totalWep = mcP[0] + scP[0] + bonusWep + chouaiWep;
-  const totalMut = mcP[1] + scP[1] + bonusMut + chouaiMut;
-  const totalCyb = mcP[2] + scP[2] + bonusCyb + chouaiCyb;
+  // 各系統の強化値の合計を算出
+  const totalWepClass = mcWep + scWep + bonusWep + chouaiWep;
+  const totalMutClass = mcMut + scMut + bonusMut + chouaiMut;
+  const totalCybClass = mcCyb + scCyb + bonusCyb + chouaiCyb;
 
-  document.getElementById('total-wep').textContent = totalWep;
-  document.getElementById('total-mut').textContent = totalMut;
-  document.getElementById('total-cyb').textContent = totalCyb;
+  // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得する関数
+  const getLimitsByReinforce = (val) => {
+    const clampedVal = Math.max(1, Math.min(9, val));
+    const limits = REINFORCE_LIMIT_TABLE[clampedVal] || [1, 0, 0];
+    return limits.map(l => (l === '-' || l === undefined) ? 0 : l);
+  };
 
-  // トップバーの表示も同期
-  if (document.getElementById('total-wep-disp')) document.getElementById('total-wep-disp').textContent = totalWep;
-  if (document.getElementById('total-mut-disp')) document.getElementById('total-mut-disp').textContent = totalMut;
-  if (document.getElementById('total-cyb-disp')) document.getElementById('total-cyb-disp').textContent = totalCyb;
+  const wepLimits = getLimitsByReinforce(totalWepClass); // 例: [1, 1, 0]
+  const mutLimits = getLimitsByReinforce(totalMutClass);
+  const cybLimits = getLimitsByReinforce(totalCybClass);
 
-  calcUsedParts();
+  // 画面側の合計上限表示（※必要に応じて表示箇所がある場合、合計数などを出すことも可能です）
+  const totalWepElem = document.getElementById('total-wep');
+  const totalMutElem = document.getElementById('total-mut');
+  const totalCybElem = document.getElementById('total-cyb');
+  if (totalWepElem) totalWepElem.textContent = wepLimits[0] + wepLimits[1] + wepLimits[2];
+  if (totalMutElem) totalMutElem.textContent = mutLimits[0] + mutLimits[1] + mutLimits[2];
+  if (totalCybElem) totalCybElem.textContent = cybLimits[0] + cybLimits[1] + cybLimits[2];
+
+  // 現在配置されているパーツのタイプ・レベル別使用数を集計
+  let usedWepLv1 = 0, usedWepLv2 = 0, usedWepLv3 = 0;
+  let usedMutLv1 = 0, usedMutLv2 = 0, usedMutLv3 = 0;
+  let usedCybLv1 = 0, usedCybLv2 = 0, usedCybLv3 = 0;
+
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const typeSelect = tr.querySelector('.p-type');
+    const lvInput = tr.querySelector('.p-level');
+    if (typeSelect && lvInput) {
+      const typeVal = typeSelect.value;
+      const lvVal = parseInt(lvInput.value, 10) || 1;
+
+      if (typeVal === '武装') {
+        if (lvVal === 1) usedWepLv1++;
+        if (lvVal === 2) usedWepLv2++;
+        if (lvVal === 3) usedWepLv3++;
+      } else if (typeVal === '変異') {
+        if (lvVal === 1) usedMutLv1++;
+        if (lvVal === 2) usedMutLv2++;
+        if (lvVal === 3) usedMutLv3++;
+      } else if (typeVal === '改造') {
+        if (lvVal === 1) usedCybLv1++;
+        if (lvVal === 2) usedCybLv2++;
+        if (lvVal === 3) usedCybLv3++;
+      }
+    }
+  });
+
+  // 総使用数（全レベル合算）
+  const usedWep = usedWepLv1 + usedWepLv2 + usedWepLv3;
+  const usedMut = usedMutLv1 + usedMutLv2 + usedMutLv3;
+  const usedCyb = usedCybLv1 + usedCybLv2 + usedCybLv3;
+
+  const usedWepElem = document.getElementById('used-wep');
+  const usedMutElem = document.getElementById('used-mut');
+  const usedCybElem = document.getElementById('used-cyb');
+  if (usedWepElem) usedWepElem.textContent = usedWep;
+  if (usedMutElem) usedMutElem.textContent = usedMut;
+  if (usedCybElem) usedCybElem.textContent = usedCyb;
+
+  // 各レベルごとの上限に対するオーバー判定
+  const remainWep = (wepLimits[0] + wepLimits[1] + wepLimits[2]) - usedWep;
+  const remainMut = (mutLimits[0] + mutLimits[1] + mutLimits[2]) - usedMut;
+  const remainCyb = (cybLimits[0] + cybLimits[1] + cybLimits[2]) - usedCyb;
+
+  const remainWepElem = document.getElementById('remain-wep');
+  const remainMutElem = document.getElementById('remain-mut');
+  const remainCybElem = document.getElementById('remain-cyb');
+
+  if (remainWepElem) {
+    remainWepElem.textContent = remainWep;
+    remainWepElem.style.color = (usedWepLv1 > wepLimits[0] || usedWepLv2 > wepLimits[1] || usedWepLv3 > wepLimits[2] || remainWep < 0) ? '#ff6b6b' : 'inherit';
+  }
+  if (remainMutElem) {
+    remainMutElem.textContent = remainMut;
+    remainMutElem.style.color = (usedMutLv1 > mutLimits[0] || usedMutLv2 > mutLimits[1] || usedMutLv3 > mutLimits[2] || remainMut < 0) ? '#ff6b6b' : 'inherit';
+  }
+  if (remainCybElem) {
+    remainCybElem.textContent = remainCyb;
+    remainCybElem.style.color = (usedCybLv1 > cybLimits[0] || usedCybLv2 > cybLimits[1] || usedCybLv3 > cybLimits[2] || remainCyb < 0) ? '#ff6b6b' : 'inherit';
+  }
 }
 
-function addSkillRow(category = '', name = '', memo = '') {
-  const tbody = document.getElementById('skill-tbody');
+function addRow() {
+  const tbody = document.getElementById('list');
+  if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" value="${category}" style="text-align:center"></td>
-    <td><input type="text" value="${name}"></td>
-    <td><textarea rows="1">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="0" min="0"></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove();">X</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addSkillRow(category, skillName = '', memo = '') {
+  const tbody = document.getElementById('skill-tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  
+  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+  if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+    SKILL_DATABASE[category].forEach(s => {
+      const selected = (s.name === skillName) ? 'selected' : '';
+      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
+    });
+  }
+
+  tr.innerHTML = `
+    <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
+    <td>
+      <select onchange="onSkillSelect(this)">
+        ${optionsHtml}
+      </select>
+    </td>
+    <td><textarea style="height:38px;">${memo}</textarea></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
   `;
   tbody.appendChild(tr);
 }
 
 function addPosSkillRow() {
   const pos = document.getElementById('pos').value;
-  const list = SKILL_DATABASE[pos] || [];
-  if (list.length > 0) {
-    const s = list[0];
-    addSkillRow('ポジション', s.name, s.memo);
-  } else {
-    addSkillRow('ポジション', '', '');
-  }
+  addSkillRow(pos);
 }
 
 function addMcSkillRow() {
   const mc = document.getElementById('mc').value;
-  const list = SKILL_DATABASE[mc] || [];
-  if (list.length > 0) {
-    const s = list[0];
-    addSkillRow('メイン', s.name, s.memo);
-  } else {
-    addSkillRow('メイン', '', '');
-  }
+  addSkillRow(mc);
 }
 
 function addScSkillRow() {
   const sc = document.getElementById('sc').value;
-  const list = SKILL_DATABASE[sc] || [];
-  if (list.length > 0) {
-    const s = list[0];
-    addSkillRow('サブ', s.name, s.memo);
-  } else {
-    addSkillRow('サブ', '', '');
+  addSkillRow(sc);
+}
+
+function onSkillSelect(selectElem) {
+  const skillName = selectElem.value;
+  const tr = selectElem.closest('tr');
+  const categoryInput = tr.querySelector('input');
+  const textarea = tr.querySelector('textarea');
+
+  if (!skillName) {
+    textarea.value = '';
+    return;
+  }
+
+  const category = categoryInput.value;
+  if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+    const found = SKILL_DATABASE[category].find(s => s.name === skillName);
+    if (found) {
+      textarea.value = found.memo;
+    }
   }
 }
 
-function addRow(target = '', emotion = '', madness = '0') {
-  const tbody = document.getElementById('list');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" value="${target}"></td>
-    <td><input type="text" value="${emotion}"></td>
-    <td><input type="text" value="${madness}"></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">削除</button></td>
-  `;
-  tbody.appendChild(tr);
+function saveData() {
+  const data = {
+    pl: document.getElementById('pl')?.value || '',
+    name: document.getElementById('name')?.value || '',
+    pos: document.getElementById('pos')?.value || '',
+    mc: document.getElementById('mc')?.value || '',
+    sc: document.getElementById('sc')?.value || '',
+    age: document.getElementById('age')?.value || '',
+    ps: document.getElementById('ps')?.value || '',
+    hint: document.getElementById('hint')?.value || '',
+    mem: document.getElementById('mem')?.value || '',
+    act: document.getElementById('act')?.value || '',
+    fav: document.getElementById('fav')?.value || '',
+    tr: document.getElementById('tr')?.value || '',
+    chouaiWep: document.getElementById('chouai-wep')?.value || '0',
+    chouaiMut: document.getElementById('chouai-mut')?.value || '0',
+    chouaiCyb: document.getElementById('chouai-cyb')?.value || '0',
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
+  };
+  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました');
 }
 
-function saveData() {
-  alert("ブラウザ保存機能は正常に動作しています。");
-}
 function loadData() {
-  alert("データを読み込みました。");
+  const json = localStorage.getItem('necro_sheet');
+  if (!json) {
+    alert('保存されたデータがありません');
+    return;
+  }
+  const data = JSON.parse(json);
+  if(document.getElementById('pl')) document.getElementById('pl').value = data.pl || '';
+  if(document.getElementById('name')) document.getElementById('name').value = data.name || '';
+  if(document.getElementById('pos')) document.getElementById('pos').value = data.pos || 'アリス';
+  if(document.getElementById('mc')) document.getElementById('mc').value = data.mc || 'ロマネスク';
+  if(document.getElementById('sc')) document.getElementById('sc').value = data.sc || 'ロマネスク';
+  if(document.getElementById('age')) document.getElementById('age').value = data.age || '';
+  if(document.getElementById('ps')) document.getElementById('ps').value = data.ps || '煉獄';
+  if(document.getElementById('hint')) document.getElementById('hint').value = data.hint || '';
+  if(document.getElementById('mem')) document.getElementById('mem').value = data.mem || '';
+  if(document.getElementById('act')) document.getElementById('act').value = data.act || '9';
+  if(document.getElementById('fav')) document.getElementById('fav').value = data.fav || '0';
+  if(document.getElementById('tr')) document.getElementById('tr').value = data.tr || '';
+  if(document.getElementById('chouai-wep')) document.getElementById('chouai-wep').value = data.chouaiWep || '0';
+  if(document.getElementById('chouai-mut')) document.getElementById('chouai-mut').value = data.chouaiMut || '0';
+  if(document.getElementById('chouai-cyb')) document.getElementById('chouai-cyb').value = data.chouaiCyb || '0';
+  
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  onClassChange();
+  alert('データを読み込みました');
 }
-function exportCcfolia() {
-  alert("ココフォリア出力機能です。");
-}
+
 function exportJSON() {
-  alert("JSON保存機能です。");
+  const data = {
+    pl: document.getElementById('pl')?.value || '',
+    name: document.getElementById('name')?.value || '',
+    pos: document.getElementById('pos')?.value || '',
+    mc: document.getElementById('mc')?.value || '',
+    sc: document.getElementById('sc')?.value || ''
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (data.name || 'necro_character') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCcfolia() {
+  const name = document.getElementById('name')?.value || '無名のエトランゼ';
+  const pl = document.getElementById('pl')?.value || '';
+  const text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${document.getElementById('pos')?.value}\n【メインクラス】${document.getElementById('mc')?.value}\n【サブクラス】${document.getElementById('sc')?.value}`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました');
+  }).catch(err => {
+    alert('コピーに失敗しました: ' + err);
+  });
 }
 
 window.onload = function() {
   renderPartsContainer();
   onClassChange();
-  addRow('姉妹A', '親愛', '0');
 };
 </script>
 </body>
