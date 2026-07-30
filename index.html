@@ -833,48 +833,35 @@ function calcTotals() {
   }
 
   const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  // 武装の総計（強化値）を計算
+  // 各種パラメータの総計を計算
   const totalWep = mcWep + scWep + bonusWep + chouaiWep;
+  
+  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
+  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
+  const totalMut = mcMut + scMut + chouaiMut;
 
-  // ==========================================
-  // ▼ 強化値テーブルに基づくパーツ数の上限チェック
-  // ==========================================
-  const limitTable = {
-    1: { 1: 1, 2: 0, 3: 0 },
-    2: { 1: 1, 2: 1, 3: 0 },
-    3: { 1: 1, 2: 1, 3: 1 },
-    4: { 1: 2, 2: 1, 3: 1 },
-    5: { 1: 2, 2: 2, 3: 1 },
-    6: { 1: 2, 2: 2, 3: 2 },
-    7: { 1: 3, 2: 2, 3: 2 },
-    8: { 1: 3, 2: 3, 3: 2 },
-    9: { 1: 3, 2: 3, 3: 3 }
-  };
+  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
+  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
+  const totalCyb = mcCyb + scCyb + chouaiCyb;
 
-  let wepLv1Count = 0, wepLv2Count = 0, wepLv3Count = 0;
+  // 使用中のパーツ数を集計
+  let usedWep = 0, usedMut = 0, usedCyb = 0;
 
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const typeSelect = tr.querySelector('.p-type');
     const lvInput = tr.querySelector('.p-level');
     if (typeSelect && lvInput) {
       const typeVal = typeSelect.value;
-      const lvVal = parseInt(lvInput.value, 10);
+      const lvVal = parseInt(lvInput.value, 10) || 0;
 
-      if (typeVal === '武装') {
-        if (lvVal === 1) wepLv1Count++;
-        if (lvVal === 2) wepLv2Count++;
-        if (lvVal === 3) wepLv3Count++;
-      }
+      if (typeVal === '武装') usedWep += lvVal;
+      if (typeVal === '変異') usedMut += lvVal;
+      if (typeVal === '改造') usedCyb += lvVal;
     }
   });
-
-  const effectiveWepVal = Math.min(Math.max(totalWep, 1), 9);
-  const allowedWep = limitTable[effectiveWepVal] || { 1: 3, 2: 3, 3: 3 };
-
-  // 必要に応じて制限超過をコンソール等で確認できます
-  // console.log(`Lv1: ${wepLv1Count}/${allowedWep[1]}, Lv2: ${wepLv2Count}/${allowedWep[2]}, Lv3: ${wepLv3Count}/${allowedWep[3]}`);
-}
 
   document.getElementById('used-wep').textContent = usedWep;
   document.getElementById('used-mut').textContent = usedMut;
@@ -888,14 +875,18 @@ function calcTotals() {
   const remainMutElem = document.getElementById('remain-mut');
   const remainCybElem = document.getElementById('remain-cyb');
 
-  remainWepElem.textContent = remainWep;
-  remainWepElem.style.color = remainWep < 0 ? '#ff6b6b' : 'inherit';
-
-  remainMutElem.textContent = remainMut;
-  remainMutElem.style.color = remainMut < 0 ? '#ff6b6b' : 'inherit';
-
-  remainCybElem.textContent = remainCyb;
-  remainCybElem.style.color = remainCyb < 0 ? '#ff6b6b' : 'inherit';
+  if (remainWepElem) {
+    remainWepElem.textContent = remainWep;
+    remainWepElem.style.color = remainWep < 0 ? '#ff6b6b' : 'inherit';
+  }
+  if (remainMutElem) {
+    remainMutElem.textContent = remainMut;
+    remainMutElem.style.color = remainMut < 0 ? '#ff6b6b' : 'inherit';
+  }
+  if (remainCybElem) {
+    remainCybElem.textContent = remainCyb;
+    remainCybElem.style.color = remainCyb < 0 ? '#ff6b6b' : 'inherit';
+  }
 }
 
 function addRow() {
