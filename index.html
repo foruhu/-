@@ -584,11 +584,67 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃1＋切断＋連撃1。' }
 ];
 
-const PART_LIMIT_TABLE = {
-  1: [1, 0, 0], 2: [1, 1, 0], 3: [1, 1, 1],
-  4: [2, 1, 1], 5: [2, 2, 1], 6: [2, 2, 2],
-  7: [3, 2, 2], 8: [3, 3, 2], 9: [3, 3, 3]
+// REINFORCE_LIMIT_TABLE の定義は、ファイル内のグローバル領域（関数の外）に置いておきます
+const REINFORCE_LIMIT_TABLE = {
+  1: [1, '-', '-'], // 1レベル, 2レベル, 3レベル
+  2: [1, 1, '-'],
+  3: [1, 1, 1],
+  4: [2, 1, 1],
+  5: [2, 2, 1],
+  6: [2, 2, 2],
+  7: [3, 2, 2],
+  8: [3, 3, 2],
+  9: [3, 3, 3]
 };
+
+function calcTotals() {
+  // 1. 各種パーツの数やボーナス、寵愛の入力を取得する既存のコード
+  const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
+  const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
+  // ... (変異や改造、寵愛、ボーナスの取得処理がここに続く) ...
+
+  let bonusWep = 0;
+  const bonusSelected = document.querySelector('input[name="bonus"]:checked');
+  if (bonusSelected && bonusSelected.value === 'wep') bonusWep = 1;
+
+  const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
+  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
+  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
+
+  // ==========================================
+  // ★ ここに「強化値の合計」と「テーブル参照」の処理を追加する
+  // ==========================================
+  
+  // 武装・変異・改造それぞれの強化値（クラス＋ボーナス＋寵愛など）の総計を出す場合
+  // ※もし「全体の強化値合計」を1つの数値として見るルールであれば、全タイプの合計を出します
+  const totalReinforce = (mcWep + scWep + bonusWep + chouaiWep) + 
+                         (parseInt(document.getElementById('mc-mut').textContent, 10) || 0 + parseInt(document.getElementById('sc-mut').textContent, 10) || 0 + chouaiMut) + 
+                         (parseInt(document.getElementById('mc-cyb').textContent, 10) || 0 + parseInt(document.getElementById('sc-cyb').textContent, 10) || 0 + chouaiCyb);
+
+  // 現在のレベルを取得（例としてプルダウンやテキストボックスに #lv がある想定）
+  // レベルの項目がまだなければ、デフォルトで 1 として扱えます
+  const currentLv = 1; // 実際の要素に合わせて document.getElementById('lv').value などに変更してください
+
+  // テーブルから上限値の配列を取得（見つからない場合は安全のため1をデフォルトにする）
+  const limits = REINFORCE_LIMIT_TABLE[totalReinforce] || [1, 1, 1];
+  
+  // レベルに応じた上限（1Lvならインデックス0、2Lvなら1、3Lvなら2）
+  // ※ '-'（取得不可）の場合は 0 として扱うなどの処理を入れます
+  const rawLimit = limits[currentLv - 1];
+  const finalLimit = (rawLimit === '-') ? 0 : (parseInt(rawLimit, 10) || 0);
+
+  // 算出した上限を画面の「上限」表示部分（#total-wep など）に反映させる
+  // document.getElementById('total-wep').textContent = finalLimit;
+
+  // ==========================================
+  // 2. 以降は既存の「使用中のパーツ数集計」と「残り計算」のコードへと続く
+  // ==========================================
+  let usedWep = 0, usedMut = 0, usedCyb = 0;
+
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    // ... (既存の集計処理)
+  });
+}
 
 // パーツコンテナのレンダリング
 function renderPartsContainer() {
