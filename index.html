@@ -806,22 +806,28 @@ function calcTotals() {
 
   // 強化値に応じた [1Lv上限, 2Lv上限, 3Lv上限] の配列を取得する関数
   const getLimitsByReinforce = (val) => {
-    const clampedVal = Math.max(1, Math.min(9, val));
-    const limits = REINFORCE_LIMIT_TABLE[clampedVal] || [1, 0, 0];
+    const clampedVal = Math.max(0, Math.min(9, val));
+    if (clampedVal === 0) return [0, 0, 0];
+    const limits = REINFORCE_LIMIT_TABLE[clampedVal] || [0, 0, 0];
     return limits.map(l => (l === '-' || l === undefined) ? 0 : l);
   };
 
-  const wepLimits = getLimitsByReinforce(totalWepClass); // 例: [1, 1, 0]
+  const wepLimits = getLimitsByReinforce(totalWepClass); // [1Lv上限, 2Lv上限, 3Lv上限]
   const mutLimits = getLimitsByReinforce(totalMutClass);
   const cybLimits = getLimitsByReinforce(totalCybClass);
 
-  // 画面側の合計上限表示（※必要に応じて表示箇所がある場合、合計数などを出すことも可能です）
+  // 各系統の「上限（全レベルの取得数上限の総和）」を計算
+  const maxWep = wepLimits[0] + wepLimits[1] + wepLimits[2];
+  const maxMut = mutLimits[0] + mutLimits[1] + mutLimits[2];
+  const maxCyb = cybLimits[0] + cybLimits[1] + cybLimits[2];
+
+  // HTML側の「上限」表示部分を更新
   const totalWepElem = document.getElementById('total-wep');
   const totalMutElem = document.getElementById('total-mut');
   const totalCybElem = document.getElementById('total-cyb');
-  if (totalWepElem) totalWepElem.textContent = wepLimits[0] + wepLimits[1] + wepLimits[2];
-  if (totalMutElem) totalMutElem.textContent = mutLimits[0] + mutLimits[1] + mutLimits[2];
-  if (totalCybElem) totalCybElem.textContent = cybLimits[0] + cybLimits[1] + cybLimits[2];
+  if (totalWepElem) totalWepElem.textContent = maxWep;
+  if (totalMutElem) totalMutElem.textContent = maxMut;
+  if (totalCybElem) totalCybElem.textContent = maxCyb;
 
   // 現在配置されているパーツのタイプ・レベル別使用数を集計
   let usedWepLv1 = 0, usedWepLv2 = 0, usedWepLv3 = 0;
@@ -863,10 +869,10 @@ function calcTotals() {
   if (usedMutElem) usedMutElem.textContent = usedMut;
   if (usedCybElem) usedCybElem.textContent = usedCyb;
 
-  // 各レベルごとの上限に対するオーバー判定
-  const remainWep = (wepLimits[0] + wepLimits[1] + wepLimits[2]) - usedWep;
-  const remainMut = (mutLimits[0] + mutLimits[1] + mutLimits[2]) - usedMut;
-  const remainCyb = (cybLimits[0] + cybLimits[1] + cybLimits[2]) - usedCyb;
+  // 残り数や超過判定（オプション表示用）
+  const remainWep = maxWep - usedWep;
+  const remainMut = maxMut - usedMut;
+  const remainCyb = maxCyb - usedCyb;
 
   const remainWepElem = document.getElementById('remain-wep');
   const remainMutElem = document.getElementById('remain-mut');
