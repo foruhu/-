@@ -93,6 +93,14 @@ th { background: var(--header-bg); color: #eee; font-weight: normal; letter-spac
 .calc-table input[type="number"] { width: 100%; background: #18181c; border: 1px solid #444; color: #fff; font-weight: bold; }
 .calc-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; margin: 0 auto; }
 .calc-table .total-row td { background: #2a0808; color: #fff; font-size: 1rem; font-weight: bold; }
+
+/* 制限チェッカー用テーブルスタイル */
+.limit-table { font-size: 0.75rem; margin-top: 8px; background: #15151a; }
+.limit-table th { background: #22222c; color: #f0a0a0; }
+.limit-table td { padding: 3px; }
+.limit-ok { color: #8ff; font-weight: bold; }
+.limit-ng { color: #ff8888; font-weight: bold; }
+
 .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
 button {
   padding: 8px;
@@ -130,7 +138,7 @@ tr.broken input, tr.broken textarea {
 <h1>永い後日談のネクロニカ</h1>
 
 <div class="card">
-  <div class="title">基本情報・強化値計算</div>
+  <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
   <div class="g2">
     <div><label>PL名</label><input type="text" id="pl"></div>
     <div><label>ドール名</label><input type="text" id="name"></div>
@@ -215,7 +223,26 @@ tr.broken input, tr.broken textarea {
       </tbody>
     </table>
   </div>
-  <div class="g2">
+
+  <!-- レベル取得数チェッカー表示エリア -->
+  <div class="table-scroll">
+    <table class="limit-table">
+      <thead>
+        <tr>
+          <th style="width:22%">カテゴリ</th>
+          <th style="width:13%">レベル</th>
+          <th style="width:20%">規定上限</th>
+          <th style="width:20%">現在取得</th>
+          <th style="width:25%">判定</th>
+        </tr>
+      </thead>
+      <tbody id="limit-tbody">
+        <!-- 動的生成 -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="g2" style="margin-top:8px;">
     <div><label>享年/外見</label><input type="text" id="age"></div>
     <div><label>初期配置</label>
       <select id="ps">
@@ -538,6 +565,25 @@ const COMMON_EXTRA_PARTS = [
   { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0', memo: '' }
 ];
 
+// ルールブックの取得数表データ (インデックス = 強化値 1〜9)
+const LIMIT_TABLE_DATA = [
+  /* 1 */ { lv1: 1, lv2: 0, lv3: 0 },
+  /* 2 */ { lv1: 1, lv2: 1, lv3: 0 },
+  /* 3 */ { lv1: 1, lv2: 1, lv3: 1 },
+  /* 4 */ { lv1: 2, lv2: 1, lv3: 1 },
+  /* 5 */ { lv1: 2, lv2: 2, lv3: 1 },
+  /* 6 */ { lv1: 2, lv2: 2, lv3: 2 },
+  /* 7 */ { lv1: 3, lv2: 2, lv3: 2 },
+  /* 8 */ { lv1: 3, lv2: 3, lv3: 2 },
+  /* 9 */ { lv1: 3, lv2: 3, lv3: 3 }
+];
+
+function getLimitByVal(val) {
+  if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
+  if (val > 9) return LIMIT_TABLE_DATA[8];
+  return LIMIT_TABLE_DATA[val - 1];
+}
+
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
@@ -661,7 +707,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
-      <select class="p-type" ${disabledAttr}>
+      <select class="p-type" ${disabledAttr} onchange="calcTotals()">
         <option ${type==='基本'?'selected':''}>基本</option>
         <option ${type==='武装'?'selected':''}>武装</option>
         <option ${type==='変異'?'selected':''}>変異</option>
@@ -741,6 +787,60 @@ function calcTotals() {
   document.getElementById('total-wep').textContent = totalWep;
   document.getElementById('total-mut').textContent = totalMut;
   document.getElementById('total-cyb').textContent = totalCyb;
+
+  // 現在配置されているパーツのレベル集計
+  const currentCounts = {
+    '武装': { 1: 0, 2: 0, 3: 0 },
+    '変異': { 1: 0, 2: 0, 3: 0 },
+    '改造': { 1: 0, 2: 0, 3: 0 }
+  };
+
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const typeSelect = tr.querySelector('.p-type');
+    const levelInput = tr.querySelector('.p-level');
+    if (typeSelect && levelInput) {
+      const type = typeSelect.value;
+      const lv = parseInt(levelInput.value, 10);
+      if (currentCounts[type] && (lv >= 1 && lv <= 3)) {
+        currentCounts[type][lv]++;
+      }
+    }
+  });
+
+  // チェッカーテーブルの描画更新
+  const limitTbody = document.getElementById('limit-tbody');
+  limitTbody.innerHTML = '';
+
+  const categories = [
+    { name: '武装', total: totalWep },
+    { name: '変異', total: totalMut },
+    { name: '改造', total: totalCyb }
+  ];
+
+  categories.forEach(cat => {
+    const limit = getLimitByVal(cat.total);
+    [1, 2, 3].forEach(lv => {
+      const maxAllowed = limit[`lv${lv}`];
+      const current = currentCounts[cat.name][lv];
+      let statusHtml = '';
+
+      if (current > maxAllowed) {
+        statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
+      } else {
+        statusHtml = `<span class="limit-ok">OK (${current}/${maxAllowed})</span>`;
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${cat.name}</b> (総${cat.total})</td>
+        <td>Lv ${lv}</td>
+        <td>最大 <b>${maxAllowed}</b> 個</td>
+        <td><b>${current}</b> 個</td>
+        <td>${statusHtml}</td>
+      `;
+      limitTbody.appendChild(tr);
+    });
+  });
 }
 
 function addRow() {
