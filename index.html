@@ -587,20 +587,20 @@ function renderPartsContainer() {
   let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
   optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
   
-  // ▼【追加】共通の汎用パーツの選択肢をまず追加する
-  if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
-    optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
-    COMMON_EXTRA_PARTS.forEach((p, idx) => {
-      optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-    });
-    optionsHtml += `</optgroup>`;
-  }
-
   // ▼ 各部位ごとの固有パーツを追加
   if (EXTRA_PARTS_DB[sec.id]) {
     optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
     EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
       optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+    });
+    optionsHtml += `</optgroup>`;
+  }
+  
+   // ▼【追加】共通の汎用パーツの選択肢をまず追加する
+  if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
+    optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
+    COMMON_EXTRA_PARTS.forEach((p, idx) => {
+      optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
     });
     optionsHtml += `</optgroup>`;
   }
