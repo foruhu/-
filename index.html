@@ -616,35 +616,35 @@ function renderPartsContainer() {
   if (!container) return;
   container.innerHTML = '';
 
+  // ネクロニカの基本部位定義
   const sections = [
-    { id: 'head', name: '頭部パーツ' },
-    { id: 'arm', name: '腕部パーツ' },
-    { id: 'body', name: '胴部パーツ' },
-    { id: 'leg', name: '脚部パーツ' }
+    { id: 'head', name: '頭部' },
+    { id: 'arm', name: '腕部' },
+    { id: 'body', name: '胴部' },
+    { id: 'leg', name: '脚部' }
   ];
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
-    secDiv.className = 'card';
-    secDiv.style.marginBottom = '10px';
+    secDiv.className = 'part-section';
     secDiv.innerHTML = `
-      <div class="title" style="font-size:0.85rem; padding:4px 8px;">${sec.name}</div>
-      <div class="table-scroll">
-        <table class="calc-table">
+      <h3>${sec.name}</h3>
+      <div style="overflow-x:auto;">
+        <table>
           <thead>
             <tr>
-              <th style="width:6%">破</th>
-              <th style="width:14%">部位</th>
-              <th style="width:24%">パーツ名</th>
-              <th style="width:12%">種別</th>
-              <th style="width:8%">Lv</th>
-              <th style="width:10%">タイミング</th>
-              <th style="width:8%">コスト</th>
-              <th style="width:8%">射程</th>
-              <th style="width:24%">メモ</th>
-              <th style="width:6%">X</th>
+              <th style="width:30px;">損耗</th>
+              <th style="width:70px;">部位</th>
+              <th>パーツ名</th>
+              <th style="width:70px;">種別</th>
+              <th style="width:50px;">Lv</th>
+              <th style="width:70px;">タイミング</th>
+              <th style="width:50px;">コスト</th>
+              <th style="width:60px;">射程</th>
+              <th>メモ</th>
+              <th style="width:30px;">操作</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
@@ -661,6 +661,7 @@ function renderPartsContainer() {
     const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
     const currentLocName = locMap[sec.id] || '頭部';
 
+    // デフォルトパーツの読み込み
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
