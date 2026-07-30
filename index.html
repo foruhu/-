@@ -610,58 +610,49 @@ const REINFORCE_LIMIT_TABLE = {
   9: [3, 3, 3]
 };
 
+// パーツコンテナ全体の描画（頭・腕・胴・脚などのセクションを作成）
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
   container.innerHTML = '';
 
   const sections = [
-    { id: 'head', title: '頭部パーツ' },
-    { id: 'arm', title: '腕部パーツ' },
-    { id: 'body', title: '胴部パーツ' },
-    { id: 'leg', title: '脚部パーツ' }
+    { id: 'head', name: '頭部パーツ' },
+    { id: 'arm', name: '腕部パーツ' },
+    { id: 'body', name: '胴部パーツ' },
+    { id: 'leg', name: '脚部パーツ' }
   ];
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 
   sections.forEach(sec => {
-    let optionsHtml = '<option value="">-- パーツを追加 --</option>';
-    if (typeof COMMON_EXTRA_PARTS !== 'undefined' && COMMON_EXTRA_PARTS.length > 0) {
-      COMMON_EXTRA_PARTS.forEach((p, idx) => {
-        optionsHtml += `<option value="common_${idx}">${p.name} (${p.type} Lv${p.level})</option>`;
-      });
-    }
-    if (typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[sec.id] && EXTRA_PARTS_DB[sec.id].length > 0) {
-      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        optionsHtml += `<option value="${sec.id}_${idx}">${p.name} (${p.type} Lv${p.level})</option>`;
-      });
-    }
-    optionsHtml += `<option value="custom">【カスタムパーツ作成】</option>`;
-
     const secDiv = document.createElement('div');
-    secDiv.className = 'part-section';
+    secDiv.className = 'card';
+    secDiv.style.marginBottom = '10px';
     secDiv.innerHTML = `
-      <h3>${sec.title}</h3>
-      <table class="parts-table">
-        <thead>
-          <tr>
-            <th style="width:6%">破損</th>
-            <th style="width:12%">部位</th>
-            <th style="width:18%">パーツ名</th>
-            <th style="width:10%">種別</th>
-            <th style="width:6%">Lv</th>
-            <th style="width:12%">タイミング</th>
-            <th style="width:8%">コスト</th>
-            <th style="width:10%">射程</th>
-            <th style="width:12%">効果メモ</th>
-            <th style="width:6%">操作</th>
-          </tr>
-        </thead>
-        <tbody id="parts-tbody-${sec.id}"></tbody>
-      </table>
+      <div class="title" style="font-size:0.85rem; padding:4px 8px;">${sec.name}</div>
+      <div class="table-scroll">
+        <table class="calc-table">
+          <thead>
+            <tr>
+              <th style="width:6%">破</th>
+              <th style="width:14%">部位</th>
+              <th style="width:24%">パーツ名</th>
+              <th style="width:12%">種別</th>
+              <th style="width:8%">Lv</th>
+              <th style="width:10%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:8%">射程</th>
+              <th style="width:24%">メモ</th>
+              <th style="width:6%">X</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody-${sec.id}"></tbody>
+        </table>
+      </div>
       <div style="margin-top:6px;">
-        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
-          ${optionsHtml}
+        <select class="add-part-select" data-sec-id="${sec.id}" onchange="onExtraPartSelect('${sec.id}', this)">
+          <option value="">-- パーツを追加 --</option>
         </select>
       </div>
     `;
@@ -675,6 +666,76 @@ function renderPartsContainer() {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
       });
     }
+  });
+
+  // 描画直後にプルダウンの選択肢（上限チェック）を反映
+  updateExtraPartOptions();
+}
+
+// 上限に達したパーツを自動で除外してプルダウンを更新する関数
+function updateExtraPartOptions() {
+  const wepLimits = getLimitsByReinforce(parseInt(document.getElementById('total-wep')?.textContent, 10) || 0);
+  const mutLimits = getLimitsByReinforce(parseInt(document.getElementById('total-mut')?.textContent, 10) || 0);
+  const cybLimits = getLimitsByReinforce(parseInt(document.getElementById('total-cyb')?.textContent, 10) || 0);
+
+  const usedWep = { 1: 0, 2: 0, 3: 0 };
+  const usedMut = { 1: 0, 2: 0, 3: 0 };
+  const usedCyb = { 1: 0, 2: 0, 3: 0 };
+
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const typeSelect = tr.querySelector('.p-type');
+    const levelInput = tr.querySelector('.p-level');
+    if (typeSelect && levelInput) {
+      const typeVal = typeSelect.value;
+      const lvVal = parseInt(levelInput.value, 10) || 1;
+      if (typeVal === '武装' && usedWep[lvVal] !== undefined) usedWep[lvVal]++;
+      else if (typeVal === '変異' && usedMut[lvVal] !== undefined) usedMut[lvVal]++;
+      else if (typeVal === '改造' && usedCyb[lvVal] !== undefined) usedCyb[lvVal]++;
+    }
+  });
+
+  document.querySelectorAll('.add-part-select').forEach(selectElem => {
+    const secId = selectElem.dataset.secId;
+    if (!secId) return;
+
+    const currentVal = selectElem.value;
+    let optionsHtml = '<option value="">-- パーツを追加 --</option>';
+
+    // 共通パーツ
+    if (typeof COMMON_EXTRA_PARTS !== 'undefined') {
+      COMMON_EXTRA_PARTS.forEach((p, idx) => {
+        const type = p.type;
+        const lv = parseInt(p.level, 10) || 1;
+        let canAdd = true;
+        if (type === '武装' && usedWep[lv] >= wepLimits[lv - 1]) canAdd = false;
+        if (type === '変異' && usedMut[lv] >= mutLimits[lv - 1]) canAdd = false;
+        if (type === '改造' && usedCyb[lv] >= cybLimits[lv - 1]) canAdd = false;
+
+        if (canAdd) {
+          optionsHtml += `<option value="common_${idx}">[共通] ${p.name} (Lv${p.level}・${p.type})</option>`;
+        }
+      });
+    }
+
+    // 部位固有パーツ
+    if (typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[secId]) {
+      EXTRA_PARTS_DB[secId].forEach((p, idx) => {
+        const type = p.type;
+        const lv = parseInt(p.level, 10) || 1;
+        let canAdd = true;
+        if (type === '武装' && usedWep[lv] >= wepLimits[lv - 1]) canAdd = false;
+        if (type === '変異' && usedMut[lv] >= mutLimits[lv - 1]) canAdd = false;
+        if (type === '改造' && usedCyb[lv] >= cybLimits[lv - 1]) canAdd = false;
+
+        if (canAdd) {
+          optionsHtml += `<option value="${secId}_${idx}">${p.name} (Lv${p.level}・${p.type})</option>`;
+        }
+      });
+    }
+
+    optionsHtml += `<option value="custom">＋ 自由入力パーツを追加...</option>`;
+    selectElem.innerHTML = optionsHtml;
+    selectElem.value = currentVal;
   });
 }
 
