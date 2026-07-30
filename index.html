@@ -824,33 +824,18 @@ function onClassChange() {
 
 function calcTotals() {
   const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
-  const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
-  const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
-
   const scWep = parseInt(document.getElementById('sc-wep').textContent, 10) || 0;
-  const scMut = parseInt(document.getElementById('sc-mut').textContent, 10) || 0;
-  const scCyb = parseInt(document.getElementById('sc-cyb').textContent, 10) || 0;
 
-  let bonusWep = 0, bonusMut = 0, bonusCyb = 0;
+  let bonusWep = 0;
   const bonusSelected = document.querySelector('input[name="bonus"]:checked');
   if (bonusSelected) {
     if (bonusSelected.value === 'wep') bonusWep = 1;
-    else if (bonusSelected.value === 'mut') bonusMut = 1;
-    else if (bonusSelected.value === 'cyb') bonusCyb = 1;
   }
 
   const chouaiWep = parseInt(document.getElementById('chouai-wep').value, 10) || 0;
-  const chouaiMut = parseInt(document.getElementById('chouai-mut').value, 10) || 0;
-  const chouaiCyb = parseInt(document.getElementById('chouai-cyb').value, 10) || 0;
 
-  // ★先に対象の総計（上限）を計算しておく
+  // 武装の総計（強化値）を計算
   const totalWep = mcWep + scWep + bonusWep + chouaiWep;
-  const totalMut = mcMut + scMut + bonusMut + chouaiMut;
-  const totalCyb = mcCyb + scCyb + bonusCyb + chouaiCyb;
-
-  document.getElementById('total-wep').textContent = totalWep;
-  document.getElementById('total-mut').textContent = totalMut;
-  document.getElementById('total-cyb').textContent = totalCyb;
 
   // ==========================================
   // ▼ 強化値テーブルに基づくパーツ数の上限チェック
@@ -884,26 +869,12 @@ function calcTotals() {
     }
   });
 
-  // ここで先ほど計算した totalWep が安全に使えるようになります
   const effectiveWepVal = Math.min(Math.max(totalWep, 1), 9);
   const allowedWep = limitTable[effectiveWepVal] || { 1: 3, 2: 3, 3: 3 };
 
-  // ==========================================
-  // ▼ 「現在実際に使用している数」の集計
-  // ==========================================
-  let usedWep = 0;
-  let usedMut = 0;
-  let usedCyb = 0;
-
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const typeSelect = tr.querySelector('.p-type');
-    if (typeSelect) {
-      const typeVal = typeSelect.value;
-      if (typeVal === '武装') usedWep++;
-      else if (typeVal === '変異') usedMut++;
-      else if (typeVal === '改造') usedCyb++;
-    }
-  });
+  // 必要に応じて制限超過をコンソール等で確認できます
+  // console.log(`Lv1: ${wepLv1Count}/${allowedWep[1]}, Lv2: ${wepLv2Count}/${allowedWep[2]}, Lv3: ${wepLv3Count}/${allowedWep[3]}`);
+}
 
   document.getElementById('used-wep').textContent = usedWep;
   document.getElementById('used-mut').textContent = usedMut;
