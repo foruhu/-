@@ -138,13 +138,13 @@ tr.broken input, tr.broken textarea {
 <h1>永い後日談のネクロニカ</h1>
 
 <div class="container">
-  <!-- 画面上部に固定するステータスバー（総計表示版） -->
+<!-- 画面上部に固定するステータスバー（総計表示版） -->
 <div class="card sticky-top-bar">
   <div style="display: flex; justify-content: space-around; text-align: center; font-size: 0.9rem; padding: 4px;">
     <!-- 武装 -->
     <div class="status-group">
       <span style="color:#ff6b6b; font-weight:bold;">武装:</span> 
-      <span id="used-wip-total" style="font-weight:bold;">0</span> / <span id="max-wip-total" style="font-weight:bold;">0</span>
+      <span id="used-wep-total" style="font-weight:bold;">0</span> / <span id="max-wep-total" style="font-weight:bold;">0</span>
     </div>
     <!-- 変異 -->
     <div class="status-group">
@@ -159,7 +159,7 @@ tr.broken input, tr.broken textarea {
   </div>
 </div>
 
-  <div class="card">
+<div class="card">
     <div class="title">基本情報・強化値計算</div>
     <div class="g2">
       <div><label>PL名</label><input type="text" id="pl"></div>
@@ -194,7 +194,7 @@ tr.broken input, tr.broken textarea {
           <tr>
             <td class="label-cell">メインクラス：</td>
             <td>
-              <select id="mc" onchange="onClassChange()">...</select>
+              <select id="mc" onchange="onClassChange()">
                 <option selected>ロマネスク</option>
                 <option>ステーシー</option>
                 <option>タナトス</option>
@@ -209,7 +209,7 @@ tr.broken input, tr.broken textarea {
           <tr>
             <td class="label-cell">サブクラス：</td>
             <td>
-              <select id="sc" onchange="onClassChange()">...</select>
+              <select id="sc" onchange="onClassChange()">
                 <option selected>ロマネスク</option>
                 <option>ステーシー</option>
                 <option>タナトス</option>
@@ -849,9 +849,9 @@ function calcTotals() {
   });
 
   // ステータスバーの使用総数を反映
-  if (document.getElementById('used-wip-total')) {
-    document.getElementById('used-wip-total').textContent = usedWepCount;
-    document.getElementById('used-wip-total').style.color = (usedWepCount > maxWepTotal) ? '#ff6b6b' : 'inherit';
+  if (document.getElementById('used-wep-total')) {
+    document.getElementById('used-wep-total').textContent = usedWepCount;
+    document.getElementById('used-wep-total').style.color = (usedWepCount > maxWepTotal) ? '#ff6b6b' : 'inherit';
   }
   if (document.getElementById('used-mut-total')) {
     document.getElementById('used-mut-total').textContent = usedMutCount;
@@ -861,22 +861,6 @@ function calcTotals() {
     document.getElementById('used-cyb-total').textContent = usedCybCount;
     document.getElementById('used-cyb-total').style.color = (usedCybCount > maxCybTotal) ? '#ff6b6b' : 'inherit';
   }
-}
-  
-  // ステータスバーの使用数をセット
-  document.getElementById('used-wep-lv1').textContent = usedWep[1];
-  document.getElementById('used-wep-lv2').textContent = usedWep[2];
-  document.getElementById('used-wep-lv3').textContent = usedWep[3];
-  
-  document.getElementById('used-mut-lv1').textContent = usedMut[1];
-  document.getElementById('used-mut-lv2').textContent = usedMut[2];
-  document.getElementById('used-mut-lv3').textContent = usedMut[3];
-  
-  document.getElementById('used-cyb-lv1').textContent = usedCyb[1];
-  document.getElementById('used-cyb-lv2').textContent = usedCyb[2];
-  document.getElementById('used-cyb-lv3').textContent = usedCyb[3];
-  
-  // （必要に応じて従来の総数表示・超過チェック等の処理が続きます）
 }
 
 function addRow() {
