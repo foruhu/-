@@ -41,6 +41,19 @@ h1 {
   padding: 10px;
   margin-bottom: 12px;
 }
+
+/* 画面上部に固定するステータスバーのスタイル */
+.sticky-top-bar {
+  position: sticky;
+  top: 0px;
+  z-index: 1000;
+  background: rgba(24, 24, 28, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--red);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  margin-bottom: 12px;
+}
+
 .title {
   font-size: .95rem;
   font-weight: bold;
@@ -138,6 +151,35 @@ tr.broken input, tr.broken textarea {
 
 <h1>永い後日談のネクロニカ</h1>
 
+<div class="card sticky-top-bar">
+  <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#ff6b6b; font-weight:bold;">武装</span>
+      <span>
+        Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> | 
+        Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span> | 
+        Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span>
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#4dabf7; font-weight:bold;">変異</span>
+      <span>
+        Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span> | 
+        Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span> | 
+        Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span>
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#ffd43b; font-weight:bold;">改造</span>
+      <span>
+        Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span> | 
+        Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> | 
+        Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
+      </span>
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
   <div class="g2">
@@ -225,7 +267,6 @@ tr.broken input, tr.broken textarea {
     </table>
   </div>
 
-  <!-- レベル取得数チェッカー表示エリア（スキル等の自動連動対応） -->
   <div class="table-scroll">
     <table class="limit-table">
       <thead>
@@ -239,8 +280,7 @@ tr.broken input, tr.broken textarea {
         </tr>
       </thead>
       <tbody id="limit-tbody">
-        <!-- 動的生成 -->
-      </tbody>
+        </tbody>
     </table>
     <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
       ※「時計仕掛け」等のスキルを選ぶと改造Lv3の追加枠が自動で+1されます
@@ -469,7 +509,7 @@ const EXTRA_PARTS_DB = {
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0', memo: '' },
     { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
-    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1', memo: '。' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1', memo: '' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: '' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の未練から、狂気点を1減少させてよい。' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無し', range: '自身', memo: '最大行動値+1' },
@@ -507,7 +547,7 @@ const EXTRA_PARTS_DB = {
     { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1' },
     { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '' },
     { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '' },
-    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '。' },
+    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1', memo: '' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
     { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1', memo: '' },
     { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '' },
@@ -665,7 +705,6 @@ function renderPartsContainer() {
   });
 }
 
-// すでに同じ名前のパーツがキャラクターに存在するかチェックする関数
 function isPartAlreadyExists(partName) {
   if (!partName || partName === '新規パーツ') return false;
   let exists = false;
@@ -702,7 +741,6 @@ function onExtraPartSelect(secId, selectElem) {
     if (p) targetPartName = p.name;
   }
 
-  // 重複チェック（自由入力の「新規パーツ」以外で、すでに名前が存在する場合）
   if (targetPartName !== '新規パーツ' && isPartAlreadyExists(targetPartName)) {
     alert(`「${targetPartName}」はすでに配置されています。同じパーツを重複して取得することはできません。`);
     selectElem.value = '';
@@ -828,7 +866,6 @@ function calcTotals() {
   document.getElementById('total-mut').textContent = totalMut;
   document.getElementById('total-cyb').textContent = totalCyb;
 
-  // 現在配置されているパーツのレベル集計
   const currentCounts = {
     '武装': { 1: 0, 2: 0, 3: 0 },
     '変異': { 1: 0, 2: 0, 3: 0 },
@@ -847,7 +884,6 @@ function calcTotals() {
     }
   });
 
-  // スキル「時計仕掛け」が選択されているかチェックし、改造Lv3の自動追加枠を判定
   let hasClockwork = false;
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const skillSelect = tr.querySelector('select');
@@ -856,23 +892,23 @@ function calcTotals() {
     }
   });
 
-  // チェッカーテーブルの描画更新
   const categories = [
-    { name: '武装', total: totalWep },
-    { name: '変異', total: totalMut },
-    { name: '改造', total: totalCyb }
+    { name: '武装', total: totalWep, key: 'wep' },
+    { name: '変異', total: totalMut, key: 'mut' },
+    { name: '改造', total: totalCyb, key: 'cyb' }
   ];
 
   const limitTbody = document.getElementById('limit-tbody');
   
-  // 既存の手動追加枠の入力値を保持しておく
   const extraValues = {};
-  limitTbody.querySelectorAll('tr').forEach((tr, index) => {
-    const input = tr.querySelector('input[type="number"]');
-    if (input) extraValues[index] = parseInt(input.value, 10) || 0;
-  });
+  if (limitTbody) {
+    limitTbody.querySelectorAll('tr').forEach((tr, index) => {
+      const input = tr.querySelector('input[type="number"]');
+      if (input) extraValues[index] = parseInt(input.value, 10) || 0;
+    });
+    limitTbody.innerHTML = '';
+  }
 
-  limitTbody.innerHTML = '';
   let rowIndex = 0;
 
   categories.forEach(cat => {
@@ -881,7 +917,6 @@ function calcTotals() {
       const baseLimit = limit[`lv${lv}`];
       let extraVal = extraValues[rowIndex] || 0;
 
-      // 「時計仕掛け」が選ばれていて、かつ「改造のLv3」の行である場合、自動で+1を上乗せ（手動入力と合算）
       let autoBonus = 0;
       if (cat.name === '改造' && lv === 3 && hasClockwork) {
         autoBonus = 1;
@@ -889,30 +924,46 @@ function calcTotals() {
 
       const maxAllowed = baseLimit + extraVal + autoBonus;
       const current = currentCounts[cat.name][lv];
-      let statusHtml = '';
 
+      // スティッキー上部バーの数値を動的に更新
+      const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
+      const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
+      if (usedSpan) usedSpan.textContent = current;
+      if (maxSpan) {
+        maxSpan.textContent = maxAllowed;
+        if (current > maxAllowed) {
+          maxSpan.style.color = '#ff8888';
+          maxSpan.style.fontWeight = 'bold';
+        } else {
+          maxSpan.style.color = '#8ff';
+          maxSpan.style.fontWeight = 'bold';
+        }
+      }
+
+      let statusHtml = '';
       if (current > maxAllowed) {
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
       } else {
         statusHtml = `<span class="limit-ok">OK (${current}/${maxAllowed})</span>`;
       }
 
-      // 改造Lv3の行で自動付与がある場合、分かりやすく注記を入れる
       let extraNote = '';
       if (cat.name === '改造' && lv === 3 && hasClockwork) {
         extraNote = ' <span style="font-size:0.65rem;color:#8ff;">(スキル+1)</span>';
       }
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><b>${cat.name}</b> (総${cat.total})</td>
-        <td>Lv ${lv}</td>
-        <td>${baseLimit} 個</td>
-        <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()">${extraNote}</td>
-        <td><b>${current}</b> 個</td>
-        <td>${statusHtml}</td>
-      `;
-      limitTbody.appendChild(tr);
+      if (limitTbody) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${cat.name}</b> (総${cat.total})</td>
+          <td>Lv ${lv}</td>
+          <td>${baseLimit} 個</td>
+          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()">${extraNote}</td>
+          <td><b>${current}</b> 個</td>
+          <td>${statusHtml}</td>
+        `;
+        limitTbody.appendChild(tr);
+      }
       rowIndex++;
     });
   });
