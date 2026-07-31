@@ -891,12 +891,7 @@ function exportJSON() {
 }
 
 function exportCcfolia() {
-  const name = document.getElementById('name').value || '無名のエトランゼ';
-  const pl = document.getElementById('pl').value || '';
-  const text = `【ドール名】${name}\n【PL名】${pl}\n【ポジション】${document.getElementById('pos').value}\n【メインクラス】${document.getElementById('mc').value}\n【サブクラス】${document.getElementById('sc').value}`;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('ココフォリア用のキャラクター情報をクリップボードにコピーしました');
-  }).catch(err => alert('コピーに失敗しました: ' + err));
+  alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
 
 window.onload = function() {
