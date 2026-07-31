@@ -940,11 +940,13 @@ function calcTotals() {
         }
       }
 
-      let statusHtml = '';
+    let statusHtml = '';
       if (current > maxAllowed) {
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
-      } else {
+      } else if (current > 0) {
         statusHtml = `<span class="limit-ok">OK (${current}/${maxAllowed})</span>`;
+      } else {
+        statusHtml = `<span style="color:#888;">-</span>`; // 0個のときはOKを出さずに「-」にする（空欄にする場合は '' にしてください）
       }
 
       let extraNote = '';
