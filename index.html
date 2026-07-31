@@ -710,49 +710,145 @@ function renderPartsContainer() {
   });
 }
 
-// 追加パーツのセレクトボックスを選択可能なものだけに絞り込んで更新する関数
+// 部位ごとのセレクトボックス（.add-part-select）を選択可能なもの（上限>0）だけに絞り込んで更新する関数
 function updateExtraPartOptions() {
   // 現在の各総計値を取得
   const totalWep = parseInt(document.getElementById('total-wep').textContent, 10) || 0;
   const totalMut = parseInt(document.getElementById('total-mut').textContent, 10) || 0;
   const totalCyb = parseInt(document.getElementById('total-cyb').textContent, 10) || 0;
 
-  const totals = {
-    '武装': totalWep,
-    '変異': totalMut,
-    '改造': totalCyb
+  // 時計仕掛けスキルの判定
+  let hasClockwork = false;
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    const skillSelect = tr.querySelector('select');
+    if (skillSelect && skillSelect.value === '時計仕掛け') {
+      hasClockwork = true;
+    }
+  });
+
+  // 各種別（武装・変異・改造）のLvごとの最大許容数（maxAllowed）を算出
+  const limitWep = getLimitByVal(totalWep);
+  const limitMut = getLimitByVal(totalMut);
+  const limitCyb = getLimitByVal(totalCyb);
+
+  const maxAllowedMap = {
+    '武装': { 1: limitWep.lv1, 2: limitWep.lv2, 3: limitWep.lv3 },
+    '変異': { 1: limitMut.lv1, 2: limitMut.lv2, 3: limitMut.lv3 },
+    '改造': { 1: limitCyb.lv1, 2: limitCyb.lv2, 3: limitCyb.lv3 }
   };
 
-  const selectElem = document.getElementById('add-extra-part-select'); // ※追加パーツ用のselectのID
-  if (!selectElem) return;
+  // 時計仕掛けによる改造Lv3の自動ボーナス反映
+  if (hasClockwork) {
+    maxAllowedMap['改造'][3] += 1;
+  }
 
-  // 一旦選択肢をリセット
-  selectElem.innerHTML = '<option value="">-- 追加パーツを選択 --</option>';
+  const sections = [
+    { id: 'head', title: '頭部' },
+    { id: 'arm', title: '腕部' },
+    { id: 'body', title: '胴部' },
+    { id: 'leg', title: '脚部' }
+  ];
 
-  // EXTRA_PARTS_DB（追加パーツのデータベース）をループしてフィルター
-  Object.keys(EXTRA_PARTS_DB).forEach(category => {
-    const totalVal = totals[category] || 0;
+  // 各部位のセレクトボックスを取得して中身を再構築
+  sections.forEach(sec => {
+    const secDiv = document.getElementById(`parts-tbody-${sec.id}`)?.closest('div.table-scroll')?.nextElementSibling;
+    const selectElem = secDiv ? secDiv.querySelector('.add-part-select') : null;
+    if (!selectElem) return;
 
-    // 総計が0のカテゴリは選択肢に追加しない（スキップ）
-    if (totalVal <= 0) return;
+    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
 
-    // カテゴリごとの上限レベル設定を取得（getLimitByValを活用）
-    const limits = getLimitByVal(totalVal);
-
-    EXTRA_PARTS_DB[category].forEach(part => {
-      // 例：該当レベルの上限個数が0個（＝取得不可）の場合は表示しない判定
-      const maxForLv = limits[`lv${part.level}`] || 0;
-      
-      if (maxForLv > 0) {
-        const opt = document.createElement('option');
-        opt.value = part.name;
-        opt.textContent = `[${category} Lv${part.level}] ${part.name}`;
-        // データの参照用にカテゴリ等をdatasetに持たせる
-        opt.dataset.category = category;
-        selectElem.appendChild(opt);
+    // 専用パーツのフィルタリング
+    if (typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[sec.id]) {
+      let groupHtml = '';
+      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
+        const allowed = maxAllowedMap[p.type] ? (maxAllowedMap[p.type][p.level] || 0) : 0;
+        // 許容量（maxAllowed）が 0 より大きい場合のみ選択肢に出す
+        if (allowed > 0) {
+          groupHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        }
+      });
+      if (groupHtml) {
+        optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">${groupHtml}</optgroup>`;
       }
-    });
+    }
+
+    // 共通パーツのフィルタリング
+    if (typeof COMMON_EXTRA_PARTS !== 'undefined' && COMMON_EXTRA_PARTS.length > 0) {
+      let groupHtml = '';
+      COMMON_EXTRA_PARTS.forEach((p, idx) => {
+        const allowed = maxAllowedMap[p.type] ? (maxAllowedMap[p.type][p.level] || 0) : 0;
+        if (allowed > 0) {
+          groupHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        }
+      });
+      if (groupHtml) {
+        optionsHtml += `<optgroup label="【共通・汎用パーツ】">${groupHtml}</optgroup>`;
+      }
+    }
+
+    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+    selectElem.innerHTML = optionsHtml;
   });
+}
+
+function renderPartsContainer() {
+  const container = document.getElementById('parts-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const sections = [
+    { id: 'head', title: '頭部', val: '（最大数値：2）' },
+    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
+    { id: 'body', title: '胴部', val: '（最大数値：2）' },
+    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+  ];
+
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+
+  sections.forEach(sec => {
+    const secDiv = document.createElement('div');
+
+    secDiv.innerHTML = `
+      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:6%">破損</th>
+              <th style="width:12%">部位</th>
+              <th style="width:18%">パーツ名</th>
+              <th style="width:10%">種別</th>
+              <th style="width:6%">Lv</th>
+              <th style="width:12%">タイミング</th>
+              <th style="width:8%">コスト</th>
+              <th style="width:10%">射程</th>
+              <th style="width:12%">効果メモ</th>
+              <th style="width:6%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody-${sec.id}"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:6px;">
+        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
+          <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
+        </select>
+      </div>
+    `;
+    container.appendChild(secDiv);
+
+    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
+    const currentLocName = locMap[sec.id] || '頭部';
+
+    if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
+      DEFAULT_PARTS[sec.id].forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+      });
+    }
+  });
+
+  // 初期生成後に選択肢を総計と連動させる
+  updateExtraPartOptions();
 }
 
 function isPartAlreadyExists(partName) {
