@@ -957,13 +957,13 @@ function calcTotals() {
         statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       }
 
-      if (limitTbody) {
+       if (limitTbody) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
           <td>${baseLimit} 個</td>
-          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()">${extraNote}</td>
+          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()"></td>
           <td><b>${current}</b> 個</td>
           <td>${statusHtml}</td>
         `;
