@@ -633,45 +633,62 @@ function getLimitByVal(val) {
   return LIMIT_TABLE_DATA[val - 1];
 }
 
+// 各セレクトボックスの中身を生成する際、レベル上限に達しているパーツを非表示にする処理
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
   container.innerHTML = '';
 
   const sections = [
-    { id: 'head', title: '頭部', val: '（最大数値：2）' },
-    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
-    { id: 'body', title: '胴部', val: '（最大数値：2）' },
-    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
+    { id: 'head', title: '頭部' },
+    { id: 'arm', title: '腕部' },
+    { id: 'body', title: '胴部' },
+    { id: 'leg', title: '脚部' }
   ];
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+
+  // 現在の各レベルの「使用数」と「上限数」を算出するためのデータを取得
+  const limits = getCurrentLevelUsageAndLimits(); 
+  // limits = { wep: {1:{used, max}, 2:{...}, 3:{...}}, mut: {...}, cyb: {...} }
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
     
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
     
+    // 専用パーツの絞り込み
     if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
+      let groupHtml = '';
       EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        // すでに重複取得不可のチェック、かつレベル上限に達しているかチェック
+        // ※ネクロニカのルール：武装/変異/改造の各レベル毎に配置上限がある
+        if (canSelectPart(p)) {
+          groupHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        }
       });
-      optionsHtml += `</optgroup>`;
+      if (groupHtml) {
+        optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">${groupHtml}</optgroup>`;
+      }
     }
 
+    // 共通パーツの絞り込み
     if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
+      let groupHtml = '';
       COMMON_EXTRA_PARTS.forEach((p, idx) => {
-        optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        if (canSelectPart(p)) {
+          groupHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+        }
       });
-      optionsHtml += `</optgroup>`;
+      if (groupHtml) {
+        optionsHtml += `<optgroup label="【共通・汎用パーツ】">${groupHtml}</optgroup>`;
+      }
     }
 
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
 
     secDiv.innerHTML = `
-      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
+      <div class="part-header"><span>${sec.title}</span><span class="val">（配置枠）</span></div>
       <div class="table-scroll">
         <table>
           <thead>
@@ -710,16 +727,28 @@ function renderPartsContainer() {
   });
 }
 
-function isPartAlreadyExists(partName) {
-  if (!partName || partName === '新規パーツ') return false;
-  let exists = false;
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const nameInput = tr.querySelector('.p-name');
-    if (nameInput && nameInput.value.trim() === partName.trim()) {
-      exists = true;
+// パーツが選択可能（種類・レベルの上限に達しておらず、未取得）か判定する関数
+function canSelectPart(p) {
+  // 1. すでに同名のパーツが配置されている場合は除外
+  if (isPartAlreadyExists(p.name)) return false;
+
+  // 2. 種別（武装/変異/改造）とレベル（Lv1/Lv2/Lv3）の上限チェック
+  // 現在シート上で使われている数と、上限（max）を取得するロジックと照らし合わせます
+  const typeKey = (p.type === '武装') ? 'wep' : (p.type === '変異') ? 'mut' : 'cyb';
+  const lvKey = p.level;
+
+  const usedElem = document.getElementById(`used-${typeKey}-lv${lvKey}`);
+  const maxElem = document.getElementById(`max-${typeKey}-lv${lvKey}`);
+
+  if (usedElem && maxElem) {
+    const used = parseInt(usedElem.textContent || '0', 10);
+    const max = parseInt(maxElem.textContent || '0', 10);
+    // すでに上限以上の場合は選択肢に出さない
+    if (used >= max) {
+      return false;
     }
-  });
-  return exists;
+  }
+  return true;
 }
 
 function onExtraPartSelect(secId, selectElem) {
