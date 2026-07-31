@@ -710,6 +710,51 @@ function renderPartsContainer() {
   });
 }
 
+// 追加パーツのセレクトボックスを選択可能なものだけに絞り込んで更新する関数
+function updateExtraPartOptions() {
+  // 現在の各総計値を取得
+  const totalWep = parseInt(document.getElementById('total-wep').textContent, 10) || 0;
+  const totalMut = parseInt(document.getElementById('total-mut').textContent, 10) || 0;
+  const totalCyb = parseInt(document.getElementById('total-cyb').textContent, 10) || 0;
+
+  const totals = {
+    '武装': totalWep,
+    '変異': totalMut,
+    '改造': totalCyb
+  };
+
+  const selectElem = document.getElementById('add-extra-part-select'); // ※追加パーツ用のselectのID
+  if (!selectElem) return;
+
+  // 一旦選択肢をリセット
+  selectElem.innerHTML = '<option value="">-- 追加パーツを選択 --</option>';
+
+  // EXTRA_PARTS_DB（追加パーツのデータベース）をループしてフィルター
+  Object.keys(EXTRA_PARTS_DB).forEach(category => {
+    const totalVal = totals[category] || 0;
+
+    // 総計が0のカテゴリは選択肢に追加しない（スキップ）
+    if (totalVal <= 0) return;
+
+    // カテゴリごとの上限レベル設定を取得（getLimitByValを活用）
+    const limits = getLimitByVal(totalVal);
+
+    EXTRA_PARTS_DB[category].forEach(part => {
+      // 例：該当レベルの上限個数が0個（＝取得不可）の場合は表示しない判定
+      const maxForLv = limits[`lv${part.level}`] || 0;
+      
+      if (maxForLv > 0) {
+        const opt = document.createElement('option');
+        opt.value = part.name;
+        opt.textContent = `[${category} Lv${part.level}] ${part.name}`;
+        // データの参照用にカテゴリ等をdatasetに持たせる
+        opt.dataset.category = category;
+        selectElem.appendChild(opt);
+      }
+    });
+  });
+}
+
 function isPartAlreadyExists(partName) {
   if (!partName || partName === '新規パーツ') return false;
   let exists = false;
@@ -957,21 +1002,24 @@ function calcTotals() {
         statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       }
 
-       if (limitTbody) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><b>${cat.name}</b> (総${cat.total})</td>
-          <td>Lv ${lv}</td>
-          <td>${baseLimit} 個</td>
-          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()"></td>
-          <td><b>${current}</b> 個</td>
-          <td>${statusHtml}</td>
-        `;
-        limitTbody.appendChild(tr);
-      }
-      rowIndex++;
-    });
-  });
+       if (limitTbody) { 
+        const tr = document.createElement('tr'); 
+        tr.innerHTML = ` 
+          <td><b>${cat.name}</b> (総${cat.total})</td> 
+          <td>Lv ${lv}</td> 
+          <td>${baseLimit} 個</td> 
+          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()"></td> 
+          <td><b>${current}</b> 個</td> 
+          <td>${statusHtml}</td> 
+        `; 
+        limitTbody.appendChild(tr); 
+      } 
+      rowIndex++; 
+    }); 
+  }); 
+
+  // ★ 総計の計算・更新が終わった後に、追加パーツの選択肢を連動更新する
+  updateExtraPartOptions();
 }
 
 function addRow() {
