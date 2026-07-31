@@ -633,74 +633,45 @@ function getLimitByVal(val) {
   return LIMIT_TABLE_DATA[val - 1];
 }
 
-// すでに同じ名前のパーツが配置されているかチェックする関数
-function isPartAlreadyExists(partName) {
-  if (!partName || partName === '新規パーツ') return false;
-  let exists = false;
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const nameInput = tr.querySelector('.p-name');
-    if (nameInput && nameInput.value === partName) {
-      exists = true;
-    }
-  });
-  return exists;
-}
-// 各セレクトボックスの中身を生成する際、レベル上限に達しているパーツを非表示にする処理
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
   container.innerHTML = '';
 
   const sections = [
-    { id: 'head', title: '頭部' },
-    { id: 'arm', title: '腕部' },
-    { id: 'body', title: '胴部' },
-    { id: 'leg', title: '脚部' }
+    { id: 'head', title: '頭部', val: '（最大数値：2）' },
+    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
+    { id: 'body', title: '胴部', val: '（最大数値：2）' },
+    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
   ];
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-
-  // 現在の各レベルの「使用数」と「上限数」を算出するためのデータを取得
-  const limits = getCurrentLevelUsageAndLimits(); 
-  // limits = { wep: {1:{used, max}, 2:{...}, 3:{...}}, mut: {...}, cyb: {...} }
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
     
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
     
-    // 専用パーツの絞り込み
     if (EXTRA_PARTS_DB[sec.id]) {
-      let groupHtml = '';
+      optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
       EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        // すでに重複取得不可のチェック、かつレベル上限に達しているかチェック
-        // ※ネクロニカのルール：武装/変異/改造の各レベル毎に配置上限がある
-        if (canSelectPart(p)) {
-          groupHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-        }
+        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
       });
-      if (groupHtml) {
-        optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">${groupHtml}</optgroup>`;
-      }
+      optionsHtml += `</optgroup>`;
     }
 
-    // 共通パーツの絞り込み
     if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
-      let groupHtml = '';
+      optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
       COMMON_EXTRA_PARTS.forEach((p, idx) => {
-        if (canSelectPart(p)) {
-          groupHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-        }
+        optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
       });
-      if (groupHtml) {
-        optionsHtml += `<optgroup label="【共通・汎用パーツ】">${groupHtml}</optgroup>`;
-      }
+      optionsHtml += `</optgroup>`;
     }
 
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
 
     secDiv.innerHTML = `
-      <div class="part-header"><span>${sec.title}</span><span class="val">（配置枠）</span></div>
+      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
       <div class="table-scroll">
         <table>
           <thead>
@@ -739,28 +710,16 @@ function renderPartsContainer() {
   });
 }
 
-// パーツが選択可能（種類・レベルの上限に達しておらず、未取得）か判定する関数
-function canSelectPart(p) {
-  // 1. すでに同名のパーツが配置されている場合は除外
-  if (isPartAlreadyExists(p.name)) return false;
-
-  // 2. 種別（武装/変異/改造）とレベル（Lv1/Lv2/Lv3）の上限チェック
-  // 現在シート上で使われている数と、上限（max）を取得するロジックと照らし合わせます
-  const typeKey = (p.type === '武装') ? 'wep' : (p.type === '変異') ? 'mut' : 'cyb';
-  const lvKey = p.level;
-
-  const usedElem = document.getElementById(`used-${typeKey}-lv${lvKey}`);
-  const maxElem = document.getElementById(`max-${typeKey}-lv${lvKey}`);
-
-  if (usedElem && maxElem) {
-    const used = parseInt(usedElem.textContent || '0', 10);
-    const max = parseInt(maxElem.textContent || '0', 10);
-    // すでに上限以上の場合は選択肢に出さない
-    if (used >= max) {
-      return false;
+function isPartAlreadyExists(partName) {
+  if (!partName || partName === '新規パーツ') return false;
+  let exists = false;
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const nameInput = tr.querySelector('.p-name');
+    if (nameInput && nameInput.value.trim() === partName.trim()) {
+      exists = true;
     }
-  }
-  return true;
+  });
+  return exists;
 }
 
 function onExtraPartSelect(secId, selectElem) {
@@ -1091,33 +1050,6 @@ function onSkillSelect(selectElem) {
 }
 
 function saveData() {
-  const parts = [];
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const loc = tr.querySelector('.p-location')?.value;
-    const name = tr.querySelector('.p-name')?.value;
-    const type = tr.querySelector('.p-type')?.value;
-    const level = tr.querySelector('.p-level')?.value;
-    const timing = tr.querySelector('.p-timing')?.value;
-    const cost = tr.querySelector('.p-cost')?.value;
-    const range = tr.querySelector('.p-range')?.value;
-    const memo = tr.querySelector('.p-memo')?.value;
-    const broken = tr.querySelector('input[type="checkbox"]')?.checked;
-    
-    if (name) {
-      parts.push({ loc, name, type, level, timing, cost, range, memo, broken });
-    }
-  });
-
-  const skills = [];
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    const category = tr.querySelector('input')?.value;
-    const skillName = tr.querySelector('select')?.value;
-    const memo = tr.querySelector('textarea')?.value;
-    if (skillName) {
-      skills.push({ category, skillName, memo });
-    }
-  });
-
   const data = {
     pl: document.getElementById('pl').value,
     name: document.getElementById('name').value,
@@ -1134,11 +1066,8 @@ function saveData() {
     chouaiWep: document.getElementById('chouai-wep').value,
     chouaiMut: document.getElementById('chouai-mut').value,
     chouaiCyb: document.getElementById('chouai-cyb').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    parts: parts,
-    skills: skills
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
   };
-
   localStorage.setItem('necro_sheet', JSON.stringify(data));
   alert('ブラウザに保存しました');
 }
