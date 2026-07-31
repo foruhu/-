@@ -633,83 +633,6 @@ function getLimitByVal(val) {
   return LIMIT_TABLE_DATA[val - 1];
 }
 
-function renderPartsContainer() {
-  const container = document.getElementById('parts-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const sections = [
-    { id: 'head', title: '頭部', val: '（最大数値：2）' },
-    { id: 'arm', title: '腕部', val: '（最大数値：2）' },
-    { id: 'body', title: '胴部', val: '（最大数値：2）' },
-    { id: 'leg', title: '脚部', val: '（最大数値：2）' }
-  ];
-
-  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-
-  sections.forEach(sec => {
-    const secDiv = document.createElement('div');
-    
-    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
-    
-    if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += `<optgroup label="【${sec.title}専用パーツ】">`;
-      EXTRA_PARTS_DB[sec.id].forEach((p, idx) => {
-        optionsHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-      });
-      optionsHtml += `</optgroup>`;
-    }
-
-    if (COMMON_EXTRA_PARTS && COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += `<optgroup label="【共通・汎用パーツ】">`;
-      COMMON_EXTRA_PARTS.forEach((p, idx) => {
-        optionsHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
-      });
-      optionsHtml += `</optgroup>`;
-    }
-
-    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
-
-    secDiv.innerHTML = `
-      <div class="part-header"><span>${sec.title}</span><span class="val">${sec.val}</span></div>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:6%">破損</th>
-              <th style="width:12%">部位</th>
-              <th style="width:18%">パーツ名</th>
-              <th style="width:10%">種別</th>
-              <th style="width:6%">Lv</th>
-              <th style="width:12%">タイミング</th>
-              <th style="width:8%">コスト</th>
-              <th style="width:10%">射程</th>
-              <th style="width:12%">効果メモ</th>
-              <th style="width:6%">操作</th>
-            </tr>
-          </thead>
-          <tbody id="parts-tbody-${sec.id}"></tbody>
-        </table>
-      </div>
-      <div style="margin-top:6px;">
-        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
-          ${optionsHtml}
-        </select>
-      </div>
-    `;
-    container.appendChild(secDiv);
-
-    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-    const currentLocName = locMap[sec.id] || '頭部';
-
-    if (DEFAULT_PARTS[sec.id]) {
-      DEFAULT_PARTS[sec.id].forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
-      });
-    }
-  });
-}
-
 // 部位ごとのセレクトボックス（.add-part-select）を選択可能なもの（上限>0）だけに絞り込んで更新する関数
 function updateExtraPartOptions() {
   // 現在の各総計値を取得
@@ -764,7 +687,10 @@ function updateExtraPartOptions() {
         const allowed = maxAllowedMap[p.type] ? (maxAllowedMap[p.type][p.level] || 0) : 0;
         // 許容量（maxAllowed）が 0 より大きい場合のみ選択肢に出す
         if (allowed > 0) {
-          groupHtml += `<option value="${sec.id}_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+          const isExists = isPartAlreadyExists(p.name);
+          const disabledAttr = isExists ? 'disabled' : '';
+          const nameText = isExists ? `${p.name} (選択済み)` : p.name;
+          groupHtml += `<option value="${sec.id}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
         }
       });
       if (groupHtml) {
@@ -778,7 +704,10 @@ function updateExtraPartOptions() {
       COMMON_EXTRA_PARTS.forEach((p, idx) => {
         const allowed = maxAllowedMap[p.type] ? (maxAllowedMap[p.type][p.level] || 0) : 0;
         if (allowed > 0) {
-          groupHtml += `<option value="common_${idx}">[${p.type} Lv${p.level}] ${p.name}</option>`;
+          const isExists = isPartAlreadyExists(p.name);
+          const disabledAttr = isExists ? 'disabled' : '';
+          const nameText = isExists ? `${p.name} (選択済み)` : p.name;
+          groupHtml += `<option value="common_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
         }
       });
       if (groupHtml) {
@@ -1130,29 +1059,57 @@ function addRow() {
   tbody.appendChild(tr);
 }
 
+// スキルの選択肢を最新化・選択済みのものを非活性にする関数
+function updateSkillOptions() {
+  const selectedSkills = new Set();
+  document.querySelectorAll('#skill-tbody select').forEach(sel => {
+    if (sel.value) selectedSkills.add(sel.value);
+  });
+
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    const select = tr.querySelector('select');
+    if (!select) return;
+    const categoryInput = tr.querySelector('input');
+    const category = categoryInput ? categoryInput.value : '';
+    const currentValue = select.value;
+
+    let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+    if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+      SKILL_DATABASE[category].forEach(s => {
+        const isSelectedByOther = selectedSkills.has(s.name) && s.name !== currentValue;
+        const isCurrent = (s.name === currentValue) ? 'selected' : '';
+        const disabledAttr = isSelectedByOther ? 'disabled' : '';
+        const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
+
+        optionsHtml += `<option value="${s.name}" ${isCurrent} ${disabledAttr}>${labelText}</option>`;
+      });
+    }
+    select.innerHTML = optionsHtml;
+  });
+}
+
 function addSkillRow(category, skillName = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
-  
-  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
-  if (SKILL_DATABASE[category]) {
-    SKILL_DATABASE[category].forEach(s => {
-      const selected = (s.name === skillName) ? 'selected' : '';
-      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
-    });
-  }
 
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td>
       <select onchange="onSkillSelect(this)">
-        ${optionsHtml}
+        <option value="">-- スキルを選択 --</option>
       </select>
     </td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions();">X</button></td>
   `;
   tbody.appendChild(tr);
+
+  const select = tr.querySelector('select');
+  if (skillName) {
+    select.value = skillName;
+  }
+
+  updateSkillOptions();
   calcTotals();
 }
 
@@ -1179,17 +1136,17 @@ function onSkillSelect(selectElem) {
 
   if (!skillName) {
     textarea.value = '';
-    calcTotals();
-    return;
-  }
-
-  const category = categoryInput.value;
-  if (SKILL_DATABASE[category]) {
-    const found = SKILL_DATABASE[category].find(s => s.name === skillName);
-    if (found) {
-      textarea.value = found.memo;
+  } else {
+    const category = categoryInput.value;
+    if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+      const found = SKILL_DATABASE[category].find(s => s.name === skillName);
+      if (found) {
+        textarea.value = found.memo;
+      }
     }
   }
+
+  updateSkillOptions();
   calcTotals();
 }
 
