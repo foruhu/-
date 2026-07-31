@@ -718,7 +718,6 @@ function calcTotals() {
       const maxAllowed = baseLimit + extraVal + autoBonus;
       const current = currentCounts[cat.name][lv];
 
-      // 上部ステータス表示の更新
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
       if (usedSpan) usedSpan.textContent = current;
@@ -728,7 +727,6 @@ function calcTotals() {
         maxSpan.style.fontWeight = 'bold';
       }
 
-      // 判定列のステータス文字列
       let statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       if (current > maxAllowed) {
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
@@ -755,13 +753,13 @@ function calcTotals() {
   updateExtraPartOptions();
 }
 
-function addRow() {
+function addRow(target = '', emotion = '', madness = 0) {
   const tbody = document.getElementById('list');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td><input type="number" value="0" min="0"></td>
+    <td><input type="text" value="${target}"></td>
+    <td><input type="text" value="${emotion}"></td>
+    <td><input type="number" value="${madness}" min="0"></td>
     <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -826,8 +824,8 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
-// --- 保存・読込（全データ対応版） ---
-function saveData() {
+// --- 保存・読込（全データ連動） ---
+function getFullData() {
   const data = {
     pl: document.getElementById('pl').value,
     name: document.getElementById('name').value,
@@ -844,8 +842,57 @@ function saveData() {
     chouaiWep: document.getElementById('chouai-wep').value,
     chouaiMut: document.getElementById('chouai-mut').value,
     chouaiCyb: document.getElementById('chouai-cyb').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    skills: [],
+    parts: [],
+    list: []
   };
+
+  // スキル
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    data.skills.push({
+      category: tr.querySelector('input')?.value || '',
+      name: tr.querySelector('select')?.value || '',
+      memo: tr.querySelector('textarea')?.value || ''
+    });
+  });
+
+  // パーツ
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const name = tr.querySelector('.p-name')?.value;
+    if (name) {
+      data.parts.push({
+        isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
+        location: tr.querySelector('.p-location')?.value || '',
+        name: name,
+        type: tr.querySelector('.p-type')?.value || '基本',
+        level: tr.querySelector('.p-level')?.value || '1',
+        timing: tr.querySelector('.p-timing')?.value || '',
+        cost: tr.querySelector('.p-cost')?.value || '',
+        range: tr.querySelector('.p-range')?.value || '',
+        memo: tr.querySelector('.p-memo')?.value || '',
+        isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
+      });
+    }
+  });
+
+  // 未練
+  document.querySelectorAll('#list tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    if (inputs.length >= 3) {
+      data.list.push({
+        target: inputs[0].value,
+        emotion: inputs[1].value,
+        madness: inputs[2].value
+      });
+    }
+  });
+
+  return data;
+}
+
+function saveData() {
+  const data = getFullData();
   localStorage.setItem('necro_sheet', JSON.stringify(data));
   alert('ブラウザに保存しました');
 }
@@ -855,6 +902,11 @@ function loadData() {
   if (!json) return alert('保存されたデータがありません');
   
   const data = JSON.parse(json);
+  applyData(data);
+  alert('データを読み込みました');
+}
+
+function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
   setVal('pl', data.pl); setVal('name', data.name);
@@ -870,17 +922,24 @@ function loadData() {
   }
 
   onClassChange();
-  alert('データを読み込みました');
+
+  // スキルの復元
+  document.getElementById('skill-tbody').innerHTML = '';
+  if (data.skills) {
+    data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+  }
+
+  // 未練の復元
+  document.getElementById('list').innerHTML = '';
+  if (data.list) {
+    data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+  }
+
+  calcTotals();
 }
 
 function exportJSON() {
-  const data = {
-    pl: document.getElementById('pl').value,
-    name: document.getElementById('name').value,
-    pos: document.getElementById('pos').value,
-    mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value
-  };
+  const data = getFullData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -902,14 +961,12 @@ function exportForHokanshoText() {
   const age = getVal('age');
   const ps = getVal('ps');
 
-  // 出力用テキストの組み立て
   let text = `【ドール名】${name}\n`;
   text += `【PL名】${pl}\n`;
   text += `【ポジション】${pos} / 【メイン】${mc} / 【サブ】${sc}\n`;
   text += `【年齢】${age} / 【暗示】${ps}\n`;
   text += `----------------------------------------\n`;
   
-  // スキル情報の取得
   text += `■ スキル\n`;
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const category = tr.querySelector('input')?.value || '';
@@ -922,7 +979,6 @@ function exportForHokanshoText() {
 
   text += `----------------------------------------\n`;
 
-  // 配置パーツの取得
   text += `■ 配置パーツ\n`;
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const pLoc = tr.querySelector('.p-location')?.value || '';
@@ -940,7 +996,6 @@ function exportForHokanshoText() {
     }
   });
 
-  // クリップボードにコピー
   navigator.clipboard.writeText(text).then(() => {
     alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
   }).catch(err => {
@@ -951,8 +1006,6 @@ function exportForHokanshoText() {
 function exportCcfolia() {
   alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
-
-<button type="button" onclick="exportForHokanshoJson()">保管所用JSONをコピー</button>
 
 window.onload = function() {
   renderPartsContainer();
