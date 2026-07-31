@@ -772,10 +772,22 @@ function onExtraPartSelect(secId, selectElem) {
     const idx = parseInt(val.split('_')[1], 10);
     const p = COMMON_EXTRA_PARTS[idx];
     if (p) {
-      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, currentLocName);
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true, currentLocName);
     }
   } 
   else if (val.startsWith(secId + '_')) {
+    const idx = parseInt(val.split('_')[1], 10);
+    const p = EXTRA_PARTS_DB[secId][idx];
+    if (p) {
+      addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, true, currentLocName);
+    }
+  }
+
+  selectElem.value = '';
+  calcTotals();
+}
+
+else if (val.startsWith(secId + '_')) {
     const idx = parseInt(val.split('_')[1], 10);
     const p = EXTRA_PARTS_DB[secId][idx];
     if (p) {
@@ -958,19 +970,16 @@ function calcTotals() {
         }
       }
 
-    let statusHtml = '';
+      let statusHtml = '';
       if (current > maxAllowed) {
-        // 上限を超えている場合
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
       } else if (current > 0) {
-        // 1個以上選択していて上限内の場合：「OK」文字は出さず、色を変えて数値を表示
         statusHtml = `<span class="limit-selected">${current}/${maxAllowed}</span>`;
       } else {
-        // 0個（未選択）の場合：「0/1」や「0/2」のようにそのまま上限までの数値を表示
         statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       }
 
-       if (limitTbody) {
+      if (limitTbody) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${cat.name}</b> (総${cat.total})</td>
@@ -985,9 +994,8 @@ function calcTotals() {
       rowIndex++;
     });
   });
-  // calcTotals() の末尾に以下を追加
-calcTotals();
-updatePartsSelectOptions(); // ← 追加：合計計算時にプルダウンの選択肢を更新する
+
+  updatePartsSelectOptions(); // プルダウンの選択肢を更新する
 }
 
 // 現在のパーツ上限状況をチェックし、まだ追加できるパーツだけをセレクトボックスに表示する
@@ -995,10 +1003,8 @@ function updatePartsSelectOptions() {
   const selectElem = document.getElementById('extra-part-select');
   if (!selectElem) return;
 
-  // 現在の選択肢を一旦クリア（先頭のデフォルト以外）
   selectElem.innerHTML = '<option value="">-- 追加可能なパーツを選択 --</option>';
 
-  // 現在の各カテゴリ・Lvの数を集計
   const currentCounts = {
     '武装': { 1: 0, 2: 0, 3: 0 },
     '変異': { 1: 0, 2: 0, 3: 0 },
@@ -1017,7 +1023,6 @@ function updatePartsSelectOptions() {
     }
   });
 
-  // 各カテゴリの総数と上限を算出して判定
   const mcWep = parseInt(document.getElementById('mc-wep').textContent, 10) || 0;
   const mcMut = parseInt(document.getElementById('mc-mut').textContent, 10) || 0;
   const mcCyb = parseInt(document.getElementById('mc-cyb').textContent, 10) || 0;
@@ -1051,7 +1056,6 @@ function updatePartsSelectOptions() {
     }
   });
 
-  // 各カテゴリ・Lvごとに、上限に達していないパーツのみをセレクトボックスの選択肢に追加する
   Object.keys(EXTRA_PARTS_DB).forEach(categoryName => {
     const totalVal = totals[categoryName] || 0;
     const limitObj = getLimitByVal(totalVal);
@@ -1060,14 +1064,10 @@ function updatePartsSelectOptions() {
       const lv = part.level;
       const baseLimit = limitObj[`lv${lv}`] || 0;
       
-      // 特殊ボーナス（時計仕掛けなど）の考慮
       let autoBonus = (categoryName === '改造' && lv === 3 && hasClockwork) ? 1 : 0;
-      
-      // 個別パーツごとの追加補正枠（もし制限テーブルの入力欄から取得する場合はそこからも加算可能）
       let maxAllowed = baseLimit + autoBonus;
       const current = currentCounts[categoryName][lv] || 0;
 
-      // 【判定】現在の取得数が上限未満であれば選択肢に追加
       if (current < maxAllowed) {
         const option = document.createElement('option');
         option.value = `${categoryName}_${index}`;
@@ -1089,7 +1089,6 @@ function addSelectedExtraPart() {
 
   if (p) {
     const tbody = document.getElementById('parts-tbody');
-    // デフォルトの部位割り当て（必要に応じて変更可能）
     let defaultLoc = '腕部';
     if (categoryName === '武装') defaultLoc = '腕部';
     else if (categoryName === '変異') defaultLoc = '頭部';
@@ -1098,7 +1097,6 @@ function addSelectedExtraPart() {
     addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, false, defaultLoc);
   }
 
-  // 選択をリセットしてリストを更新
   selectElem.value = '';
   updatePartsSelectOptions();
 }
