@@ -633,6 +633,18 @@ function getLimitByVal(val) {
   return LIMIT_TABLE_DATA[val - 1];
 }
 
+// すでに同じ名前のパーツが配置されているかチェックする関数
+function isPartAlreadyExists(partName) {
+  if (!partName || partName === '新規パーツ') return false;
+  let exists = false;
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const nameInput = tr.querySelector('.p-name');
+    if (nameInput && nameInput.value === partName) {
+      exists = true;
+    }
+  });
+  return exists;
+}
 // 各セレクトボックスの中身を生成する際、レベル上限に達しているパーツを非表示にする処理
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
