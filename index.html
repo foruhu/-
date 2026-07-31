@@ -1091,6 +1091,33 @@ function onSkillSelect(selectElem) {
 }
 
 function saveData() {
+  const parts = [];
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const loc = tr.querySelector('.p-location')?.value;
+    const name = tr.querySelector('.p-name')?.value;
+    const type = tr.querySelector('.p-type')?.value;
+    const level = tr.querySelector('.p-level')?.value;
+    const timing = tr.querySelector('.p-timing')?.value;
+    const cost = tr.querySelector('.p-cost')?.value;
+    const range = tr.querySelector('.p-range')?.value;
+    const memo = tr.querySelector('.p-memo')?.value;
+    const broken = tr.querySelector('input[type="checkbox"]')?.checked;
+    
+    if (name) {
+      parts.push({ loc, name, type, level, timing, cost, range, memo, broken });
+    }
+  });
+
+  const skills = [];
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    const category = tr.querySelector('input')?.value;
+    const skillName = tr.querySelector('select')?.value;
+    const memo = tr.querySelector('textarea')?.value;
+    if (skillName) {
+      skills.push({ category, skillName, memo });
+    }
+  });
+
   const data = {
     pl: document.getElementById('pl').value,
     name: document.getElementById('name').value,
@@ -1107,8 +1134,11 @@ function saveData() {
     chouaiWep: document.getElementById('chouai-wep').value,
     chouaiMut: document.getElementById('chouai-mut').value,
     chouaiCyb: document.getElementById('chouai-cyb').value,
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep'
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    parts: parts,
+    skills: skills
   };
+
   localStorage.setItem('necro_sheet', JSON.stringify(data));
   alert('ブラウザに保存しました');
 }
