@@ -709,46 +709,47 @@ function calcTotals() {
   }
 
   let rowIndex = 0;
-  categories.forEach(cat => {
-    const limit = getLimitByVal(cat.total);
-    [1, 2, 3].forEach(lv => {
-      const baseLimit = limit[`lv${lv}`];
-      const extraVal = extraValues[rowIndex] || 0;
-      const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0;
-      const maxAllowed = baseLimit + extraVal + autoBonus;
-      const current = currentCounts[cat.name][lv];
+  // 修正後のコード
+categories.forEach(cat => {
+  const limit = getLimitByVal(cat.total);
+  [1, 2, 3].forEach(lv => {
+    const baseLimit = limit[`lv${lv}`];
+    // 手動追加（extraVal）を除外し、時計仕掛け等の自動ボーナスのみ適用
+    const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0;
+    const maxAllowed = baseLimit + autoBonus; 
+    const current = currentCounts[cat.name][lv];
 
-      const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
-      const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
-      if (usedSpan) usedSpan.textContent = current;
-      if (maxSpan) {
-        maxSpan.textContent = maxAllowed;
-        maxSpan.style.color = current > maxAllowed ? '#ff8888' : '#8ff';
-        maxSpan.style.fontWeight = 'bold';
-      }
+    const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
+    const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
+    if (usedSpan) usedSpan.textContent = current;
+    if (maxSpan) {
+      maxSpan.textContent = maxAllowed;
+      maxSpan.style.color = current > maxAllowed ? '#ff8888' : '#8ff';
+      maxSpan.style.fontWeight = 'bold';
+    }
 
-      let statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
-      if (current > maxAllowed) {
-        statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
-      } else if (current > 0) {
-        statusHtml = `<span class="limit-selected">${current}/${maxAllowed}</span>`;
-      }
+    let statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
+    if (current > maxAllowed) {
+      statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
+    } else if (current > 0) {
+      statusHtml = `<span class="limit-selected">${current}/${maxAllowed}</span>`;
+    }
 
-      if (limitTbody) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><b>${cat.name}</b> (総${cat.total})</td>
-          <td>Lv ${lv}</td>
-          <td>${baseLimit} 個</td>
-          <td><input type="number" value="${extraVal}" min="0" oninput="calcTotals()"></td>
-          <td><b>${current}</b> 個</td>
-          <td>${statusHtml}</td>
-        `;
-        limitTbody.appendChild(tr);
-      }
-      rowIndex++;
-    });
+    if (limitTbody) {
+      const tr = document.createElement('tr');
+      // 「追加枠手動」の <td> 列を削除
+      tr.innerHTML = `
+        <td><b>${cat.name}</b> (総${cat.total})</td>
+        <td>Lv ${lv}</td>
+        <td>${baseLimit} 個</td>
+        <td><b>${current}</b> 個</td>
+        <td>${statusHtml}</td>
+      `;
+      limitTbody.appendChild(tr);
+    }
+    rowIndex++;
   });
+});
 
   updateExtraPartOptions();
 }
