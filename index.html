@@ -145,9 +145,9 @@ tr.broken input, tr.broken textarea {
   text-decoration: line-through;
   opacity: 0.5;
 }
-/* 選択されていて問題ない場合の色（例：少し目立つアクセントカラーや緑色の文字にするなど） */
+/* 選択されていて問題ない場合の数値の色 */
 .limit-selected {
-  color: #2e7d32; /* お好みの色（例：緑や青など） */
+  color: #8ff; /* 水色や緑色などお好みのカラーに調整してください */
   font-weight: bold;
 }
 </style>
@@ -947,19 +947,14 @@ function calcTotals() {
 
     let statusHtml = '';
       if (current > maxAllowed) {
-        // 上限を超えている場合（従来どおりNG表示）
+        // 上限を超えている場合
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
       } else if (current > 0) {
-        // 1個以上選択していて問題ない場合：「OK」文字は出さず、色が変わるスタイル（例：.limit-selected 等）を適用する
-        statusHtml = `<span class="limit-selected">(${current}/${maxAllowed})</span>`;
+        // 1個以上選択していて上限内の場合：「OK」文字は出さず、色を変えて数値を表示
+        statusHtml = `<span class="limit-selected">${current}/${maxAllowed}</span>`;
       } else {
-        // 0個（未選択）の場合：スッキリさせるため、ハイフンにするか空欄にする
-        statusHtml = `<span style="color:#888;">-</span>`;
-      }
-
-      let extraNote = '';
-      if (cat.name === '改造' && lv === 3 && hasClockwork) {
-        extraNote = ' <span style="font-size:0.65rem;color:#8ff;">(スキル+1)</span>';
+        // 0個（未選択）の場合：「0/1」や「0/2」のようにそのまま上限までの数値を表示
+        statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       }
 
       if (limitTbody) {
