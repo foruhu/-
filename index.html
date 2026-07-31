@@ -206,9 +206,7 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
     <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジション</button>
     <button type="button" class="sec" onclick="addMcSkillRow()" style="width:100%;padding:6px">+ メインクラス</button>
-    <button type="button" class="sec" onclick="addScSkillRow()" style="width:100%;padding:6px">+ サブクラス</button>
-    <button type="button" onclick="exportForHokanshoText()">保管所用テキストをコピー</button>
-    <button type="button" onclick="exportCcfolia()">ココフォリア出力（準備中）</button>
+    <button type="button" class="sec" onclick="addScSkillRow()" style="width:100%;padding:6px">+ サブクラス</button>bo
   </div>
 </div>
 
@@ -953,6 +951,8 @@ function exportForHokanshoText() {
 function exportCcfolia() {
   alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
+
+<button type="button" onclick="exportForHokanshoJson()">保管所用JSONをコピー</button>
 
 window.onload = function() {
   renderPartsContainer();
