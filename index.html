@@ -285,7 +285,7 @@ tr.broken input, tr.broken textarea {
         </tr>
       </thead>
       <tbody id="limit-tbody">
-        </tbody>
+      </tbody>
     </table>
     <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
       ※「時計仕掛け」等のスキルを選ぶと改造Lv3の追加枠が自動で+1されます
@@ -945,7 +945,7 @@ function calcTotals() {
         }
       }
 
-    let statusHtml = '';
+      let statusHtml = '';
       if (current > maxAllowed) {
         // 上限を超えている場合
         statusHtml = `<span class="limit-ng">超過 (${current}/${maxAllowed})</span>`;
@@ -957,7 +957,7 @@ function calcTotals() {
         statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       }
 
-       if (limitTbody) {
+      if (limitTbody) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${cat.name}</b> (総${cat.total})</td>
@@ -990,22 +990,31 @@ function addSkillRow(category, skillName = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
   
+  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+  if (SKILL_DATABASE[category]) {
+    SKILL_DATABASE[category].forEach(s => {
+      const selected = (s.name === skillName) ? 'selected' : '';
+      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
+    });
+  }
+
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td>
       <select onchange="onSkillSelect(this)">
-        </select>
+        ${optionsHtml}
+      </select>
     </td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateAllSkillOptions();">X</button></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
   `;
   tbody.appendChild(tr);
-
-  // 追加した行のセレクトボックスに対して選択肢を反映
-  const selectElem = tr.querySelector('select');
-  updateSkillOptions(selectElem, category, skillName);
-
   calcTotals();
+}
+
+function addPosSkillRow() {
+  const pos = document.getElementById('pos').value;
+  addSkillRow(pos);
 }
 
 function addMcSkillRow() {
