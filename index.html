@@ -990,31 +990,22 @@ function addSkillRow(category, skillName = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   const tr = document.createElement('tr');
   
-  let optionsHtml = '<option value="">-- スキルを選択 --</option>';
-  if (SKILL_DATABASE[category]) {
-    SKILL_DATABASE[category].forEach(s => {
-      const selected = (s.name === skillName) ? 'selected' : '';
-      optionsHtml += `<option value="${s.name}" ${selected}>${s.name}</option>`;
-    });
-  }
-
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td>
       <select onchange="onSkillSelect(this)">
-        ${optionsHtml}
-      </select>
+        </select>
     </td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateAllSkillOptions();">X</button></td>
   `;
   tbody.appendChild(tr);
-  calcTotals();
-}
 
-function addPosSkillRow() {
-  const pos = document.getElementById('pos').value;
-  addSkillRow(pos);
+  // 追加した行のセレクトボックスに対して選択肢を反映
+  const selectElem = tr.querySelector('select');
+  updateSkillOptions(selectElem, category, skillName);
+
+  calcTotals();
 }
 
 function addMcSkillRow() {
