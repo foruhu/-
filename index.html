@@ -798,6 +798,7 @@ else if (val.startsWith(secId + '_')) {
   selectElem.value = '';
 }
 
+// --- パーツ追加・管理関連 ---
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
   const tr = document.createElement('tr');
   const readOnlyAttr = isEditable ? '' : 'readonly';
@@ -955,7 +956,6 @@ function calcTotals() {
       const maxAllowed = baseLimit + extraVal + autoBonus;
       const current = currentCounts[cat.name][lv];
 
-      // スティッキー上部バーの数値を動的に更新
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
       if (usedSpan) usedSpan.textContent = current;
@@ -995,10 +995,9 @@ function calcTotals() {
     });
   });
 
-  updatePartsSelectOptions(); // プルダウンの選択肢を更新する
+  updatePartsSelectOptions();
 }
 
-// 現在のパーツ上限状況をチェックし、まだ追加できるパーツだけをセレクトボックスに表示する
 function updatePartsSelectOptions() {
   const selectElem = document.getElementById('extra-part-select');
   if (!selectElem) return;
@@ -1078,7 +1077,6 @@ function updatePartsSelectOptions() {
   });
 }
 
-// プルダウンで選んだパーツを実際にテーブルへ追加する関数
 function addSelectedExtraPart() {
   const selectElem = document.getElementById('extra-part-select');
   if (!selectElem || !selectElem.value) return;
