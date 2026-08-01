@@ -245,80 +245,6 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
-<!-- --- 寵愛点の消費と強化 --- -->
-<div class="section-box" style="margin-top: 15px; background: #25252d; padding: 12px; border-radius: 6px; border: 1px solid #444;">
-  <h3 style="margin-top:0; color:#8ff; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 5px;">
-    💎 寵愛点による強化・修復
-  </h3>
-  
-  <p style="font-size: 12px; color: #ccc; margin-bottom: 10px;">
-    ※「強化値を+1」した場合は、画面内の【寵愛強化値】欄（武装/変異/改造）に数字を入力すると配置上限に反映されます。
-  </p>
-
-  <table class="chouai-table" style="width: 100%; font-size: 13px; text-align: left; border-collapse: collapse;">
-    <thead>
-      <tr style="background: #1a1a20; color: #ddd;">
-        <th style="padding: 6px; border: 1px solid #444; width: 60px;">寵愛点</th>
-        <th style="padding: 6px; border: 1px solid #444;">効果・内容</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 180px;">操作・メモ</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>2点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">未練の内容1つを任意のものに変更する。<br><small style="color:#aaa;">※「たからもの」への未練は変更不可</small></td>
-        <td style="padding: 6px; border: 1px solid #444;">未練欄を直接編集</td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>2点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">「他の姉妹」「たからもの」以外への未練1つを削除する。</td>
-        <td style="padding: 6px; border: 1px solid #444;">未練欄の [X] ボタンで削除</td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>2点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">新たな未練を獲得する（NCの許可が必要）。</td>
-        <td style="padding: 6px; border: 1px solid #444;"><button type="button" onclick="addRow('', '', 0)">未練行を追加</button></td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>4点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">自身の抱える狂気点1点を減少させる。</td>
-        <td style="padding: 6px; border: 1px solid #444;">未練欄の狂気数を直接減算</td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>4点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">自身の損傷している任意の基本パーツ1つを修復する。</td>
-        <td style="padding: 6px; border: 1px solid #444;">パーツの [破損] チェックを外す</td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #ff8;"><b>6点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">自身の損傷している任意の強化パーツ1つを修復する。<br><small style="color:#aaa;">※同タイプ以下Lvのパーツに変更可</small></td>
-        <td style="padding: 6px; border: 1px solid #444;">パーツの [破損] チェックを外す</td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #8ff;"><b>10点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">自ポジション/クラスの未習得スキルを1つ習得。<br><small style="color:#aaa;">※同クラス両選択時は特化スキルも可</small></td>
-        <td style="padding: 6px; border: 1px solid #444;">
-          <button type="button" onclick="addMcSkillRow()">メイン用スキル追加</button>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #8ff;"><b>10点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">望む強化値を+1する（最大9まで）。<br><small style="color:#aaa;">※増えた強化値に応じたパーツ1つを獲得</small></td>
-        <td style="padding: 6px; border: 1px solid #444;">
-          強化値入力欄（寵愛分）を+1
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 6px; border: 1px solid #444; text-align: center; color: #f8f;"><b>20点</b></td>
-        <td style="padding: 6px; border: 1px solid #444;">他ポジション/クラスの未習得スキルを1つ習得。<br><small style="color:#aaa;">※特化スキルは不可</small></td>
-        <td style="padding: 6px; border: 1px solid #444;">
-          <button type="button" onclick="addSkillRow('他クラス/他ポジ')">他枠スキル追加</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
 <script>
 // --- DB類 (memo未定義部分は自動で空文字扱い) ---
 const SKILL_DATABASE = {
@@ -872,50 +798,6 @@ function addSkillRow(category, skillName = '', memo = '') {
   if (skillName) tr.querySelector('select').value = skillName;
   updateSkillOptions();
   calcTotals();
-}
-
-function updateSkillOptions() {
-  const selectedSkills = new Set(
-    Array.from(document.querySelectorAll('#skill-tbody select'))
-      .map(s => s.value)
-      .filter(Boolean)
-  );
-
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    const select = tr.querySelector('select');
-    if (!select) return;
-    const categoryInput = tr.querySelector('input');
-    const category = categoryInput?.value || '';
-    const currentValue = select.value;
-
-    let optionsHtml = '<option value="">-- スキルを選択 --</option>';
-    
-    // カテゴリが DATABASE に存在する場合は通常通り描画
-    if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
-      SKILL_DATABASE[category].forEach(s => {
-        const isSelectedByOther = selectedSkills.has(s.name) && s.name !== currentValue;
-        const disabledAttr = isSelectedByOther ? 'disabled' : '';
-        const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
-        optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
-      });
-    } else {
-      // 20点消費などで「他クラス/他ポジ」が入力された場合、データベース全件を選択肢として出す
-      if (typeof SKILL_DATABASE !== 'undefined') {
-        Object.keys(SKILL_DATABASE).forEach(catKey => {
-          optionsHtml += `<optgroup label="${catKey}">`;
-          SKILL_DATABASE[catKey].forEach(s => {
-            const isSelectedByOther = selectedSkills.has(s.name) && s.name !== currentValue;
-            const disabledAttr = isSelectedByOther ? 'disabled' : '';
-            const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
-            optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
-          });
-          optionsHtml += `</optgroup>`;
-        });
-      }
-    }
-    
-    select.innerHTML = optionsHtml;
-  });
 }
 
 function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); }
