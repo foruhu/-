@@ -362,8 +362,7 @@ const EXTRA_PARTS_DB = {
     { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' },
     { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身' },
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' },
-    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' }
+    { name: 'アンテナ', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身' }
   ],
   arm: [
     { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0' },
@@ -388,34 +387,36 @@ const EXTRA_PARTS_DB = {
     { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2' },
     { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1' },
     { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2' },
-    { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1' },
     { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0' },
-    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
-    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
     { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1' },
     { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0' },
     { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身' },
     { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0' }
   ],
   body: [
     { name: 'ガトリング砲', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1〜3' },
     { name: '合金装甲', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身' },
     { name: 'リフレクター', type: '改造', level: 2, timing: 'ダメージ', cost: '2', range: '自身' },
-    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1' },
     { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
+    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1' },
+    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
+    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
+    { name: 'やせきず', type: '変異', level: 3, timing: 'オート', cost: 'なし', range: '自身' },
+    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身' },
     { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身' },
     { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' }
   ],
   leg: [
+    { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1' },
     { name: 'よぶんなあし', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
     { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2。' },
-    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
     { name: 'しっぽ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
     { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身' },
+    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' },
     { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身' }
   ]
 };
