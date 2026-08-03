@@ -259,8 +259,9 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
     <thead>
       <tr style="background: #1a1a20; color: #ddd; text-align: center;">
         <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 90px;">獲得寵愛点</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 90px;">使用寵愛点</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 80px;">使用寵愛</th>
         <th style="padding: 6px; border: 1px solid #444;">寵愛点の使い道・メモ</th>
         <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
       </tr>
@@ -269,9 +270,13 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
       </tbody>
   </table>
 
-  <div style="margin-top: 10px; text-align: right; font-size: 14px; font-weight: bold; color: #fff;">
-    総獲得: <span id="total-earned-chouai" style="color: #8ff;">0</span> pt / 
-    総使用: <span id="total-used-chouai" style="color: #ff88c2;">0</span> pt / 
+  <div style="margin-top: 10px; text-align: right; font-size: 13px; font-weight: bold; color: #fff;">
+    獲得内訳：（戦闘: <span id="total-battle-chouai" style="color: #8ff;">0</span> pt / 個人: <span id="total-personal-chouai" style="color: #8ff;">0</span> pt）
+    <span style="margin: 0 8px;">|</span>
+    総獲得: <span id="total-earned-chouai" style="color: #8ff;">0</span> pt
+    <span style="margin: 0 4px;">-</span>
+    総使用: <span id="total-used-chouai" style="color: #ff88c2;">0</span> pt
+    <span style="margin: 0 8px;">=</span>
     現在所持: <span id="current-chouai" style="color: #8ff; font-size: 16px;">0</span> pt
   </div>
 </div>
@@ -851,74 +856,6 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
-    // --- セッション履歴行の追加 ---
-function addSessionHistoryRow(scenario = '', earned = 0, used = 0, memo = '') {
-  const tbody = document.getElementById('session-history-tbody');
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="earned-pts" value="${earned}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-  calcChouaiTotals();
-}
-
-// --- 寵愛点の合計・残量計算 ---
-function calcChouaiTotals() {
-  let totalEarned = 0;
-  let totalUsed = 0;
-
-  // 獲得寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .earned-pts').forEach(input => {
-    totalEarned += parseInt(input.value, 10) || 0;
-  });
-
-  // 使用寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
-    totalUsed += parseInt(input.value, 10) || 0;
-  });
-
-  const current = totalEarned - totalUsed;
-
-  // 画面の数値を更新
-  if (document.getElementById('total-earned-chouai')) {
-    document.getElementById('total-earned-chouai').textContent = totalEarned;
-  }
-  if (document.getElementById('total-used-chouai')) {
-    document.getElementById('total-used-chouai').textContent = totalUsed;
-  }
-  if (document.getElementById('current-chouai')) {
-    const currentSpan = document.getElementById('current-chouai');
-    currentSpan.textContent = current;
-    // マイナス（使いすぎ）の場合は赤く表示
-    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
-  }
-}
-
-// ページ読み込み時に初期行を1つ用意しておく場合
-window.addEventListener('DOMContentLoaded', () => {
-  const tbody = document.getElementById('session-history-tbody');
-  if (tbody && tbody.children.length === 0) {
-    addSessionHistoryRow('初期作成', 0, 0, '作成時');
-  }
-});
-
 // --- 保存・読込（全データ連動） ---
 function getFullData() {
   const data = {
@@ -982,6 +919,82 @@ function getFullData() {
       });
     }
   });
+
+// --- セッション履歴行の追加（戦闘・個人分割版） ---
+function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0, memo = '') {
+  const tbody = document.getElementById('session-history-tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
+      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcChouaiTotals();
+}
+
+// --- 寵愛点の合計・残量計算（戦闘・個人対応） ---
+function calcChouaiTotals() {
+  let totalBattle = 0;
+  let totalPersonal = 0;
+  let totalUsed = 0;
+
+  // 戦闘寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
+    totalBattle += parseInt(input.value, 10) || 0;
+  });
+
+  // 個人寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .personal-pts').forEach(input => {
+    totalPersonal += parseInt(input.value, 10) || 0;
+  });
+
+  // 使用寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
+    totalUsed += parseInt(input.value, 10) || 0;
+  });
+
+  const totalEarned = totalBattle + totalPersonal;
+  const current = totalEarned - totalUsed;
+
+  // 画面の表示数値を更新
+  if (document.getElementById('total-battle-chouai')) {
+    document.getElementById('total-battle-chouai').textContent = totalBattle;
+  }
+  if (document.getElementById('total-personal-chouai')) {
+    document.getElementById('total-personal-chouai').textContent = totalPersonal;
+  }
+  if (document.getElementById('total-earned-chouai')) {
+    document.getElementById('total-earned-chouai').textContent = totalEarned;
+  }
+  if (document.getElementById('total-used-chouai')) {
+    document.getElementById('total-used-chouai').textContent = totalUsed;
+  }
+  if (document.getElementById('current-chouai')) {
+    const currentSpan = document.getElementById('current-chouai');
+    currentSpan.textContent = current;
+    // マイナス（使いすぎ）の場合は赤く表示
+    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
+  }
+}
 
   return data;
 }
