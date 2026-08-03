@@ -245,41 +245,47 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
-<div class="section-box" style="margin-top: 15px; background: #25252d; padding: 12px; border-radius: 6px; border: 1px solid #444;">
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;">
-    <h3 style="margin: 0; color: #8ff; font-size: 16px;">
-      📖 セッション履歴・寵愛点記録
-    </h3>
-    <button type="button" onclick="addSessionHistoryRow()" style="background: #2196F3; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
-      ＋ 履歴を追加
-    </button>
-  </div>
-
-  <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-    <thead>
-      <tr style="background: #1a1a20; color: #ddd; text-align: center;">
-        <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 80px;">使用寵愛</th>
-        <th style="padding: 6px; border: 1px solid #444;">寵愛点の使い道・メモ</th>
-        <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
-      </tr>
-    </thead>
-    <tbody id="session-history-tbody">
-      </tbody>
-  </table>
-
-  <div style="margin-top: 10px; text-align: right; font-size: 13px; font-weight: bold; color: #fff;">
-    獲得内訳：（戦闘: <span id="total-battle-chouai" style="color: #8ff;">0</span> pt / 個人: <span id="total-personal-chouai" style="color: #8ff;">0</span> pt）
-    <span style="margin: 0 8px;">|</span>
-    総獲得: <span id="total-earned-chouai" style="color: #8ff;">0</span> pt
-    <span style="margin: 0 4px;">-</span>
-    総使用: <span id="total-used-chouai" style="color: #ff88c2;">0</span> pt
-    <span style="margin: 0 8px;">=</span>
-    現在所持: <span id="current-chouai" style="color: #8ff; font-size: 16px;">0</span> pt
+<!-- 寵愛点サマリー -->
+<div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
+  <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+    <div>獲得戦闘寵愛: <b id="total-battle-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>獲得個人寵愛: <b id="total-personal-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総獲得寵愛: <b id="total-earned-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総使用寵愛: <b id="total-used-chouai" style="color: #ff88c2;">0</b> pt</div>
+    <div style="font-size: 1.05rem;">現在の残り寵愛: <b id="current-chouai" style="color: #8ff; font-size: 1.2rem;">0</b> pt</div>
   </div>
 </div>
+
+<!-- セッション履歴（獲得） -->
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ セッション履歴（獲得寵愛）</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 110px;">戦闘寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 110px;">個人寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444;">メモ（参加日など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="session-history-tbody"></tbody>
+</table>
+<button type="button" onclick="addSessionHistoryRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 履歴を追加</button>
+
+<!-- 寵愛点の使い道（消費） -->
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ 寵愛点の使い道・強化履歴</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444; width: 110px;">使用点数</th>
+      <th style="padding: 6px; border: 1px solid #444;">使い道・備考（例: 武装基本値+1、基本パーツ修復など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="chouai-use-tbody"></tbody>
+</table>
+<button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
 
 <script>
 // --- DB類 (memo未定義部分は自動で空文字扱い) ---
@@ -852,8 +858,8 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
-// --- セッション履歴行の追加 ---
-function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0, memo = '') {
+// --- 1. セッション履歴（獲得）の行追加 ---
+function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
   if (!tbody) return;
 
@@ -869,10 +875,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0,
       <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-memo" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="h-memo" value="${memo}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
@@ -883,27 +886,48 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0,
   calcChouaiTotals();
 }
 
-// --- 寵愛点の合計計算（全シナリオの合計獲得数 - 全シナリオの使用合計数） ---
+// --- 2. 寵愛点の使い道（消費）の行追加 ---
+function addChouaiUseRow(used = 0, memo = '') {
+  const tbody = document.getElementById('chouai-use-tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" class="use-memo" value="${memo}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
+      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcChouaiTotals();
+}
+
+// --- 3. 寵愛点計算処理 ---
 function calcChouaiTotals() {
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
 
-  // 各行（全シナリオ）の値をすべて足しあわせる
+  // 獲得寵愛の計算
   document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
     totalBattle += parseInt(input.value, 10) || 0;
   });
   document.querySelectorAll('#session-history-tbody .personal-pts').forEach(input => {
     totalPersonal += parseInt(input.value, 10) || 0;
   });
-  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
+
+  // 使用寵愛の計算
+  document.querySelectorAll('#chouai-use-tbody .used-pts').forEach(input => {
     totalUsed += parseInt(input.value, 10) || 0;
   });
 
-  // 全シナリオ獲得総計 ＝ 全戦闘寵愛 ＋ 全個人寵愛
   const totalEarned = totalBattle + totalPersonal;
-  
-  // 現在の残り寵愛点 ＝ 全シナリオ獲得総計 － 全シナリオ使用数
   const current = totalEarned - totalUsed;
 
   const setTxt = (id, val) => {
@@ -943,11 +967,12 @@ function getFullData() {
     chouaiWep: getVal('chouai-wep'),
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    bonus: document.querySelector('input[name="bonus"][value]:checked')?.value || 'wep',
     skills: [],
     parts: [],
     list: [],
-    history: []
+    history: [],
+    chouaiUses: []
   };
 
   // スキル
@@ -990,14 +1015,21 @@ function getFullData() {
     }
   });
 
-  // セッション履歴
+  // セッション履歴（獲得）
   document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
     data.history.push({
       scenario: tr.querySelector('.h-scenario')?.value || '',
       battle: tr.querySelector('.battle-pts')?.value || 0,
       personal: tr.querySelector('.personal-pts')?.value || 0,
-      used: tr.querySelector('.used-pts')?.value || 0,
       memo: tr.querySelector('.h-memo')?.value || ''
+    });
+  });
+
+  // 寵愛点の使い道（消費）
+  document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
+    data.chouaiUses.push({
+      used: tr.querySelector('.used-pts')?.value || 0,
+      memo: tr.querySelector('.use-memo')?.value || ''
     });
   });
 
@@ -1059,7 +1091,16 @@ function applyData(data) {
   if (historyTbody) {
     historyTbody.innerHTML = '';
     if (data.history) {
-      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.used, h.memo));
+      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
+    }
+  }
+
+  // 使い道の復元
+  const useTbody = document.getElementById('chouai-use-tbody');
+  if (useTbody) {
+    useTbody.innerHTML = '';
+    if (data.chouaiUses) {
+      data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
     }
   }
 
