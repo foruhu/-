@@ -1022,24 +1022,8 @@ function exportForHokanshoText() {
       text += `・${status}[${pLoc}] ${pName} (${pType}Lv${pLv}) / ${pTiming} / コスト:${pCost} / 射程:${pRange}\n`;
     }
   });
-
-  navigator.clipboard.writeText(text).then(() => {
-    alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
-  }).catch(err => {
-    alert('コピーに失敗しました: ' + err);
-  });
-}
-
-function exportCcfolia() {
-  alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
-}
-
-window.onload = function() {
-  renderPartsContainer();
-  onClassChange();
-};
-
-// --- セッション履歴行の追加 ---
+  
+  // --- セッション履歴行の追加 ---
 function addSessionHistoryRow(scenario = '', earned = 0, used = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
   if (!tbody) return;
@@ -1106,6 +1090,22 @@ window.addEventListener('DOMContentLoaded', () => {
     addSessionHistoryRow('初期作成', 0, 0, '作成時');
   }
 });
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
+  }).catch(err => {
+    alert('コピーに失敗しました: ' + err);
+  });
+}
+
+function exportCcfolia() {
+  alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
+}
+
+window.onload = function() {
+  renderPartsContainer();
+  onClassChange();
+};
 </script>
 </body>
 </html>
