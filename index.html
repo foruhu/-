@@ -245,6 +245,37 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
+<div class="section-box" style="margin-top: 15px; background: #25252d; padding: 12px; border-radius: 6px; border: 1px solid #444;">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;">
+    <h3 style="margin: 0; color: #8ff; font-size: 16px;">
+      📖 セッション履歴・寵愛点記録
+    </h3>
+    <button type="button" onclick="addSessionHistoryRow()" style="background: #2196F3; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
+      ＋ 履歴を追加
+    </button>
+  </div>
+
+  <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+    <thead>
+      <tr style="background: #1a1a20; color: #ddd; text-align: center;">
+        <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 90px;">獲得寵愛点</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 90px;">使用寵愛点</th>
+        <th style="padding: 6px; border: 1px solid #444;">寵愛点の使い道・メモ</th>
+        <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+      </tr>
+    </thead>
+    <tbody id="session-history-tbody">
+      </tbody>
+  </table>
+
+  <div style="margin-top: 10px; text-align: right; font-size: 14px; font-weight: bold; color: #fff;">
+    総獲得: <span id="total-earned-chouai" style="color: #8ff;">0</span> pt / 
+    総使用: <span id="total-used-chouai" style="color: #ff88c2;">0</span> pt / 
+    現在所持: <span id="current-chouai" style="color: #8ff; font-size: 16px;">0</span> pt
+  </div>
+</div>
+
 <script>
 // --- DB類 (memo未定義部分は自動で空文字扱い) ---
 const SKILL_DATABASE = {
@@ -1007,6 +1038,74 @@ window.onload = function() {
   renderPartsContainer();
   onClassChange();
 };
+
+// --- セッション履歴行の追加 ---
+function addSessionHistoryRow(scenario = '', earned = 0, used = 0, memo = '') {
+  const tbody = document.getElementById('session-history-tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="earned-pts" value="${earned}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
+      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcChouaiTotals();
+}
+
+// --- 寵愛点の合計・残量計算 ---
+function calcChouaiTotals() {
+  let totalEarned = 0;
+  let totalUsed = 0;
+
+  // 獲得寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .earned-pts').forEach(input => {
+    totalEarned += parseInt(input.value, 10) || 0;
+  });
+
+  // 使用寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
+    totalUsed += parseInt(input.value, 10) || 0;
+  });
+
+  const current = totalEarned - totalUsed;
+
+  // 画面の数値を更新
+  if (document.getElementById('total-earned-chouai')) {
+    document.getElementById('total-earned-chouai').textContent = totalEarned;
+  }
+  if (document.getElementById('total-used-chouai')) {
+    document.getElementById('total-used-chouai').textContent = totalUsed;
+  }
+  if (document.getElementById('current-chouai')) {
+    const currentSpan = document.getElementById('current-chouai');
+    currentSpan.textContent = current;
+    // マイナス（使いすぎ）の場合は赤く表示
+    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
+  }
+}
+
+// ページ読み込み時に初期行を1つ用意しておく場合
+window.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.getElementById('session-history-tbody');
+  if (tbody && tbody.children.length === 0) {
+    addSessionHistoryRow('初期作成', 0, 0, '作成時');
+  }
+});
 </script>
 </body>
 </html>
