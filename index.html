@@ -851,6 +851,74 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
+    // --- セッション履歴行の追加 ---
+function addSessionHistoryRow(scenario = '', earned = 0, used = 0, memo = '') {
+  const tbody = document.getElementById('session-history-tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="earned-pts" value="${earned}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
+      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcChouaiTotals();
+}
+
+// --- 寵愛点の合計・残量計算 ---
+function calcChouaiTotals() {
+  let totalEarned = 0;
+  let totalUsed = 0;
+
+  // 獲得寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .earned-pts').forEach(input => {
+    totalEarned += parseInt(input.value, 10) || 0;
+  });
+
+  // 使用寵愛点の合計
+  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
+    totalUsed += parseInt(input.value, 10) || 0;
+  });
+
+  const current = totalEarned - totalUsed;
+
+  // 画面の数値を更新
+  if (document.getElementById('total-earned-chouai')) {
+    document.getElementById('total-earned-chouai').textContent = totalEarned;
+  }
+  if (document.getElementById('total-used-chouai')) {
+    document.getElementById('total-used-chouai').textContent = totalUsed;
+  }
+  if (document.getElementById('current-chouai')) {
+    const currentSpan = document.getElementById('current-chouai');
+    currentSpan.textContent = current;
+    // マイナス（使いすぎ）の場合は赤く表示
+    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
+  }
+}
+
+// ページ読み込み時に初期行を1つ用意しておく場合
+window.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.getElementById('session-history-tbody');
+  if (tbody && tbody.children.length === 0) {
+    addSessionHistoryRow('初期作成', 0, 0, '作成時');
+  }
+});
+
 // --- 保存・読込（全データ連動） ---
 function getFullData() {
   const data = {
@@ -1022,74 +1090,6 @@ function exportForHokanshoText() {
       text += `・${status}[${pLoc}] ${pName} (${pType}Lv${pLv}) / ${pTiming} / コスト:${pCost} / 射程:${pRange}\n`;
     }
   });
-  
-    // --- セッション履歴行の追加 ---
-function addSessionHistoryRow(scenario = '', earned = 0, used = 0, memo = '') {
-  const tbody = document.getElementById('session-history-tbody');
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="earned-pts" value="${earned}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 80%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-  calcChouaiTotals();
-}
-
-// --- 寵愛点の合計・残量計算 ---
-function calcChouaiTotals() {
-  let totalEarned = 0;
-  let totalUsed = 0;
-
-  // 獲得寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .earned-pts').forEach(input => {
-    totalEarned += parseInt(input.value, 10) || 0;
-  });
-
-  // 使用寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
-    totalUsed += parseInt(input.value, 10) || 0;
-  });
-
-  const current = totalEarned - totalUsed;
-
-  // 画面の数値を更新
-  if (document.getElementById('total-earned-chouai')) {
-    document.getElementById('total-earned-chouai').textContent = totalEarned;
-  }
-  if (document.getElementById('total-used-chouai')) {
-    document.getElementById('total-used-chouai').textContent = totalUsed;
-  }
-  if (document.getElementById('current-chouai')) {
-    const currentSpan = document.getElementById('current-chouai');
-    currentSpan.textContent = current;
-    // マイナス（使いすぎ）の場合は赤く表示
-    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
-  }
-}
-
-// ページ読み込み時に初期行を1つ用意しておく場合
-window.addEventListener('DOMContentLoaded', () => {
-  const tbody = document.getElementById('session-history-tbody');
-  if (tbody && tbody.children.length === 0) {
-    addSessionHistoryRow('初期作成', 0, 0, '作成時');
-  }
-});
 
   navigator.clipboard.writeText(text).then(() => {
     alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
