@@ -688,14 +688,14 @@ function resetUsed() {
 }
 
 function onClassChange() {
-  const mc = document.getElementById('mc').value;
-  const sc = document.getElementById('sc').value;
-  const mcParts = CLASS_PARTS[mc] || [0,0,2];
-  const scParts = CLASS_PARTS[sc] || [0,0,2];
+  const mc = document.getElementById('mc')?.value || '';
+  const sc = document.getElementById('sc')?.value || '';
+  const mcParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[mc]) || [0,0,2];
+  const scParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[sc]) || [0,0,2];
 
   ['wep', 'mut', 'cyb'].forEach((key, idx) => {
-    document.getElementById(`mc-${key}`).textContent = mcParts[idx];
-    document.getElementById(`sc-${key}`).textContent = scParts[idx];
+    if (document.getElementById(`mc-${key}`)) document.getElementById(`mc-${key}`).textContent = mcParts[idx];
+    if (document.getElementById(`sc-${key}`)) document.getElementById(`sc-${key}`).textContent = scParts[idx];
   });
 
   calcTotals();
@@ -715,7 +715,6 @@ function calcTotals() {
   if (document.getElementById('total-mut')) document.getElementById('total-mut').textContent = totals.mut;
   if (document.getElementById('total-cyb')) document.getElementById('total-cyb').textContent = totals.cyb;
 
-  // 現在のパーツ配置数を集計
   const currentCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
 
   document.querySelectorAll('#parts-container tr').forEach(tr => {
@@ -726,7 +725,6 @@ function calcTotals() {
     }
   });
 
-  // スキル「時計仕掛け」の有無チェック
   const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
 
   const categories = [
@@ -737,19 +735,17 @@ function calcTotals() {
 
   const limitTbody = document.getElementById('limit-tbody');
   if (limitTbody) {
-    limitTbody.innerHTML = ''; // テーブル内容をリセット
+    limitTbody.innerHTML = '';
   }
 
   categories.forEach(cat => {
-    const limit = getLimitByVal(cat.total);
+    const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
     [1, 2, 3].forEach(lv => {
-      const baseLimit = limit[`lv${lv}`];
-      // 時計仕掛けボーナス（改造Lv3のみ+1）
+      const baseLimit = limit[`lv${lv}`] || 0;
       const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0;
       const maxAllowed = baseLimit + autoBonus; 
       const current = currentCounts[cat.name][lv];
 
-      // スパン表示の更新（もしページ内に存在する場合）
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
       if (usedSpan) usedSpan.textContent = current;
@@ -759,7 +755,6 @@ function calcTotals() {
         maxSpan.style.fontWeight = 'bold';
       }
 
-      // ★判定テキストの生成
       let statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
       if (current > maxAllowed) {
         statusHtml = `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${current}/${maxAllowed})</span>`;
@@ -767,7 +762,6 @@ function calcTotals() {
         statusHtml = `<span class="limit-selected" style="color:#88ff88;">OK (${current}/${maxAllowed})</span>`;
       }
 
-      // テーブル行の生成（追加枠手動を削除し、判定を残す）
       if (limitTbody) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -782,11 +776,12 @@ function calcTotals() {
     });
   });
 
-  updateExtraPartOptions();
+  if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
 }
 
 function addRow(target = '', emotion = '', madness = 0) {
   const tbody = document.getElementById('list');
+  if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" value="${target}"></td>
@@ -821,6 +816,7 @@ function updateSkillOptions() {
 
 function addSkillRow(category, skillName = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
+  if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
@@ -856,28 +852,98 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
+// --- セッション履歴行の追加 ---
+function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0, memo = '') {
+  const tbody = document.getElementById('session-history-tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" class="h-scenario" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+    </td>
+    <td style="padding: 4px; border: 1px solid #444;">
+      <input type="text" class="h-memo" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+    </td>
+    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
+      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcChouaiTotals();
+}
+
+// --- 寵愛点の合計・残量計算 ---
+function calcChouaiTotals() {
+  let totalBattle = 0;
+  let totalPersonal = 0;
+  let totalUsed = 0;
+
+  document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
+    totalBattle += parseInt(input.value, 10) || 0;
+  });
+  document.querySelectorAll('#session-history-tbody .personal-pts').forEach(input => {
+    totalPersonal += parseInt(input.value, 10) || 0;
+  });
+  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
+    totalUsed += parseInt(input.value, 10) || 0;
+  });
+
+  const totalEarned = totalBattle + totalPersonal;
+  const current = totalEarned - totalUsed;
+
+  const setTxt = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  setTxt('total-battle-chouai', totalBattle);
+  setTxt('total-personal-chouai', totalPersonal);
+  setTxt('total-earned-chouai', totalEarned);
+  setTxt('total-used-chouai', totalUsed);
+
+  const currentSpan = document.getElementById('current-chouai');
+  if (currentSpan) {
+    currentSpan.textContent = current;
+    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
+  }
+}
+
 // --- 保存・読込（全データ連動） ---
 function getFullData() {
+  const getVal = id => document.getElementById(id)?.value || '';
+
   const data = {
-    pl: document.getElementById('pl').value,
-    name: document.getElementById('name').value,
-    pos: document.getElementById('pos').value,
-    mc: document.getElementById('mc').value,
-    sc: document.getElementById('sc').value,
-    age: document.getElementById('age').value,
-    ps: document.getElementById('ps').value,
-    hint: document.getElementById('hint').value,
-    mem: document.getElementById('mem').value,
-    act: document.getElementById('act').value,
-    fav: document.getElementById('fav').value,
-    tr: document.getElementById('tr').value,
-    chouaiWep: document.getElementById('chouai-wep').value,
-    chouaiMut: document.getElementById('chouai-mut').value,
-    chouaiCyb: document.getElementById('chouai-cyb').value,
+    pl: getVal('pl'),
+    name: getVal('name'),
+    pos: getVal('pos'),
+    mc: getVal('mc'),
+    sc: getVal('sc'),
+    age: getVal('age'),
+    ps: getVal('ps'),
+    hint: getVal('hint'),
+    mem: getVal('mem'),
+    act: getVal('act'),
+    fav: getVal('fav'),
+    tr: getVal('tr'),
+    chouaiWep: getVal('chouai-wep'),
+    chouaiMut: getVal('chouai-mut'),
+    chouaiCyb: getVal('chouai-cyb'),
     bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
     skills: [],
     parts: [],
-    list: []
+    list: [],
+    history: []
   };
 
   // スキル
@@ -920,81 +986,16 @@ function getFullData() {
     }
   });
 
-// --- セッション履歴行の追加（戦闘・個人分割版） ---
-function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0, memo = '') {
-  const tbody = document.getElementById('session-history-tbody');
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
-    </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" value="${memo}" placeholder="例: 武装強化値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
-    <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-  calcChouaiTotals();
-}
-
-// --- 寵愛点の合計・残量計算（戦闘・個人対応） ---
-function calcChouaiTotals() {
-  let totalBattle = 0;
-  let totalPersonal = 0;
-  let totalUsed = 0;
-
-  // 戦闘寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
-    totalBattle += parseInt(input.value, 10) || 0;
+  // セッション履歴
+  document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
+    data.history.push({
+      scenario: tr.querySelector('.h-scenario')?.value || '',
+      battle: tr.querySelector('.battle-pts')?.value || 0,
+      personal: tr.querySelector('.personal-pts')?.value || 0,
+      used: tr.querySelector('.used-pts')?.value || 0,
+      memo: tr.querySelector('.h-memo')?.value || ''
+    });
   });
-
-  // 個人寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .personal-pts').forEach(input => {
-    totalPersonal += parseInt(input.value, 10) || 0;
-  });
-
-  // 使用寵愛点の合計
-  document.querySelectorAll('#session-history-tbody .used-pts').forEach(input => {
-    totalUsed += parseInt(input.value, 10) || 0;
-  });
-
-  const totalEarned = totalBattle + totalPersonal;
-  const current = totalEarned - totalUsed;
-
-  // 画面の表示数値を更新
-  if (document.getElementById('total-battle-chouai')) {
-    document.getElementById('total-battle-chouai').textContent = totalBattle;
-  }
-  if (document.getElementById('total-personal-chouai')) {
-    document.getElementById('total-personal-chouai').textContent = totalPersonal;
-  }
-  if (document.getElementById('total-earned-chouai')) {
-    document.getElementById('total-earned-chouai').textContent = totalEarned;
-  }
-  if (document.getElementById('total-used-chouai')) {
-    document.getElementById('total-used-chouai').textContent = totalUsed;
-  }
-  if (document.getElementById('current-chouai')) {
-    const currentSpan = document.getElementById('current-chouai');
-    currentSpan.textContent = current;
-    // マイナス（使いすぎ）の場合は赤く表示
-    currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
-  }
-}
 
   return data;
 }
@@ -1032,15 +1033,30 @@ function applyData(data) {
   onClassChange();
 
   // スキルの復元
-  document.getElementById('skill-tbody').innerHTML = '';
-  if (data.skills) {
-    data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+  const skillTbody = document.getElementById('skill-tbody');
+  if (skillTbody) {
+    skillTbody.innerHTML = '';
+    if (data.skills) {
+      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+    }
   }
 
   // 未練の復元
-  document.getElementById('list').innerHTML = '';
-  if (data.list) {
-    data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+  const listTbody = document.getElementById('list');
+  if (listTbody) {
+    listTbody.innerHTML = '';
+    if (data.list) {
+      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+    }
+  }
+
+  // 履歴の復元
+  const historyTbody = document.getElementById('session-history-tbody');
+  if (historyTbody) {
+    historyTbody.innerHTML = '';
+    if (data.history) {
+      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.used, h.memo));
+    }
   }
 
   calcTotals();
@@ -1116,7 +1132,7 @@ function exportCcfolia() {
 }
 
 window.onload = function() {
-  renderPartsContainer();
+  if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
 };
 </script>
