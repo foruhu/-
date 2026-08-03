@@ -883,12 +883,13 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, used = 0,
   calcChouaiTotals();
 }
 
-// --- 寵愛点の合計・残量計算 ---
+// --- 寵愛点の合計計算（全シナリオの合計獲得数 - 全シナリオの使用合計数） ---
 function calcChouaiTotals() {
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
 
+  // 各行（全シナリオ）の値をすべて足しあわせる
   document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
     totalBattle += parseInt(input.value, 10) || 0;
   });
@@ -899,7 +900,10 @@ function calcChouaiTotals() {
     totalUsed += parseInt(input.value, 10) || 0;
   });
 
+  // 全シナリオ獲得総計 ＝ 全戦闘寵愛 ＋ 全個人寵愛
   const totalEarned = totalBattle + totalPersonal;
+  
+  // 現在の残り寵愛点 ＝ 全シナリオ獲得総計 － 全シナリオ使用数
   const current = totalEarned - totalUsed;
 
   const setTxt = (id, val) => {
@@ -919,7 +923,7 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込（全データ連動） ---
+// --- 保存・読込 ---
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
 
