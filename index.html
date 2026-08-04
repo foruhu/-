@@ -1181,8 +1181,8 @@ window.onload = function() {
   onClassChange();
 };
 </script>
-<!-- 右下固定のジャンプボタン -->
-<a href="#readme-section" style="
+　<!-- 右下固定：README.mdへ移動するボタン -->
+<a href="./README.md" target="_blank" rel="noopener noreferrer" style="
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -1195,9 +1195,12 @@ window.onload = function() {
   font-size: 0.85rem;
   box-shadow: 0 4px 10px rgba(0,0,0,0.6);
   z-index: 9999;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
 ">
-  📜 Readmeを見る
+  📜 使い方を見る
 </a>
   <!-- HTMLからREADME.md（GitHub上のファイルや同階層のファイル）を開くリンク -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer">
