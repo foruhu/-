@@ -1067,20 +1067,157 @@ function getFullData() {
   return data;
 }
 
-function saveData() {
-  const data = getFullData();
-  localStorage.setItem('necro_sheet', JSON.stringify(data));
-  alert('ブラウザに保存しました');
+// --- 複数スロット保存・読込機能 ---
+const STORAGE_KEY = 'necro_sheets_list';
+
+// 全スロットを取得
+function getAllSlots() {
+  const json = localStorage.getItem(STORAGE_KEY);
+  return json ? JSON.parse(json) : [];
 }
 
-function loadData() {
-  const json = localStorage.getItem('necro_sheet');
-  if (!json) return alert('保存されたデータがありません');
-  
-  const data = JSON.parse(json);
-  applyData(data);
-  alert('データを読み込みました');
+// 全スロットを保存
+function saveAllSlots(slots) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
 }
+
+// モーダルを開く（保存モード）
+function openSaveModal() {
+  const modal = document.getElementById('save-load-modal');
+  if (!modal) return;
+  document.getElementById('modal-title').textContent = '💾 ブラウザに保存（スロット選択）';
+  document.getElementById('save-new-area').style.display = 'block';
+  renderSlotList('save');
+  modal.style.display = 'flex';
+}
+
+// モーダルを開く（読込モード）
+function openLoadModal() {
+  const modal = document.getElementById('save-load-modal');
+  if (!modal) return;
+  document.getElementById('modal-title').textContent = '📂 データを読み込む';
+  document.getElementById('save-new-area').style.display = 'none';
+  renderSlotList('load');
+  modal.style.display = 'flex';
+}
+
+// モーダルを閉じる
+function closeModal() {
+  const modal = document.getElementById('save-load-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 一覧の描画
+function renderSlotList(mode) {
+  const container = document.getElementById('slot-list');
+  if (!container) return;
+  container.innerHTML = '';
+  const slots = getAllSlots();
+
+  if (slots.length === 0) {
+    container.innerHTML = '<div style="color: #aaa; text-align: center; padding: 15px;">保存されたデータはありません</div>';
+    return;
+  }
+
+  slots.forEach((slot, index) => {
+    const item = document.createElement('div');
+    item.style.cssText = 'background: #121216; border: 1px solid #333; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
+
+    const info = document.createElement('div');
+    info.innerHTML = `
+      <div style="font-weight: bold; color: #8ff;">${slot.data.name || '無名ドール'} <span style="font-size:0.75rem; color:#aaa;">(${slot.data.pos || 'ポジション未設定'})</span></div>
+      <div style="font-size: 0.75rem; color: #888;">更新日: ${slot.updatedAt}</div>
+    `;
+
+    const btnGroup = document.createElement('div');
+    btnGroup.style.cssText = 'display: flex; gap: 6px;';
+
+    if (mode === 'save') {
+      const overwriteBtn = document.createElement('button');
+      overwriteBtn.type = 'button';
+      overwriteBtn.textContent = '上書き保存';
+      overwriteBtn.style.cssText = 'background: #384828; color: #aaffaa; border: 1px solid #584; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+      overwriteBtn.onclick = () => overwriteSlot(index);
+      btnGroup.appendChild(overwriteBtn);
+    } else {
+      const loadBtn = document.createElement('button');
+      loadBtn.type = 'button';
+      loadBtn.textContent = '読み込む';
+      loadBtn.style.cssText = 'background: #283858; color: #aacf8f; border: 1px solid #468; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+      loadBtn.onclick = () => loadSlot(index);
+      btnGroup.appendChild(loadBtn);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.textContent = '削除';
+    delBtn.style.cssText = 'background: #582828; color: #ffaaaa; border: 1px solid #844; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+    delBtn.onclick = () => deleteSlot(index, mode);
+    btnGroup.appendChild(delBtn);
+
+    item.appendChild(info);
+    item.appendChild(btnGroup);
+    container.appendChild(item);
+  });
+}
+
+// 新規保存
+function saveNewSlot() {
+  const data = getFullData();
+  const slots = getAllSlots();
+  const now = new Date().toLocaleString('ja-JP');
+
+  slots.unshift({
+    id: Date.now(),
+    updatedAt: now,
+    data: data
+  });
+
+  saveAllSlots(slots);
+  alert(`「${data.name || '無名ドール'}」を新規保存しました！`);
+  closeModal();
+}
+
+// 上書き保存
+function overwriteSlot(index) {
+  const slots = getAllSlots();
+  const data = getFullData();
+  if (!confirm(`「${slots[index].data.name || '無名ドール'}」のデータを現在の入力内容で上書きしますか？`)) return;
+
+  slots[index].updatedAt = new Date().toLocaleString('ja-JP');
+  slots[index].data = data;
+
+  saveAllSlots(slots);
+  alert('上書き保存しました！');
+  closeModal();
+}
+
+// 読み込み
+function loadSlot(index) {
+  const slots = getAllSlots();
+  const slot = slots[index];
+  if (!slot) return;
+
+  applyData(slot.data);
+  alert(`「${slot.data.name || '無名ドール'}」のデータを読み込みました！`);
+  closeModal();
+}
+
+// 削除
+function deleteSlot(index, mode) {
+  const slots = getAllSlots();
+  const targetName = slots[index].data.name || '無名ドール';
+  
+  if (!confirm(`「${targetName}」の保存データを削除してもよろしいですか？`)) return;
+
+  slots.splice(index, 1);
+  saveAllSlots(slots);
+  renderSlotList(mode);
+}
+
+// 旧関数との互換用（ボタンなどから直呼び出された場合のフォールバック）
+function saveData() { openSaveModal(); }
+function loadData() { openLoadModal(); }
 
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
