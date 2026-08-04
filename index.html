@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+　<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -255,6 +255,13 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
     <div>総使用寵愛: <b id="total-used-chouai" style="color: #ff88c2;">0</b> pt</div>
     <div style="font-size: 1.05rem;">現在の残り寵愛: <b id="current-chouai" style="color: #8ff; font-size: 1.2rem;">0</b> pt</div>
   </div>
+</div>
+
+<!-- 保存・読込ボタンエリア -->
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+  <button type="button" onclick="openSaveModal()" style="background: #2a4836; color: #8ff; border: 1px solid #4a8; padding: 6px 12px; border-radius: 4px; cursor: pointer;">💾 ブラウザに保存</button>
+  <button type="button" onclick="openLoadModal()" style="background: #363648; color: #8ff; border: 1px solid #66f; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📂 データを読み込む</button>
+  <button type="button" onclick="exportJSON()" style="background: #4a362a; color: #ffb888; border: 1px solid #864; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📄 JSON出力</button>
 </div>
 
 <!-- 複数保存・読込用モーダル（ダイアログ） -->
@@ -1060,157 +1067,20 @@ function getFullData() {
   return data;
 }
 
-// --- 複数スロット保存・読込機能 ---
-const STORAGE_KEY = 'necro_sheets_list';
-
-// 全スロットを取得
-function getAllSlots() {
-  const json = localStorage.getItem(STORAGE_KEY);
-  return json ? JSON.parse(json) : [];
-}
-
-// 全スロットを保存
-function saveAllSlots(slots) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
-}
-
-// モーダルを開く（保存モード）
-function openSaveModal() {
-  const modal = document.getElementById('save-load-modal');
-  if (!modal) return;
-  document.getElementById('modal-title').textContent = '💾 ブラウザに保存（スロット選択）';
-  document.getElementById('save-new-area').style.display = 'block';
-  renderSlotList('save');
-  modal.style.display = 'flex';
-}
-
-// モーダルを開く（読込モード）
-function openLoadModal() {
-  const modal = document.getElementById('save-load-modal');
-  if (!modal) return;
-  document.getElementById('modal-title').textContent = '📂 データを読み込む';
-  document.getElementById('save-new-area').style.display = 'none';
-  renderSlotList('load');
-  modal.style.display = 'flex';
-}
-
-// モーダルを閉じる
-function closeModal() {
-  const modal = document.getElementById('save-load-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-// 一覧の描画
-function renderSlotList(mode) {
-  const container = document.getElementById('slot-list');
-  if (!container) return;
-  container.innerHTML = '';
-  const slots = getAllSlots();
-
-  if (slots.length === 0) {
-    container.innerHTML = '<div style="color: #aaa; text-align: center; padding: 15px;">保存されたデータはありません</div>';
-    return;
-  }
-
-  slots.forEach((slot, index) => {
-    const item = document.createElement('div');
-    item.style.cssText = 'background: #121216; border: 1px solid #333; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
-
-    const info = document.createElement('div');
-    info.innerHTML = `
-      <div style="font-weight: bold; color: #8ff;">${slot.data.name || '無名ドール'} <span style="font-size:0.75rem; color:#aaa;">(${slot.data.pos || 'ポジション未設定'})</span></div>
-      <div style="font-size: 0.75rem; color: #888;">更新日: ${slot.updatedAt}</div>
-    `;
-
-    const btnGroup = document.createElement('div');
-    btnGroup.style.cssText = 'display: flex; gap: 6px;';
-
-    if (mode === 'save') {
-      const overwriteBtn = document.createElement('button');
-      overwriteBtn.type = 'button';
-      overwriteBtn.textContent = '上書き保存';
-      overwriteBtn.style.cssText = 'background: #384828; color: #aaffaa; border: 1px solid #584; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
-      overwriteBtn.onclick = () => overwriteSlot(index);
-      btnGroup.appendChild(overwriteBtn);
-    } else {
-      const loadBtn = document.createElement('button');
-      loadBtn.type = 'button';
-      loadBtn.textContent = '読み込む';
-      loadBtn.style.cssText = 'background: #283858; color: #aacf8f; border: 1px solid #468; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
-      loadBtn.onclick = () => loadSlot(index);
-      btnGroup.appendChild(loadBtn);
-    }
-
-    const delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.textContent = '削除';
-    delBtn.style.cssText = 'background: #582828; color: #ffaaaa; border: 1px solid #844; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
-    delBtn.onclick = () => deleteSlot(index, mode);
-    btnGroup.appendChild(delBtn);
-
-    item.appendChild(info);
-    item.appendChild(btnGroup);
-    container.appendChild(item);
-  });
-}
-
-// 新規保存
-function saveNewSlot() {
+function saveData() {
   const data = getFullData();
-  const slots = getAllSlots();
-  const now = new Date().toLocaleString('ja-JP');
-
-  slots.unshift({
-    id: Date.now(),
-    updatedAt: now,
-    data: data
-  });
-
-  saveAllSlots(slots);
-  alert(`「${data.name || '無名ドール'}」を新規保存しました！`);
-  closeModal();
+  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました');
 }
 
-// 上書き保存
-function overwriteSlot(index) {
-  const slots = getAllSlots();
-  const data = getFullData();
-  if (!confirm(`「${slots[index].data.name || '無名ドール'}」のデータを現在の入力内容で上書きしますか？`)) return;
-
-  slots[index].updatedAt = new Date().toLocaleString('ja-JP');
-  slots[index].data = data;
-
-  saveAllSlots(slots);
-  alert('上書き保存しました！');
-  closeModal();
-}
-
-// 読み込み
-function loadSlot(index) {
-  const slots = getAllSlots();
-  const slot = slots[index];
-  if (!slot) return;
-
-  applyData(slot.data);
-  alert(`「${slot.data.name || '無名ドール'}」のデータを読み込みました！`);
-  closeModal();
-}
-
-// 削除
-function deleteSlot(index, mode) {
-  const slots = getAllSlots();
-  const targetName = slots[index].data.name || '無名ドール';
+function loadData() {
+  const json = localStorage.getItem('necro_sheet');
+  if (!json) return alert('保存されたデータがありません');
   
-  if (!confirm(`「${targetName}」の保存データを削除してもよろしいですか？`)) return;
-
-  slots.splice(index, 1);
-  saveAllSlots(slots);
-  renderSlotList(mode);
+  const data = JSON.parse(json);
+  applyData(data);
+  alert('データを読み込みました');
 }
-
-// 旧関数との互換用（ボタンなどから直接呼ばれた場合）
-function saveData() { openSaveModal(); }
-function loadData() { openLoadModal(); }
 
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
@@ -1326,27 +1196,6 @@ function exportForHokanshoText() {
     }
   });
 
-  navigator.clipboard.writeText(text).then(() => {
-    alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
-  }).catch(err => {
-    alert('コピーに失敗しました: ' + err);
-  });
-}
-
-function exportCcfolia() {
-  alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
-}
-
-// 古い保存・読込処理（単一保存）は削除し、新しいモーダル処理へ一本化
-
-// ※もし他から saveData() / loadData() が呼ばれた場合の安全策（互換用）
-function saveData() {
-  openSaveModal();
-}
-
-function loadData() {
-  openLoadModal();
-}
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
@@ -1374,6 +1223,13 @@ window.onload = function() {
 ">
   📜 使い方を見る
 </a>
+
+<!-- 保存・読込ボタン -->
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+  <button type="button" onclick="openSaveModal()" style="background: #2a4836; color: #8ff; border: 1px solid #4a8; padding: 6px 12px; border-radius: 4px; cursor: pointer;">💾 ブラウザに保存</button>
+  <button type="button" onclick="openLoadModal()" style="background: #363648; color: #8ff; border: 1px solid #66f; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📂 データを読み込む</button>
+</div>
+
 <!-- 複数保存・読込用モーダル（ポップアップ） -->
 <div id="save-load-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10000; align-items: center; justify-content: center;">
   <div style="background: #1e1e24; border: 1px solid #555; width: 90%; max-width: 500px; padding: 20px; border-radius: 8px; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.8);">
