@@ -1184,68 +1184,101 @@ function deleteSlot(index, mode) {
 }
 
 function applyData(data) {
-    const setVal = (id, val) => {
-        if(document.getElementById(id)) document.getElementById(id).value = val || '';
-    };
-    setVal('pl', data.pl);
-    setVal('name', data.name);
-    setVal('pos', data.pos || 'アリス');
-    setVal('mc', data.mc || 'ロマネスク');
-    setVal('sc', data.sc || 'ロマネスク');
-    setVal('age', data.age);
-    setVal('ps', data.ps || '煉獄');
-    setVal('hint', data.hint);
-    setVal('mem', data.mem);
-    setVal('act', data.act || '9');
-    setVal('fav', data.fav || '0');
-    setVal('tr', data.tr);
-    setVal('chouai-wep', data.chouaiWep || '0');
-    setVal('chouai-mut', data.chouaiMut || '0');
-    setVal('chouai-cyb', data.chouaiCyb || '0');
+  const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
-    if (data.bonus) {
-        // 【修正箇所】セレクタのクォーテーションを正しく修正
-        const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-        if (radio) radio.checked = true;
-    }
-    onClassChange();
+  setVal('pl', data.pl); setVal('name', data.name);
+  setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
+  setVal('age', data.age); setVal('ps', data.ps || '煉獄');
+  setVal('hint', data.hint); setVal('mem', data.mem);
+  setVal('act', data.act || '9'); setVal('fav', data.fav || '0'); setVal('tr', data.tr);
+  setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
 
-    // スキルの復元
-    const skillTbody = document.getElementById('skill-tbody');
-    if (skillTbody) {
-        skillTbody.innerHTML = '';
-        if (data.skills) {
-            data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  onClassChange();
+
+  // --- 1. パーツ（マニューバ）コンテナの初期化と再配置 ---
+  if (typeof renderPartsContainer === 'function') {
+    renderPartsContainer(); // 画面上のパーツ表示を一旦クリアしてデフォルト状態に戻す
+  }
+
+  if (data.parts && data.parts.length > 0) {
+    // 既存のテーブル行をすべて一旦クリア
+    document.querySelectorAll('#parts-container tbody').forEach(tbody => tbody.innerHTML = '');
+
+    // 保存されていたパーツデータから行を再生成
+    data.parts.forEach(p => {
+      const locSecMap = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
+      const secId = locSecMap[p.location] || 'head';
+      const tbody = document.getElementById(`parts-tbody-${secId}`) || document.querySelector('#parts-container tbody');
+
+      if (tbody) {
+        addPartRow(
+          tbody,
+          p.name,
+          p.type,
+          p.level,
+          p.timing,
+          p.cost,
+          p.range,
+          p.memo,
+          p.isEditable,
+          p.location || '頭部'
+        );
+
+        // 破損（チェックボックス）の復元
+        const lastTr = tbody.lastElementChild;
+        if (lastTr && p.isBroken) {
+          const cb = lastTr.querySelector('input[type="checkbox"]');
+          if (cb) {
+            cb.checked = true;
+            togglePartBreak(cb);
+          }
         }
-    }
+      }
+    });
+  }
 
-    // 未練の復元
-    const listTbody = document.getElementById('list');
-    if (listTbody) {
-        listTbody.innerHTML = '';
-        if (data.list) {
-            data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
-        }
+  // --- 2. スキルの復元 ---
+  const skillTbody = document.getElementById('skill-tbody');
+  if (skillTbody) {
+    skillTbody.innerHTML = '';
+    if (data.skills) {
+      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
     }
+  }
 
-    // 履歴の復元
-    const historyTbody = document.getElementById('session-history-tbody');
-    if (historyTbody) {
-        historyTbody.innerHTML = '';
-        if (data.history) {
-            data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
-        }
+  // --- 3. 未練（たからもの）の復元 ---
+  const listTbody = document.getElementById('list');
+  if (listTbody) {
+    listTbody.innerHTML = '';
+    if (data.list) {
+      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
     }
+  }
 
-    // 使い道の復元
-    const useTbody = document.getElementById('chouai-use-tbody');
-    if (useTbody) {
-        useTbody.innerHTML = '';
-        if (data.chouaiUses) {
-            data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
-        }
+  // --- 4. セッション履歴の復元 ---
+  const historyTbody = document.getElementById('session-history-tbody');
+  if (historyTbody) {
+    historyTbody.innerHTML = '';
+    if (data.history) {
+      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
     }
-    calcTotals();
+  }
+
+  // --- 5. 寵愛点使用履歴の復元 ---
+  const useTbody = document.getElementById('chouai-use-tbody');
+  if (useTbody) {
+    useTbody.innerHTML = '';
+    if (data.chouaiUses) {
+      data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
+    }
+  }
+
+  calcTotals();
 }
 
 function exportJSON() {
