@@ -236,6 +236,24 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
+<!-- スキル選択（例） -->
+<select id="skill-select" onchange="checkSkillSelection()">
+  <option value="">スキルを選択...</option>
+  <option value="時計仕掛け">時計仕掛け</option>
+  <option value="歪極">歪極（レベル3変異パーツ開放）</option>
+</select>
+
+<!-- レベル3変異パーツ選択枠（初期状態は非表示） -->
+<div id="mutation-level3-group" style="display: none; margin-top: 10px; background: #2a1a1a; padding: 10px; border: 1px solid #844; border-radius: 4px;">
+  <label style="color: #ffaaaa; font-weight: bold;">🧬 変異パーツ（レベル3）:</label>
+  <select id="mutation-lvl3-select" style="margin-left: 8px;">
+    <option value="">パーツを選択してください...</option>
+    <option value="巨大化">巨大化</option>
+    <option value="異形化">異形化</option>
+    <!-- その他のレベル3変異パーツ -->
+  </select>
+</div>
+
 <!-- 寵愛点サマリー -->
 <div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
   <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
@@ -877,6 +895,31 @@ function onSkillSelect(selectElem) {
 
   updateSkillOptions();
   calcTotals();
+}
+
+// スキル選択欄の変更イベントで呼び出す関数
+function checkSkillSelection() {
+  // スキル選択のselect要素などを取得（IDは実際のHTMLに合わせて変更してください）
+  const selectedSkill = document.getElementById('skill-select')?.value;
+  const mutationLevel3Group = document.getElementById('mutation-level3-group');
+
+  // 「歪極」が選択された場合
+  if (selectedSkill === '歪極' || selectedSkill === 'haikyoku') {
+    // レベル3変異パーツの選択エリアを表示・有効化
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'block'; // 表示
+      // もしdisabled制御している場合は解除
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = false);
+    }
+  } else {
+    // 歪極以外が選ばれた場合は非表示（または無効化）
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'none';
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = true);
+    }
+  }
 }
 
 // --- 1. セッション履歴（獲得）の行追加 ---
