@@ -604,20 +604,17 @@ function updateExtraPartOptions() {
   });
 }
 
-<script> 
-
-// --- パーツコンテナの描画 ---
+// --- パーツエリアの動的生成 ---
 function renderPartsContainer() {
   const container = document.getElementById('parts-container');
   if (!container) return;
+  container.innerHTML = '';
 
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
   const sections = [
     { id: 'head', title: '頭部' }, { id: 'arm', title: '腕部' },
     { id: 'body', title: '胴部' }, { id: 'leg', title: '脚部' }
   ];
-
-  container.innerHTML = ''; // 再描画時の重複防止
 
   sections.forEach(sec => {
     const secDiv = document.createElement('div');
@@ -658,7 +655,7 @@ function renderPartsContainer() {
     }
   });
 
-  if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
+  updateExtraPartOptions();
 }
 
 function isPartAlreadyExists(partName) {
@@ -678,10 +675,10 @@ function onExtraPartSelect(secId, selectElem) {
 
   if (val === 'custom') {
     partData = { name: '新規パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '', isEditable: true };
-  } else if (val.startsWith('common_') && typeof COMMON_EXTRA_PARTS !== 'undefined') {
+  } else if (val.startsWith('common_')) {
     const p = COMMON_EXTRA_PARTS[parseInt(val.split('_')[1], 10)];
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
-  } else if (val.startsWith(secId + '_') && typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[secId]) {
+  } else if (val.startsWith(secId + '_')) {
     const p = EXTRA_PARTS_DB[secId][parseInt(val.split('_')[1], 10)];
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
   }
@@ -871,19 +868,18 @@ function addSkillRow(category, skillName = '', memo = '') {
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions(); checkSkillSelection();">X</button></td>
+    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions();">X</button></td>
   `;
   tbody.appendChild(tr);
 
   if (skillName) tr.querySelector('select').value = skillName;
   updateSkillOptions();
   calcTotals();
-  checkSkillSelection();
 }
 
-function addPosSkillRow() { addSkillRow(document.getElementById('pos')?.value || ''); }
-function addMcSkillRow() { addSkillRow(document.getElementById('mc')?.value || ''); }
-function addScSkillRow() { addSkillRow(document.getElementById('sc')?.value || ''); }
+function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); }
+function addMcSkillRow() { addSkillRow(document.getElementById('mc').value); }
+function addScSkillRow() { addSkillRow(document.getElementById('sc').value); }
 
 function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
@@ -900,28 +896,34 @@ function onSkillSelect(selectElem) {
 
   updateSkillOptions();
   calcTotals();
-  checkSkillSelection();
 }
 
-// スキル選択の変更チェック（「歪極」判定など）
+// スキル選択欄の変更イベントで呼び出す関数
 function checkSkillSelection() {
-  const selectedSkills = Array.from(document.querySelectorAll('#skill-tbody select')).map(s => s.value);
+  // スキル選択のselect要素などを取得（IDは実際のHTMLに合わせて変更してください）
+  const selectedSkill = document.getElementById('skill-select')?.value;
   const mutationLevel3Group = document.getElementById('mutation-level3-group');
 
-  if (!mutationLevel3Group) return;
-
-  const hasHaikyoku = selectedSkills.includes('歪極');
-
-  if (hasHaikyoku) {
-    mutationLevel3Group.style.display = 'block';
-    mutationLevel3Group.querySelectorAll('select, input').forEach(el => el.disabled = false);
+  // 「歪極」が選択された場合
+  if (selectedSkill === '歪極' || selectedSkill === 'haikyoku') {
+    // レベル3変異パーツの選択エリアを表示・有効化
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'block'; // 表示
+      // もしdisabled制御している場合は解除
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = false);
+    }
   } else {
-    mutationLevel3Group.style.display = 'none';
-    mutationLevel3Group.querySelectorAll('select, input').forEach(el => el.disabled = true);
+    // 歪極以外が選ばれた場合は非表示（または無効化）
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'none';
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = true);
+    }
   }
 }
 
-// --- セッション履歴（獲得） ---
+// --- 1. セッション履歴（獲得）の行追加 ---
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
   if (!tbody) return;
@@ -949,7 +951,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   calcChouaiTotals();
 }
 
-// --- 寵愛点の使い道（消費） ---
+// --- 2. 寵愛点の使い道（消費）の行追加 ---
 function addChouaiUseRow(used = 0, memo = '') {
   const tbody = document.getElementById('chouai-use-tbody');
   if (!tbody) return;
@@ -971,12 +973,13 @@ function addChouaiUseRow(used = 0, memo = '') {
   calcChouaiTotals();
 }
 
-// --- 寵愛点計算処理 ---
+// --- 3. 寵愛点計算処理 ---
 function calcChouaiTotals() {
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
 
+  // 獲得寵愛の計算
   document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
     totalBattle += parseInt(input.value, 10) || 0;
   });
@@ -984,6 +987,7 @@ function calcChouaiTotals() {
     totalPersonal += parseInt(input.value, 10) || 0;
   });
 
+  // 使用寵愛の計算
   document.querySelectorAll('#chouai-use-tbody .used-pts').forEach(input => {
     totalUsed += parseInt(input.value, 10) || 0;
   });
@@ -1036,6 +1040,7 @@ function getFullData() {
     chouaiUses: []
   };
 
+  // スキル
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     data.skills.push({
       category: tr.querySelector('input')?.value || '',
@@ -1044,6 +1049,7 @@ function getFullData() {
     });
   });
 
+  // パーツ
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const name = tr.querySelector('.p-name')?.value;
     if (name) {
@@ -1062,6 +1068,7 @@ function getFullData() {
     }
   });
 
+  // 未練
   document.querySelectorAll('#list tr').forEach(tr => {
     const inputs = tr.querySelectorAll('input');
     if (inputs.length >= 3) {
@@ -1073,6 +1080,7 @@ function getFullData() {
     }
   });
 
+  // セッション履歴（獲得）
   document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
     data.history.push({
       scenario: tr.querySelector('.h-scenario')?.value || '',
@@ -1082,6 +1090,7 @@ function getFullData() {
     });
   });
 
+  // 寵愛点の使い道（消費）
   document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
     data.chouaiUses.push({
       used: tr.querySelector('.used-pts')?.value || 0,
@@ -1098,29 +1107,32 @@ function saveData() {
   alert('ブラウザに保存しました');
 }
 
+// localStorageのキー名
 const STORAGE_KEY = 'necro_sheets_list';
 
+// 保存されている全スロットを取得
 function getAllSlots() {
   const json = localStorage.getItem(STORAGE_KEY);
   return json ? JSON.parse(json) : [];
 }
 
+// 全スロットを保存
 function saveAllSlots(slots) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
 }
 
+// モーダルを開く（保存モード）
 function openSaveModal() {
   const modal = document.getElementById('save-load-modal');
-  if(!modal) return;
   document.getElementById('modal-title').textContent = '💾 ブラウザに保存（スロット選択）';
   document.getElementById('save-new-area').style.display = 'block';
   renderSlotList('save');
   modal.style.display = 'flex';
 }
 
+// モーダルを開く（読込モード）
 function openLoadModal() {
   const modal = document.getElementById('save-load-modal');
-  if(!modal) return;
   document.getElementById('modal-title').textContent = '📂 データを読み込む';
   document.getElementById('save-new-area').style.display = 'none';
   renderSlotList('load');
@@ -1128,13 +1140,12 @@ function openLoadModal() {
 }
 
 function closeModal() {
-  const modal = document.getElementById('save-load-modal');
-  if(modal) modal.style.display = 'none';
+  document.getElementById('save-load-modal').style.display = 'none';
 }
 
+// 一覧のレンダリング
 function renderSlotList(mode) {
   const container = document.getElementById('slot-list');
-  if(!container) return;
   container.innerHTML = '';
   const slots = getAllSlots();
 
@@ -1182,6 +1193,7 @@ function renderSlotList(mode) {
   });
 }
 
+// 新規保存
 function saveNewSlot() {
   const data = getFullData();
   const slots = getAllSlots();
@@ -1198,6 +1210,7 @@ function saveNewSlot() {
   closeModal();
 }
 
+// 上書き保存
 function overwriteSlot(index) {
   const slots = getAllSlots();
   const data = getFullData();
@@ -1211,6 +1224,7 @@ function overwriteSlot(index) {
   closeModal();
 }
 
+// スロット読み込み
 function loadSlot(index) {
   const slots = getAllSlots();
   const slot = slots[index];
@@ -1221,6 +1235,7 @@ function loadSlot(index) {
   closeModal();
 }
 
+// スロット削除
 function deleteSlot(index, mode) {
   const slots = getAllSlots();
   const targetName = slots[index].data.name || '無名ドール';
@@ -1249,6 +1264,7 @@ function applyData(data) {
 
   onClassChange();
 
+  // スキルの復元
   const skillTbody = document.getElementById('skill-tbody');
   if (skillTbody) {
     skillTbody.innerHTML = '';
@@ -1257,6 +1273,7 @@ function applyData(data) {
     }
   }
 
+  // 未練の復元
   const listTbody = document.getElementById('list');
   if (listTbody) {
     listTbody.innerHTML = '';
@@ -1265,6 +1282,7 @@ function applyData(data) {
     }
   }
 
+  // 履歴の復元
   const historyTbody = document.getElementById('session-history-tbody');
   if (historyTbody) {
     historyTbody.innerHTML = '';
@@ -1273,6 +1291,7 @@ function applyData(data) {
     }
   }
 
+  // 使い道の復元
   const useTbody = document.getElementById('chouai-use-tbody');
   if (useTbody) {
     useTbody.innerHTML = '';
@@ -1358,6 +1377,7 @@ window.onload = function() {
   onClassChange();
 };
 </script>
+　<!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
   position: fixed;
   bottom: 20px;
