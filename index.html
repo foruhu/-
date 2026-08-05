@@ -214,77 +214,7 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
     <span>マニューバ</span>
     <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
   </div>
-  <div class="card">
-  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
-    <span>マニューバ</span>
-    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
-  </div>
-  <div id="parts-container">
-    <!-- 頭部 -->
-    <h4 style="color:#ff8888; margin:8px 0 4px 0; font-size:0.85rem;">■ 頭部</h4>
-    <div class="table-scroll">
-      <table class="sheet-table">
-        <thead>
-          <tr>
-            <th style="width:5%;">破損</th>
-            <th style="width:25%;">パーツ名</th>
-            <th style="width:12%;">分類</th>
-            <th style="width:8%;">LV</th>
-            <th style="width:15%;">タイミング</th>
-            <th style="width:10%;">コスト</th>
-            <th style="width:10%;">射程</th>
-            <th>効果メモ</th>
-            <th style="width:5%;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="parts-tbody-head"></tbody>
-      </table>
-    </div>
-    <button type="button" class="sec" onclick="addPartRow('head')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 頭部パーツ追加</button>
-
-    <!-- 腕部 -->
-    <h4 style="color:#88ff88; margin:8px 0 4px 0; font-size:0.85rem;">■ 腕部</h4>
-    <div class="table-scroll">
-      <table class="sheet-table">
-        <thead>
-          <tr>
-            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="parts-tbody-arm"></tbody>
-      </table>
-    </div>
-    <button type="button" class="sec" onclick="addPartRow('arm')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 腕部パーツ追加</button>
-
-    <!-- 胴部 -->
-    <h4 style="color:#8888ff; margin:8px 0 4px 0; font-size:0.85rem;">■ 胴部</h4>
-    <div class="table-scroll">
-      <table class="sheet-table">
-        <thead>
-          <tr>
-            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="parts-tbody-body"></tbody>
-      </table>
-    </div>
-    <button type="button" class="sec" onclick="addPartRow('body')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 胴部パーツ追加</button>
-
-    <!-- 脚部 -->
-    <h4 style="color:#ffff88; margin:8px 0 4px 0; font-size:0.85rem;">■ 脚部</h4>
-    <div class="table-scroll">
-      <table class="sheet-table">
-        <thead>
-          <tr>
-            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="parts-tbody-leg"></tbody>
-      </table>
-    </div>
-    <button type="button" class="sec" onclick="addPartRow('leg')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 脚部パーツ追加</button>
-  </div>
-</div>
+  <div id="parts-container"></div>
 </div>
 
 <div class="card">
@@ -993,123 +923,6 @@ function checkSkillSelection() {
   }
 }
 
-// --- パーツ（マニューバ）追加処理 ---
-function addPartRow(locationKey, name = '', type = '基本', level = '1', timing = '', cost = '', range = '', memo = '', isBroken = false) {
-  const tbody = document.getElementById(`parts-tbody-${locationKey}`);
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="text-align:center;"><input type="checkbox" class="p-break" ${isBroken ? 'checked' : ''} onchange="togglePartBreak(this)"></td>
-    <td><input type="text" class="p-name" value="${name}" placeholder="パーツ名"></td>
-    <td>
-      <select class="p-type" onchange="calcTotals()">
-        <option value="基本" ${type==='基本'?'selected':''}>基本</option>
-        <option value="武装" ${type==='武装'?'selected':''}>武装</option>
-        <option value="変異" ${type==='変異'?'selected':''}>変異</option>
-        <option value="改造" ${type==='改造'?'selected':''}>改造</option>
-      </select>
-    </td>
-    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:40px;" onchange="calcTotals()"></td>
-    <td><input type="text" class="p-timing" value="${timing}"></td>
-    <td><input type="text" class="p-cost" value="${cost}"></td>
-    <td><input type="text" class="p-range" value="${range}"></td>
-    <td><input type="text" class="p-memo" value="${memo}"></td>
-    <td style="text-align:center;"><button type="button" onclick="this.closest('tr').remove(); calcTotals();">✕</button></td>
-  `;
-  tbody.appendChild(tr);
-  if (isBroken) togglePartBreak(tr.querySelector('.p-break'));
-  calcTotals();
-}
-
-// 破損チェック時のスタイル切り替え
-function togglePartBreak(checkbox) {
-  const tr = checkbox.closest('tr');
-  if (checkbox.checked) {
-    tr.style.opacity = '0.5';
-    tr.style.textDecoration = 'line-through';
-  } else {
-    tr.style.opacity = '1';
-    tr.style.textDecoration = 'none';
-  }
-}
-
-// 破損一括解除
-function resetUsed() {
-  document.querySelectorAll('.p-break').forEach(cb => {
-    cb.checked = false;
-    togglePartBreak(cb);
-  });
-}
-
-// --- データ取得（パーツを配列化して保存） ---
-function getFullData() {
-  const getVal = id => document.getElementById(id)?.value || '';
-
-  const data = {
-    pl: getVal('pl'), name: getVal('name'), pos: getVal('pos'), mc: getVal('mc'), sc: getVal('sc'),
-    age: getVal('age'), ps: getVal('ps'), hint: getVal('hint'), mem: getVal('mem'),
-    act: getVal('act'), fav: getVal('fav'), tr: getVal('tr'),
-    chouaiWep: getVal('chouai-wep'), chouaiMut: getVal('chouai-mut'), chouaiCyb: getVal('chouai-cyb'),
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-    skillSelect: getVal('skill-select'),
-    mutationLvl3: getVal('mutation-lvl3-select'),
-    parts: []
-  };
-
-  // 各部位のパーツを取得
-  ['head', 'arm', 'body', 'leg'].forEach(locKey => {
-    const tbody = document.getElementById(`parts-tbody-${locKey}`);
-    if (tbody) {
-      tbody.querySelectorAll('tr').forEach(tr => {
-        data.parts.push({
-          locKey: locKey,
-          isBroken: tr.querySelector('.p-break')?.checked || false,
-          name: tr.querySelector('.p-name')?.value || '',
-          type: tr.querySelector('.p-type')?.value || '基本',
-          level: tr.querySelector('.p-level')?.value || '1',
-          timing: tr.querySelector('.p-timing')?.value || '',
-          cost: tr.querySelector('.p-cost')?.value || '',
-          range: tr.querySelector('.p-range')?.value || '',
-          memo: tr.querySelector('.p-memo')?.value || ''
-        });
-      });
-    }
-  });
-
-  return data;
-}
-
-// --- データ反映（マニューバの復元） ---
-function applyData(data) {
-  if (!data) return;
-  const setVal = (id, val) => { if (document.getElementById(id)) document.getElementById(id).value = val || ''; };
-
-  setVal('pl', data.pl); setVal('name', data.name); setVal('pos', data.pos);
-  setVal('mc', data.mc); setVal('sc', data.sc); setVal('age', data.age);
-  setVal('ps', data.ps); setVal('hint', data.hint); setVal('mem', data.mem);
-  setVal('act', data.act); setVal('fav', data.fav); setVal('tr', data.tr);
-  setVal('chouai-wep', data.chouaiWep); setVal('chouai-mut', data.chouaiMut); setVal('chouai-cyb', data.chouaiCyb);
-  setVal('skill-select', data.skillSelect); setVal('mutation-lvl3-select', data.mutationLvl3);
-
-  if (typeof checkSkillSelection === 'function') checkSkillSelection();
-
-  // 各部位のテーブルを初期化
-  ['head', 'arm', 'body', 'leg'].forEach(locKey => {
-    const tbody = document.getElementById(`parts-tbody-${locKey}`);
-    if (tbody) tbody.innerHTML = '';
-  });
-
-  // パーツ復元
-  if (data.parts && Array.isArray(data.parts)) {
-    data.parts.forEach(p => {
-      addPartRow(p.locKey || 'head', p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isBroken);
-    });
-  }
-
-  if (typeof calcTotals === 'function') calcTotals();
-}
-
 // --- 1. セッション履歴（獲得）の行追加 ---
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
@@ -1199,7 +1012,7 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 1. データ取得（マニューバ/パーツを確実に配列へ格納） ---
+// --- 保存・読込 ---
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
 
@@ -1219,15 +1032,15 @@ function getFullData() {
     chouaiWep: getVal('chouai-wep'),
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
-    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    bonus: document.querySelector('input[name="bonus"][value]:checked')?.value || 'wep',
     skills: [],
-    parts: [], // ← 配置パーツ（マニューバ）
+    parts: [],
     list: [],
     history: [],
     chouaiUses: []
   };
 
-  // スキルの取得
+  // スキル
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     data.skills.push({
       category: tr.querySelector('input')?.value || '',
@@ -1236,21 +1049,21 @@ function getFullData() {
     });
   });
 
-  // ★パーツ/マニューバの取得（#parts-container 以下のすべての tr）
+  // パーツ
   document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const nameInput = tr.querySelector('.p-name');
-    if (nameInput) {
+    const name = tr.querySelector('.p-name')?.value;
+    if (name) {
       data.parts.push({
         isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
-        location: tr.querySelector('.p-location')?.value || '頭部',
-        name: nameInput.value,
+        location: tr.querySelector('.p-location')?.value || '',
+        name: name,
         type: tr.querySelector('.p-type')?.value || '基本',
         level: tr.querySelector('.p-level')?.value || '1',
         timing: tr.querySelector('.p-timing')?.value || '',
         cost: tr.querySelector('.p-cost')?.value || '',
         range: tr.querySelector('.p-range')?.value || '',
         memo: tr.querySelector('.p-memo')?.value || '',
-        isEditable: !nameInput.hasAttribute('readonly')
+        isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
       });
     }
   });
@@ -1267,7 +1080,7 @@ function getFullData() {
     }
   });
 
-  // 履歴＆使い道
+  // セッション履歴（獲得）
   document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
     data.history.push({
       scenario: tr.querySelector('.h-scenario')?.value || '',
@@ -1277,6 +1090,7 @@ function getFullData() {
     });
   });
 
+  // 寵愛点の使い道（消費）
   document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
     data.chouaiUses.push({
       used: tr.querySelector('.used-pts')?.value || 0,
@@ -1287,7 +1101,152 @@ function getFullData() {
   return data;
 }
 
-// --- 2. データ反映（マニューバ/パーツテーブルのHTML再描画） ---
+function saveData() {
+  const data = getFullData();
+  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  alert('ブラウザに保存しました');
+}
+
+// localStorageのキー名
+const STORAGE_KEY = 'necro_sheets_list';
+
+// 保存されている全スロットを取得
+function getAllSlots() {
+  const json = localStorage.getItem(STORAGE_KEY);
+  return json ? JSON.parse(json) : [];
+}
+
+// 全スロットを保存
+function saveAllSlots(slots) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
+}
+
+// モーダルを開く（保存モード）
+function openSaveModal() {
+  const modal = document.getElementById('save-load-modal');
+  document.getElementById('modal-title').textContent = '💾 ブラウザに保存（スロット選択）';
+  document.getElementById('save-new-area').style.display = 'block';
+  renderSlotList('save');
+  modal.style.display = 'flex';
+}
+
+// モーダルを開く（読込モード）
+function openLoadModal() {
+  const modal = document.getElementById('save-load-modal');
+  document.getElementById('modal-title').textContent = '📂 データを読み込む';
+  document.getElementById('save-new-area').style.display = 'none';
+  renderSlotList('load');
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('save-load-modal').style.display = 'none';
+}
+
+// 一覧のレンダリング
+function renderSlotList(mode) {
+  const container = document.getElementById('slot-list');
+  container.innerHTML = '';
+  const slots = getAllSlots();
+
+  if (slots.length === 0) {
+    container.innerHTML = '<div style="color: #aaa; text-align: center; padding: 15px;">保存されたデータはありません</div>';
+    return;
+  }
+
+  slots.forEach((slot, index) => {
+    const item = document.createElement('div');
+    item.style.cssText = 'background: #121216; border: 1px solid #333; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
+
+    const info = document.createElement('div');
+    info.innerHTML = `
+      <div style="font-weight: bold; color: #8ff;">${slot.data.name || '無名ドール'} <span style="font-size:0.75rem; color:#aaa;">(${slot.data.pos || 'ポジション未設定'})</span></div>
+      <div style="font-size: 0.75rem; color: #888;">更新日: ${slot.updatedAt}</div>
+    `;
+
+    const btnGroup = document.createElement('div');
+    btnGroup.style.cssText = 'display: flex; gap: 6px;';
+
+    if (mode === 'save') {
+      const overwriteBtn = document.createElement('button');
+      overwriteBtn.textContent = '上書き保存';
+      overwriteBtn.style.cssText = 'background: #384828; color: #aaffaa; border: 1px solid #584; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+      overwriteBtn.onclick = () => overwriteSlot(index);
+      btnGroup.appendChild(overwriteBtn);
+    } else {
+      const loadBtn = document.createElement('button');
+      loadBtn.textContent = '読み込む';
+      loadBtn.style.cssText = 'background: #283858; color: #aacf8f; border: 1px solid #468; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+      loadBtn.onclick = () => loadSlot(index);
+      btnGroup.appendChild(loadBtn);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '削除';
+    delBtn.style.cssText = 'background: #582828; color: #ffaaaa; border: 1px solid #844; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;';
+    delBtn.onclick = () => deleteSlot(index, mode);
+    btnGroup.appendChild(delBtn);
+
+    item.appendChild(info);
+    item.appendChild(btnGroup);
+    container.appendChild(item);
+  });
+}
+
+// 新規保存
+function saveNewSlot() {
+  const data = getFullData();
+  const slots = getAllSlots();
+  const now = new Date().toLocaleString('ja-JP');
+
+  slots.unshift({
+    id: Date.now(),
+    updatedAt: now,
+    data: data
+  });
+
+  saveAllSlots(slots);
+  alert(`「${data.name || '無名ドール'}」を新規保存しました！`);
+  closeModal();
+}
+
+// 上書き保存
+function overwriteSlot(index) {
+  const slots = getAllSlots();
+  const data = getFullData();
+  if (!confirm(`「${slots[index].data.name || '無名ドール'}」のデータを現在の入力内容で上書きしますか？`)) return;
+
+  slots[index].updatedAt = new Date().toLocaleString('ja-JP');
+  slots[index].data = data;
+
+  saveAllSlots(slots);
+  alert('上書き保存しました！');
+  closeModal();
+}
+
+// スロット読み込み
+function loadSlot(index) {
+  const slots = getAllSlots();
+  const slot = slots[index];
+  if (!slot) return;
+
+  applyData(slot.data);
+  alert(`「${slot.data.name || '無名ドール'}」のデータを読み込みました！`);
+  closeModal();
+}
+
+// スロット削除
+function deleteSlot(index, mode) {
+  const slots = getAllSlots();
+  const targetName = slots[index].data.name || '無名ドール';
+  
+  if (!confirm(`「${targetName}」の保存データを削除してもよろしいですか？`)) return;
+
+  slots.splice(index, 1);
+  saveAllSlots(slots);
+  renderSlotList(mode);
+}
+
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
@@ -1312,39 +1271,6 @@ function applyData(data) {
     if (data.skills) {
       data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
     }
-  }
-
-  // ★パーツ/マニューバの復元
-  if (data.parts && Array.isArray(data.parts)) {
-    // 各部位のtbody（parts-tbody-head など）または全体コンテナのテーブル行をクリア
-    const locIds = ['head', 'arm', 'body', 'leg'];
-    locIds.forEach(id => {
-      const tbody = document.getElementById(`parts-tbody-${id}`);
-      if (tbody) tbody.innerHTML = '';
-    });
-
-    data.parts.forEach(p => {
-      // 部位名から対応するtbodyを取得（デフォルトは頭部）
-      let secId = 'head';
-      if (p.location === '腕部') secId = 'arm';
-      else if (p.location === '胴部') secId = 'body';
-      else if (p.location === '脚部') secId = 'leg';
-
-      const tbody = document.getElementById(`parts-tbody-${secId}`) || document.querySelector('#parts-container tbody');
-      if (tbody) {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location);
-        
-        // 破損状態の復元
-        const lastTr = tbody.querySelector('tr:last-child');
-        if (lastTr) {
-          const checkbox = lastTr.querySelector('input[type="checkbox"]');
-          if (checkbox) {
-            checkbox.checked = p.isBroken;
-            togglePartBreak(checkbox);
-          }
-        }
-      }
-    });
   }
 
   // 未練の復元
@@ -1374,8 +1300,6 @@ function applyData(data) {
     }
   }
 
-  // スキル（「歪極」「時計仕掛け」等）によるキャパ制限・LV3解放チェックを再適用
-  if (typeof checkSkillSelection === 'function') checkSkillSelection();
   calcTotals();
 }
 
