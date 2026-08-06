@@ -1426,10 +1426,11 @@ function exportCcfolia() {
   alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
 
-window.onload = function() {
-  if (typeof renderPartsContainer === 'function') renderPartsContainer();
-  onClassChange();
-};
+// 解決策: addEventListenerを使用する
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof renderPartsContainer === 'function') renderPartsContainer();
+    onClassChange();
+});
 </script>
 　<!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
