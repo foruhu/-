@@ -985,61 +985,14 @@ function calcChouaiTotals() {
 // --- 保存・読込 ---
 function getFullData() {
     const getVal = id => document.getElementById(id)?.value || '';
-
-    // パーツ（マニューバ）情報の収集
-    const partsData = [];
-    document.querySelectorAll('#parts-container tr').forEach(tr => {
-        // 各入力要素を取得
-        const pLoc = tr.querySelector('.p-location')?.value || '';
-        const pName = tr.querySelector('.p-name')?.value || '';
-        const pType = tr.querySelector('.p-type')?.value || '';
-        const pLv = tr.querySelector('.p-level')?.value || '';
-        const pTiming = tr.querySelector('.p-timing')?.value || '';
-        const pCost = tr.querySelector('.p-cost')?.value || '';
-        const pRange = tr.querySelector('.p-range')?.value || '';
-        const isBroken = tr.querySelector('input[type="checkbox"]')?.checked || false;
-
-        // パーツ名が存在する（または設定されている）場合のみ保存対象にする
-        if (pName || pLoc) {
-            partsData.push({
-                location: pLoc,
-                name: pName,
-                type: pType,
-                level: pLv,
-                timing: pTiming,
-                cost: pCost,
-                range: pRange,
-                broken: isBroken
-            });
-        }
-    });
-
     const data = {
-        pl: getVal('pl'),
-        name: getVal('name'),
-        pos: getVal('pos'),
-        mc: getVal('mc'),
-        sc: getVal('sc'),
-        age: getVal('age'),
-        ps: getVal('ps'),
-        hint: getVal('hint'),
-        mem: getVal('mem'),
-        act: getVal('act'),
-        fav: getVal('fav'),
-        tr: getVal('tr'),
-        chouaiWep: getVal('chouai-wep'),
-        chouaiMut: getVal('chouai-mut'),
-        chouaiCyb: getVal('chouai-cyb'),
-        bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
-        skills: [], // スキル取得処理も必要に応じて同様に構築
-        parts: partsData, // ★取得したパーツデータを設定
-        list: [],
-        history: [],
-        chouaiUses: []
+        pl: getVal('pl'), name: getVal('name'), pos: getVal('pos'), mc: getVal('mc'), sc: getVal('sc'),
+        age: getVal('age'), ps: getVal('ps'), hint: getVal('hint'), mem: getVal('mem'),
+        act: getVal('act'), fav: getVal('fav'), tr: getVal('tr'),
+        chouaiWep: getVal('chouai-wep'), chouaiMut: getVal('chouai-mut'), chouaiCyb: getVal('chouai-cyb'),
+        bonus: document.querySelector('input[name="bonus"][value]:checked')?.value || 'wep',
+        skills: [], parts: [], list: [], history: [], chouaiUses: []
     };
-
-    return data;
-}
 
     // スキル
     document.querySelectorAll('#skill-tbody tr').forEach(tr => {
@@ -1248,40 +1201,16 @@ function applyData(data) {
   onClassChange();
 
   // --- 1. パーツ（マニューバ）コンテナの初期化と再配置 ---
-if (typeof renderPartsContainer === 'function') {
-    renderPartsContainer(); // 画面上のパーツ表示を初期化
-}
+  if (typeof renderPartsContainer === 'function') {
+    renderPartsContainer(); // 画面上のパーツ表示を一旦クリアしてデフォルト状態に戻す
+  }
 
-if (data.parts && data.parts.length > 0) {
+  if (data.parts && data.parts.length > 0) {
     // 既存のテーブル行をすべて一旦クリア
     document.querySelectorAll('#parts-container tbody').forEach(tbody => tbody.innerHTML = '');
 
-    // 読み込んだパーツデータを1件ずつテーブルに再構築
+    // 保存されていたパーツデータから行を再生成
     data.parts.forEach(p => {
-        // ※パーツ行を追加する専用の既存関数があればそれを実行してください
-        // 例: if (typeof addPartRow === 'function') { addPartRow(p); }
-        
-        // 以下は直接要素を生成して設定する例です
-        const targetTbody = document.querySelector('#parts-container tbody') || document.getElementById('parts-tbody');
-        if (targetTbody) {
-            const tr = document.createElement('tr');
-            if (p.broken) tr.classList.add('broken');
-
-            tr.innerHTML = `
-                <td><input type="text" class="p-location" value="${p.location || ''}"></td>
-                <td><input type="text" class="p-name" value="${p.name || ''}"></td>
-                <td><input type="text" class="p-type" value="${p.type || ''}"></td>
-                <td><input type="number" class="p-level" value="${p.level || 1}"></td>
-                <td><input type="text" class="p-timing" value="${p.timing || ''}"></td>
-                <td><input type="text" class="p-cost" value="${p.cost || ''}"></td>
-                <td><input type="text" class="p-range" value="${p.range || ''}"></td>
-                <td><input type="checkbox" onchange="togglePartBreak(this)" ${p.broken ? 'checked' : ''}></td>
-            `;
-            targetTbody.appendChild(tr);
-        }
-    });
-}
-
       const locSecMap = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
       const secId = locSecMap[p.location] || 'head';
       const tbody = document.getElementById(`parts-tbody-${secId}`) || document.querySelector('#parts-container tbody');
@@ -1426,11 +1355,10 @@ function exportCcfolia() {
   alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
 
-// 解決策: addEventListenerを使用する
-window.addEventListener('DOMContentLoaded', () => {
-    if (typeof renderPartsContainer === 'function') renderPartsContainer();
-    onClassChange();
-});
+window.onload = function() {
+  if (typeof renderPartsContainer === 'function') renderPartsContainer();
+  onClassChange();
+};
 </script>
 　<!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
