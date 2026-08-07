@@ -758,6 +758,7 @@ categories.forEach(cat => {
     }
 
     const maxAllowed = baseLimit + autoBonus;
+    const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
     
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
