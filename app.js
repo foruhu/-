@@ -5,6 +5,7 @@ function getAllDolls() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
   } catch (e) {
+    console.error('LocalStorage parsing error:', e);
     return {};
   }
 }
@@ -26,9 +27,7 @@ function openSaveModal() {
   const dolls = getAllDolls();
   const currentName = document.getElementById('name')?.value || '無名ドール';
   
-  // オプションリセット（バックティック修復）
   select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
-  // 既存のドールを上書き選択肢としてリストに追加
   Object.keys(dolls).forEach(id => {
     const doll = dolls[id];
     const option = document.createElement('option');
@@ -55,7 +54,6 @@ function confirmSave() {
   
   closeModals();
   alert(`「${data.name || '無名ドール'}」を保存しました！`);
-confirm(`本当に「${targetName}」を削除しますか？`);
 }
 
 // ------------------------------------------
@@ -72,7 +70,6 @@ function openLoadModal() {
     return alert('ブラウザに保存されたドールデータがありません。');
   }
   
-  // オプションリセット
   select.innerHTML = '<option value="">-- ドールを選択してください --</option>';
   
   keys.forEach(id => {
@@ -203,7 +200,6 @@ function applyData(data) {
   setVal('chouai-mut', data.chouaiMut || '0');
   setVal('chouai-cyb', data.chouaiCyb || '0');
   
-  // ラジオボタンの復元（バックティック修復）
   if (data.bonus) {
     const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
     if (radio) radio.checked = true;
@@ -220,21 +216,34 @@ function applyData(data) {
     }
   }
 
-  // パーツ（マニューバ）の復元を追加
+  // パーツ（マニューバ）の復元
   if (data.parts && typeof renderPartsContainer === 'function') {
-    // コンテナ全体の再描画関数がある場合はそちらを実行
     renderPartsContainer();
     
-    // パーツ行の復元
     const rows = document.querySelectorAll('#parts-container tr');
     data.parts.forEach((p, idx) => {
       if (rows[idx]) {
         const tr = rows[idx];
+        
         const cb = tr.querySelector('input[type="checkbox"]');
         if (cb) {
-          cb.checked = p.isBroken;
-          if (p.isBroken) tr.classList.add('broken');
+          cb.checked = !!p.isBroken;
+          tr.classList.toggle('broken', !!p.isBroken);
         }
+        
+        const setFieldVal = (cls, val) => {
+          const input = tr.querySelector(cls);
+          if (input) input.value = val || '';
+        };
+        
+        setFieldVal('.p-location', p.location);
+        setFieldVal('.p-name', p.name);
+        setFieldVal('.p-type', p.type);
+        setFieldVal('.p-level', p.level);
+        setFieldVal('.p-timing', p.timing);
+        setFieldVal('.p-cost', p.cost);
+        setFieldVal('.p-range', p.range);
+        setFieldVal('.p-memo', p.memo);
       }
     });
   }
@@ -271,14 +280,24 @@ function applyData(data) {
 
 function exportJSON() {
   const data = getFullData();
+  const safeName = (data.name || 'necro_character').replace(/[\\/:*?"<>|]/g, '_');
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (data.name || 'necro_character') + '.json';
+  a.download = `${safeName}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// モーダルの外側クリックで閉じるイベント
+window.addEventListener('click', function(e) {
+  const saveModal = document.getElementById('save-modal');
+  const loadModal = document.getElementById('load-modal');
+  if (e.target === saveModal || e.target === loadModal) {
+    closeModals();
+  }
+});
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
