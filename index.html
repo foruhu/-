@@ -165,7 +165,7 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
       <tbody id="limit-tbody"></tbody>
     </table>
     <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
-      ※「時計仕掛け」のスキルを選ぶと改造Lv3の追加枠が自動で+1されます
+      ※「時計仕掛け」「歪極」のスキルを選ぶと改造.変異Lv3の追加枠が自動で+1されます
     </div>
   </div>
 
@@ -214,7 +214,77 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
     <span>マニューバ</span>
     <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
   </div>
-  <div id="parts-container"></div>
+  <div class="card">
+  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>マニューバ</span>
+    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+  </div>
+  <div id="parts-container">
+    <!-- 頭部 -->
+    <h4 style="color:#ff8888; margin:8px 0 4px 0; font-size:0.85rem;">■ 頭部</h4>
+    <div class="table-scroll">
+      <table class="sheet-table">
+        <thead>
+          <tr>
+            <th style="width:5%;">破損</th>
+            <th style="width:25%;">パーツ名</th>
+            <th style="width:12%;">分類</th>
+            <th style="width:8%;">LV</th>
+            <th style="width:15%;">タイミング</th>
+            <th style="width:10%;">コスト</th>
+            <th style="width:10%;">射程</th>
+            <th>効果メモ</th>
+            <th style="width:5%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody-head"></tbody>
+      </table>
+    </div>
+    <button type="button" class="sec" onclick="addPartRow('head')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 頭部パーツ追加</button>
+
+    <!-- 腕部 -->
+    <h4 style="color:#88ff88; margin:8px 0 4px 0; font-size:0.85rem;">■ 腕部</h4>
+    <div class="table-scroll">
+      <table class="sheet-table">
+        <thead>
+          <tr>
+            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody-arm"></tbody>
+      </table>
+    </div>
+    <button type="button" class="sec" onclick="addPartRow('arm')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 腕部パーツ追加</button>
+
+    <!-- 胴部 -->
+    <h4 style="color:#8888ff; margin:8px 0 4px 0; font-size:0.85rem;">■ 胴部</h4>
+    <div class="table-scroll">
+      <table class="sheet-table">
+        <thead>
+          <tr>
+            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody-body"></tbody>
+      </table>
+    </div>
+    <button type="button" class="sec" onclick="addPartRow('body')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 胴部パーツ追加</button>
+
+    <!-- 脚部 -->
+    <h4 style="color:#ffff88; margin:8px 0 4px 0; font-size:0.85rem;">■ 脚部</h4>
+    <div class="table-scroll">
+      <table class="sheet-table">
+        <thead>
+          <tr>
+            <th style="width:5%;">破損</th><th style="width:25%;">パーツ名</th><th style="width:12%;">分類</th><th style="width:8%;">LV</th><th style="width:15%;">タイミング</th><th style="width:10%;">コスト</th><th style="width:10%;">射程</th><th>効果メモ</th><th style="width:5%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody-leg"></tbody>
+      </table>
+    </div>
+    <button type="button" class="sec" onclick="addPartRow('leg')" style="width:100%;margin:4px 0 12px 0;padding:4px">+ 脚部パーツ追加</button>
+  </div>
+</div>
 </div>
 
 <div class="card">
@@ -236,15 +306,22 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="save-load-panel" style="margin: 15px 0; padding: 10px; border: 1px solid var(--red); background: #1a0808;">
-  <label style="font-weight: bold; color: #f0a0a0;">【保存済みドール一覧】</label>
-  <select id="doll-selector" onchange="onDollSelectChange()" style="padding: 5px; min-width: 200px;">
-    <option value="">-- ドールを選択 --</option>
-  </select>
+<!-- スキル選択（例） -->
+<select id="skill-select" onchange="checkSkillSelection()">
+  <option value="">スキルを選択...</option>
+  <option value="時計仕掛け">時計仕掛け</option>
+  <option value="歪極">歪極（レベル3変異パーツ開放）</option>
+</select>
 
-  <button type="button" onclick="saveCurrentDoll()">上書き/新規保存</button>
-  <button type="button" onclick="loadSelectedDoll()">読み込む</button>
-  <button type="button" onclick="deleteSelectedDoll()" style="color: #ff6666;">削除</button>
+<!-- レベル3変異パーツ選択枠（初期状態は非表示） -->
+<div id="mutation-level3-group" style="display: none; margin-top: 10px; background: #2a1a1a; padding: 10px; border: 1px solid #844; border-radius: 4px;">
+  <label style="color: #ffaaaa; font-weight: bold;">🧬 変異パーツ（レベル3）:</label>
+  <select id="mutation-lvl3-select" style="margin-left: 8px;">
+    <option value="">パーツを選択してください...</option>
+    <option value="巨大化">巨大化</option>
+    <option value="異形化">異形化</option>
+    <!-- その他のレベル3変異パーツ -->
+  </select>
 </div>
 
 <!-- 寵愛点サマリー -->
@@ -259,70 +336,35 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   </div>
 </div>
 
-<!-- 画像デザイン再現版 保存・読込ボタンエリア -->
-<div style="display: flex; gap: 12px; margin-bottom: 15px; width: 100%; max-width: 800px;">
-  <!-- ブラウザに保存 -->
-  <button type="button" onclick="openSaveModal()" style="
-    flex: 1;
-    background: #233b2e;
-    color: #6ee7b7;
-    border: 2px solid #489b74;
-    border-radius: 8px;
-    padding: 12px 8px;
-    font-size: 1.05rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    box-sizing: border-box;
-    transition: filter 0.2s;
-  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
-    <span style="font-size: 1.3rem;">💾</span> ブラウザに保存
-  </button>
+<!-- 保存・読込ボタンエリア -->
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+  <button type="button" onclick="openSaveModal()" style="background: #2a4836; color: #8ff; border: 1px solid #4a8; padding: 6px 12px; border-radius: 4px; cursor: pointer;">💾 ブラウザに保存</button>
+  <button type="button" onclick="openLoadModal()" style="background: #363648; color: #8ff; border: 1px solid #66f; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📂 データを読み込む</button>
+  <button type="button" onclick="exportJSON()" style="background: #4a362a; color: #ffb888; border: 1px solid #864; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📄 JSON出力</button>
+</div>
 
-  <!-- データを読み込む -->
-  <button type="button" onclick="openLoadModal()" style="
-    flex: 1;
-    background: #313143;
-    color: #67e8f9;
-    border: 2px solid #5b5b9c;
-    border-radius: 8px;
-    padding: 12px 8px;
-    font-size: 1.05rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    box-sizing: border-box;
-    transition: filter 0.2s;
-  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
-    <span style="font-size: 1.3rem;">📂</span> データを読み込む
-  </button>
+<!-- 複数保存・読込用モーダル（ダイアログ） -->
+<div id="save-load-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10000; align-items: center; justify-content: center;">
+  <div style="background: #1e1e24; border: 1px solid #555; width: 90%; max-width: 500px; padding: 20px; border-radius: 8px; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.8);">
+    <h3 id="modal-title" style="margin-top: 0; color: #8ff; border-bottom: 1px solid #444; padding-bottom: 8px;">保存データ一覧</h3>
+    
+    <!-- 新規保存用入力欄（保存モード時のみ表示） -->
+    <div id="save-new-area" style="margin-bottom: 15px; display: none;">
+      <button type="button" onclick="saveNewSlot()" style="width: 100%; background: #2a5836; color: #fff; border: 1px solid #4a8; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        ＋ 現在のドールを新規スロットとして保存
+      </button>
+      <div style="text-align: center; color: #888; margin: 8px 0; font-size: 0.8rem;">または既存データに上書き</div>
+    </div>
 
-  <!-- JSON出力 -->
-  <button type="button" onclick="exportJSON()" style="
-    flex: 1;
-    background: #412f27;
-    color: #fdba74;
-    border: 2px solid #855339;
-    border-radius: 8px;
-    padding: 12px 8px;
-    font-size: 1.05rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    box-sizing: border-box;
-    transition: filter 0.2s;
-  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
-    <span style="font-size: 1.3rem;">📄</span> JSON出力
-  </button>
+    <!-- データ一覧表示部分 -->
+    <div id="slot-list" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+      <!-- JavaScriptでここにスロットが追加されます -->
+    </div>
+
+    <div style="text-align: right;">
+      <button type="button" onclick="closeModal()" style="background: #444; color: #ccc; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer;">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <!-- セッション履歴（獲得） -->
@@ -360,31 +402,30 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
 const SKILL_DATABASE = {
   'アリス': [
     { name: '少女', memo: '【少女】 ラピッド/0/0\n対象の姉妹1人と対話判定を行う' },
-    { name: 'お嬢様' }, { name: '癒し' }, { name: '楽園の天使' }, { name: '負けない心' }, { name: '祈り' }, { name: '輝く表情' }
+    { name: 'お嬢様' }, { name: '癒し' }, { name: '楽園の天使' }, { name: '負けない心' }
   ],
   'ホリック': [
     { name: '加速する狂気' }, { name: '業怒' }, { name: '衝動' }, { name: '奈落の引力' },
-    { name: '修羅', memo: '【修羅】 ジャッジ/参照/自身\nコストとして、あなたは任意の未練に狂気点+1\n支援3' },
-    { name: '堕地獄' }, { name: '狂気の果て' }
+    { name: '修羅', memo: '【修羅】 ジャッジ/参照/自身\nコストとして、あなたは任意の未練に狂気点+1\n支援3' }
   ],
   'オートマトン': [
     { name: '援護' }, { name: '私は人形' },
     { name: '無茶', memo: '【無茶】 オート/参照/自\nコストとして、あなたは任意の基本パーツ1つ損傷する\n行動・攻撃・切断判定において、振り直しできる' },
-    { name: '煉獄の檻' }, { name: '氷の心' }, { name: '血の涙' }, { name: '敵は敵' }
+    { name: '煉獄の檻' }, { name: '氷の心' }
   ],
   'ジャンク': [
     { name: '随行' }, { name: '足掻く' },
     { name: '半壊', memo: '【半壊】 オート/無し/自身\nターン終了までにたからものを損傷していた場合、ターン経過での狂気点は追加させない' },
-    { name: '奈落への抗い' }, { name: '地獄の住人' }, { name: '楽園の守護者' }, { name: '手負いの獣' }
+    { name: '奈落への抗い' }, { name: '地獄の住人' }
   ],
   'コート': [
     { name: '助言' }, { name: '作戦' },
     { name: '冷静', memo: '【冷静】 オート/無し/自身\n行動判定の出目+1' },
-    { name: '先読み' }, { name: '看破' }, { name: '抑制' }, { name: '憎まれ役' }
+    { name: '先読み' }, { name: '看破' }
   ],
   'ソロリティ': [
     { name: '号令', memo: '【号令】 ラピッド/2/参照\nあなたを含む舞台上にいる姉妹全員、攻撃マニューバ1つをラピッドとして使用してよい' },
-    { name: '内緒話' }, { name: '克己心' }, { name: '優雅' }, { name: '花園の集い' }, { name: '姉妹のくちづけ' }, { name: '心を鬼にして' }
+    { name: '内緒話' }, { name: '克己心' }, { name: '優雅' }, { name: '花園の集い' }
   ],
   'ステーシー': [
     { name: '蠢く肉片' },
@@ -461,106 +502,107 @@ const DEFAULT_PARTS = {
 const EXTRA_PARTS_DB = {
   head: [
     { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
-    { name: '発勁', type: '武装', level: 2, timing: 'ラピッド', cost: '2', range: '0' },
+    { name: '発勁', type: '武装', level: 2, timing: '', cost: '', range: '' },
     { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。行動判定で使用した際、大失敗してもこのパーツは損傷しない。' },
-    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0～1' },
-    { name: 'よぶんなあたま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
+    { name: 'よだれじた', type: '変異', level: 2, timing: '', cost: '', range: '' },
+    { name: 'よぶんなあたま', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可。任意の未練から、狂気点を1減少させてよい。' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'ラピッド', cost: '無し', range: '自身', memo: '最大行動値+1' },
-    { name: 'セイバートゥース', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0' },
+    { name: 'セイバートゥース', type: '改造', level: 1, timing: '', cost: '', range: '' },
     { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
     { name: 'ボイスエフェクト', type: '改造', level: 1, timing: 'ラピッド', cost: '0〜2', range: '自身', memo: '最大行動値+1' },
-    { name: 'スコープ', type: '改造', level: 2, timing: 'ジャッジ', cost: '0', range: '自身' },
+    { name: 'スコープ', type: '改造', level: 2, timing: '', cost: '', range: '' },
     { name: 'エンバーミング', type: '改造', level: 3, timing: 'ジャッジ', cost: '2', range: '0', memo: '妨害2。1ターンに何度も使用可。1回の判定は重複不可。' }
   ],
   arm: [
-    { name: '釘バット', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0' },
-    { name: 'バール', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0' },
+    { name: '釘バット', type: '武装', level: 1, timing: '', cost: '', range: '' },
+    { name: 'バール', type: '武装', level: 1, timing: '', cost: '', range: '' },
     { name: '斧', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0' },
     { name: '肉切り包丁', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵2' },
     { name: '日本刀', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '白兵1＋切断' },
     { name: 'チェーンソー', type: '武装', level: 1, timing: 'アクション', cost: '3', range: '0', memo: '白兵2+切断' },
-    { name: '大型拳銃', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1' },
-    { name: '狙撃ライフル', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '2〜3' },
+    { name: '大型拳銃', type: '武装', level: 1, timing: '', cost: '', range: '' },
+    { name: '狙撃ライフル', type: '武装', level: 1, timing: '', cost: '', range: '' },
     { name: '合金トランク', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '防御1+爆発無効' },
     { name: '鉄球鎖', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1', memo: '白兵1+転倒' },
-    { name: 'ショットガン', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1' },
-    { name: 'マシンガン', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1' },
-    { name: '熊撃ち銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜2' },
-    { name: '二丁拳銃', type: '武装', level: 2, timing: 'アクション', cost: '3', range: '0〜1' },
+    { name: 'ショットガン', type: '武装', level: 2, timing: '', cost: '', range: '' },
+    { name: 'マシンガン', type: '武装', level: 2, timing: '', cost: '', range: '' },
+    { name: '熊撃ち銃', type: '武装', level: 2, timing: '', cost: '', range: '' },
+    { name: '二丁拳銃', type: '武装', level: 2, timing: '', cost: '', range: '' },
     { name: 'ジョギリ', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵4、+攻撃判定+1' },
     { name: '芝刈り機', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0', memo: '白兵3+連撃2' },
-    { name: '名刀', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0' },
-    { name: '空飛ぶギロチン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0' },
-    { name: '対戦車ライフル', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～3' },
-    { name: 'アンデッドガン', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '1～2' },
-    { name: '火炎放射器', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0～1' },
-    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '1～2' },
-    { name: 'かぎづめ', type: '変異', level: 1, timing: 'アクション', cost: '2', range: '0' },
+    { name: '名刀', type: '武装', level: 3, timing: '', cost: '', range: '' },
+    { name: '空飛ぶギロチン', type: '武装', level: 3, timing: '', cost: '', range: '' },
+    { name: '対戦車ライフル', type: '武装', level: 3, timing: '', cost: '', range: '' },
+    { name: 'アンデッドガン', type: '武装', level: 3, timing: '', cost: '', range: '' },
+    { name: '火炎放射器', type: '武装', level: 3, timing: '', cost: '', range: '' },
+    { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '' },
+    { name: 'かぎづめ', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
-    { name: 'よだれじた', type: '変異', level: 2, timing: 'ジャッジ', cost: '2', range: '0〜1' },
-    { name: 'シザーハンズ', type: '改造', level: 1, timing: 'アクション', cost: '2', range: '0' },
-    { name: 'ガントレット', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'アームバイス', type: '改造', level: 3, timing: 'ジャッジ', cost: '1', range: '0' }
+    { name: 'よだれじた', type: '変異', level: 2, timing: '', cost: '', range: '' },
+    { name: 'シザーハンズ', type: '改造', level: 1, timing: '', cost: '', range: '' },
+    { name: 'ガントレット', type: '改造', level: 3, timing: '', cost: '', range: '' },
+    { name: 'アームバイス', type: '改造', level: 3, timing: '', cost: '', range: '' }
   ],
   body: [
     { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい。' },
     { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
-    { name: 'どろどろ', type: '変異', level: 1, timing: 'ダメージ', cost: '1', range: '0〜1' },
-    { name: 'あるびの', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
-    { name: 'ちみどろ', type: '変異', level: 1, timing: 'ジャッジ', cost: '1', range: '0〜1' },
-    { name: 'うろこ', type: '変異', level: 2, timing: 'ダメージ', cost: 'なし', range: '自身' },
-    { name: 'やせきず', type: '変異', level: 3, timing: 'オート', cost: '1', range: '自身' },
-    { name: 'だるま', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身' },
-    { name: 'アーマースキン', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身' },
-    { name: 'スチールボーン', type: '改造', level: 1, timing: 'ダメージ', cost: '1', range: '自身' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: 'ダメージ', cost: '0', range: '自身' },
-    { name: 'オートセパレート', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' }
+    { name: 'どろどろ', type: '変異', level: 1, timing: '', cost: '', range: '' },
+    { name: 'あるびの', type: '変異', level: 1, timing: '', cost: '', range: '' },
+    { name: 'ちみどろ', type: '変異', level: 1, timing: '', cost: '', range: '' },
+    { name: 'うろこ', type: '変異', level: 2, timing: '', cost: '', range: '' },
+    { name: 'やせきず', type: '変異', level: 3, timing: '', cost: '', range: '' },
+    { name: 'だるま', type: '変異', level: 3, timing: '', cost: '', range: '' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '0', range: '' },
+    { name: 'アーマースキン', type: '改造', level: 1, timing: '', cost: '0', range: '' },
+    { name: 'スチールボーン', type: '改造', level: 1, timing: '', cost: '1', range: '' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '', range: '' },
+    { name: 'オートセパレート', type: '改造', level: 3, timing: '', cost: '', range: '' }
   ],
   leg: [
     { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1' },
     { name: 'しっぽ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1。' },
-    { name: 'はりつき', type: '変異', level: 1, timing: 'アクション', cost: '3', range: '自身' },
-    { name: 'よぶんなあし', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身' },
+    { name: 'はりつき', type: '変異', level: 1, timing: '', cost: '', range: '' },
+    { name: 'よぶんなあし', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2。' },
-    { name: 'キャンサー', type: '改造', level: 3, timing: 'オート', cost: '無し', range: '自身' },
-    { name: 'ホッパー', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '自身' }
+    { name: 'キャンサー', type: '改造', level: 3, timing: '', cost: '', range: '' },
+    { name: 'ホッパー', type: '改造', level: 3, timing: '', cost: '', range: '' }
   ]
 };
 
 const COMMON_EXTRA_PARTS = [
-  { name: '火炎ビン', type: '武装', level: 1, timing: 'アクション', cost: '2', range: '0〜1' },
+  { name: '火炎ビン', type: '武装', level: 1, timing: '', cost: '', range: '' },
   { name: '有刺鉄線', type: '武装', level: 2, timing: 'ダメージ', cost: '0', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+1' },
-  { name: '手榴弾', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0〜1' },
-  { name: '単分子繊維', type: '武装', level: 3, timing: 'アクション', cost: '2', range: '0〜1' },
-  { name: 'ダイナマイト', type: '武装', level: 3, timing: 'アクション', cost: '3', range: '0〜1' },
-  { name: 'うじむし', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身' },
+  { name: '手榴弾', type: '武装', level: 2, timing: '', cost: '', range: '' },
+  { name: '単分子繊維', type: '武装', level: 3, timing: '', cost: '', range: '' },
+  { name: 'ダイナマイト', type: '武装', level: 3, timing: '', cost: '', range: '' },
+  { name: 'うじむし', type: '変異', level: 1, timing: '', cost: '', range: '' },
   { name: 'おおあな', type: '変異', level: 1, timing: 'ジャッジ', cost: '0', range: '0〜3', memo: 'あなたに対する攻撃判定にのみ使用可。妨害1' },
-  { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身' },
-  { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '0' },
-  { name: 'どくばり', type: '変異', level: 2, timing: 'アクション', cost: '3', range: '0' },
-  { name: 'よぷんなめ', type: '変異', level: 2, timing: 'ジャッジ', cost: '1', range: '0〜1' },
-  { name: 'しょくしゅ', type: '変異', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1' },
+  { name: 'おとこのこ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '' },
+  { name: 'ほねやり', type: '変異', level: 2, timing: 'アクション', cost: '2', range: '' },
+  { name: 'どくばり', type: '変異', level: 2, timing: '', cost: '', range: '' },
+  { name: 'よぷんなめ', type: '変異', level: 2, timing: '', cost: '', range: '' },
+  { name: 'しょくしゅ', type: '変異', level: 2, timing: '', cost: '', range: '' },
   { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1' },
-  { name: 'くされじる', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0〜1' },
-  { name: 'にくむち', type: '変異', level: 3, timing: 'アクション', cost: '3', range: '0' },
-  { name: 'やぶれひまく', type: '変異', level: 3, timing: 'ダメージ', cost: '0', range: '自身' },
+  { name: 'くされじる', type: '変異', level: 3, timing: '', cost: '', range: '' },
+  { name: 'にくむち', type: '変異', level: 3, timing: '', cost: '', range: '' },
+  { name: 'やぶれひまく', type: '変異', level: 3, timing: '', cost: '', range: '' },
   { name: 'しびとだけ', type: '変異', level: 3, timing: 'ジャッジ', cost: '0', range: '0', memo: '妨害2。' },
-  { name: 'リミッター', type: '改造', level: 1, timing: 'オート', cost: '0', range: '自身' },
-  { name: 'ジェットノズル', type: '改造', level: 1, timing: 'ダメージ', cost: '0', range: '自身' },
+  { name: 'リミッター', type: '改造', level: 1, timing: '', cost: '', range: '' },
+  { name: 'ジェットノズル', type: '改造', level: 1, timing: '', cost: '', range: '' },
   { name: 'リモートアタック', type: '改造', level: 1, timing: 'アクション', cost: '3', range: '0〜1', memo: '肉弾攻撃1＋転倒' },
-  { name: 'ゾンビボム', type: '改造', level: 2, timing: 'ダメージ', cost: '0', range: '0' },
-  { name: 'エレクトリガー', type: '改造', level: 2, timing: 'アクション', cost: '2', range: '0' },
-  { name: 'ドリル', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0' },
-  { name: 'アサシンブレード', type: '改造', level: 2, timing: 'ラピッド', cost: '2', range: '0' },
-  { name: 'レーザービーム', type: '改造', level: 2, timing: 'アクション', cost: '3', range: '0〜3' },
+  { name: 'ゾンビボム', type: '改造', level: 2, timing: '', cost: '', range: '' },
+   { name: 'リフレックス', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'エレクトリガー', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'ドリル', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'アサシンブレード', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'レーザービーム', type: '改造', level: 2, timing: '', cost: '', range: '' },
   { name: 'スパイク', type: '改造', level: 2, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを与えた際のみ使用可。白兵・肉弾ダメージ+2' },
-  { name: 'テンタクル', type: '改造', level: 2, timing: 'ラピッド', cost: '1', range: '0〜1' },
-  { name: 'ワイヤーリール', type: '改造', level: 2, timing: 'ラピッド', cost: '3', range: '0〜2' },
-  { name: 'マニピュレーター', type: '改造', level: 3, timing: 'ラピッド', cost: '2', range: '0〜1' },
-  { name: 'パイルバンカー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0' },
-  { name: 'ライトセイバー', type: '改造', level: 3, timing: 'アクション', cost: '2', range: '0' }
+  { name: 'テンタクル', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'ワイヤーリール', type: '改造', level: 2, timing: '', cost: '', range: '' },
+  { name: 'マニピュレーター', type: '改造', level: 3, timing: '', cost: '', range: '' },
+  { name: 'パイルバンカー', type: '改造', level: 3, timing: '', cost: '', range: '' },
+  { name: 'ライトセイバー', type: '改造', level: 3, timing: '', cost: '', range: '' }
 ];
 
 const LIMIT_TABLE_DATA = [
@@ -926,6 +968,148 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
+// スキル選択欄の変更イベントで呼び出す関数
+function checkSkillSelection() {
+  // スキル選択のselect要素などを取得（IDは実際のHTMLに合わせて変更してください）
+  const selectedSkill = document.getElementById('skill-select')?.value;
+  const mutationLevel3Group = document.getElementById('mutation-level3-group');
+
+  // 「歪極」が選択された場合
+  if (selectedSkill === '歪極' || selectedSkill === 'haikyoku') {
+    // レベル3変異パーツの選択エリアを表示・有効化
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'block'; // 表示
+      // もしdisabled制御している場合は解除
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = false);
+    }
+  } else {
+    // 歪極以外が選ばれた場合は非表示（または無効化）
+    if (mutationLevel3Group) {
+      mutationLevel3Group.style.display = 'none';
+      const selects = mutationLevel3Group.querySelectorAll('select, input');
+      selects.forEach(el => el.disabled = true);
+    }
+  }
+}
+
+// --- パーツ（マニューバ）追加処理 ---
+function addPartRow(locationKey, name = '', type = '基本', level = '1', timing = '', cost = '', range = '', memo = '', isBroken = false) {
+  const tbody = document.getElementById(`parts-tbody-${locationKey}`);
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="text-align:center;"><input type="checkbox" class="p-break" ${isBroken ? 'checked' : ''} onchange="togglePartBreak(this)"></td>
+    <td><input type="text" class="p-name" value="${name}" placeholder="パーツ名"></td>
+    <td>
+      <select class="p-type" onchange="calcTotals()">
+        <option value="基本" ${type==='基本'?'selected':''}>基本</option>
+        <option value="武装" ${type==='武装'?'selected':''}>武装</option>
+        <option value="変異" ${type==='変異'?'selected':''}>変異</option>
+        <option value="改造" ${type==='改造'?'selected':''}>改造</option>
+      </select>
+    </td>
+    <td><input type="number" class="p-level" value="${level}" min="1" max="3" style="width:40px;" onchange="calcTotals()"></td>
+    <td><input type="text" class="p-timing" value="${timing}"></td>
+    <td><input type="text" class="p-cost" value="${cost}"></td>
+    <td><input type="text" class="p-range" value="${range}"></td>
+    <td><input type="text" class="p-memo" value="${memo}"></td>
+    <td style="text-align:center;"><button type="button" onclick="this.closest('tr').remove(); calcTotals();">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  if (isBroken) togglePartBreak(tr.querySelector('.p-break'));
+  calcTotals();
+}
+
+// 破損チェック時のスタイル切り替え
+function togglePartBreak(checkbox) {
+  const tr = checkbox.closest('tr');
+  if (checkbox.checked) {
+    tr.style.opacity = '0.5';
+    tr.style.textDecoration = 'line-through';
+  } else {
+    tr.style.opacity = '1';
+    tr.style.textDecoration = 'none';
+  }
+}
+
+// 破損一括解除
+function resetUsed() {
+  document.querySelectorAll('.p-break').forEach(cb => {
+    cb.checked = false;
+    togglePartBreak(cb);
+  });
+}
+
+// --- データ取得（パーツを配列化して保存） ---
+function getFullData() {
+  const getVal = id => document.getElementById(id)?.value || '';
+
+  const data = {
+    pl: getVal('pl'), name: getVal('name'), pos: getVal('pos'), mc: getVal('mc'), sc: getVal('sc'),
+    age: getVal('age'), ps: getVal('ps'), hint: getVal('hint'), mem: getVal('mem'),
+    act: getVal('act'), fav: getVal('fav'), tr: getVal('tr'),
+    chouaiWep: getVal('chouai-wep'), chouaiMut: getVal('chouai-mut'), chouaiCyb: getVal('chouai-cyb'),
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    skillSelect: getVal('skill-select'),
+    mutationLvl3: getVal('mutation-lvl3-select'),
+    parts: []
+  };
+
+  // 各部位のパーツを取得
+  ['head', 'arm', 'body', 'leg'].forEach(locKey => {
+    const tbody = document.getElementById(`parts-tbody-${locKey}`);
+    if (tbody) {
+      tbody.querySelectorAll('tr').forEach(tr => {
+        data.parts.push({
+          locKey: locKey,
+          isBroken: tr.querySelector('.p-break')?.checked || false,
+          name: tr.querySelector('.p-name')?.value || '',
+          type: tr.querySelector('.p-type')?.value || '基本',
+          level: tr.querySelector('.p-level')?.value || '1',
+          timing: tr.querySelector('.p-timing')?.value || '',
+          cost: tr.querySelector('.p-cost')?.value || '',
+          range: tr.querySelector('.p-range')?.value || '',
+          memo: tr.querySelector('.p-memo')?.value || ''
+        });
+      });
+    }
+  });
+
+  return data;
+}
+
+// --- データ反映（マニューバの復元） ---
+function applyData(data) {
+  if (!data) return;
+  const setVal = (id, val) => { if (document.getElementById(id)) document.getElementById(id).value = val || ''; };
+
+  setVal('pl', data.pl); setVal('name', data.name); setVal('pos', data.pos);
+  setVal('mc', data.mc); setVal('sc', data.sc); setVal('age', data.age);
+  setVal('ps', data.ps); setVal('hint', data.hint); setVal('mem', data.mem);
+  setVal('act', data.act); setVal('fav', data.fav); setVal('tr', data.tr);
+  setVal('chouai-wep', data.chouaiWep); setVal('chouai-mut', data.chouaiMut); setVal('chouai-cyb', data.chouaiCyb);
+  setVal('skill-select', data.skillSelect); setVal('mutation-lvl3-select', data.mutationLvl3);
+
+  if (typeof checkSkillSelection === 'function') checkSkillSelection();
+
+  // 各部位のテーブルを初期化
+  ['head', 'arm', 'body', 'leg'].forEach(locKey => {
+    const tbody = document.getElementById(`parts-tbody-${locKey}`);
+    if (tbody) tbody.innerHTML = '';
+  });
+
+  // パーツ復元
+  if (data.parts && Array.isArray(data.parts)) {
+    data.parts.forEach(p => {
+      addPartRow(p.locKey || 'head', p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isBroken);
+    });
+  }
+
+  if (typeof calcTotals === 'function') calcTotals();
+}
+
 // --- 1. セッション履歴（獲得）の行追加 ---
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
@@ -1015,237 +1199,195 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込（修正完了版） ---
-
-// 1. 画面全体のデータを1つのオブジェクトに正しく集約する関数
+// --- 1. データ取得（マニューバ/パーツを確実に配列へ格納） ---
 function getFullData() {
-    const getVal = (id) => document.getElementById(id)?.value || '';
+  const getVal = id => document.getElementById(id)?.value || '';
 
-    const data = {
-        pl: getVal('pl'),
-        name: getVal('name'),
-        pos: getVal('pos') || 'アリス',
-        mc: getVal('mc') || 'ロマネスク',
-        sc: getVal('sc') || 'ロマネスク',
-        age: getVal('age'),
-        ps: getVal('ps') || '煉獄',
-        hint: getVal('hint'),
-        mem: getVal('mem'),
-        act: getVal('act') || '9',
-        fav: getVal('fav') || '0',
-        tr: getVal('tr'),
-        chouaiWep: getVal('chouai-wep') || '0',
-        chouaiMut: getVal('chouai-mut') || '0',
-        chouaiCyb: getVal('chouai-cyb') || '0',
-        bonus: document.querySelector('input[name="bonus"]:checked')?.value || '',
-        skills: [],
-        parts: [],
-        list: [],
-        history: [],
-        chouaiUses: []
-    };
+  const data = {
+    pl: getVal('pl'),
+    name: getVal('name'),
+    pos: getVal('pos'),
+    mc: getVal('mc'),
+    sc: getVal('sc'),
+    age: getVal('age'),
+    ps: getVal('ps'),
+    hint: getVal('hint'),
+    mem: getVal('mem'),
+    act: getVal('act'),
+    fav: getVal('fav'),
+    tr: getVal('tr'),
+    chouaiWep: getVal('chouai-wep'),
+    chouaiMut: getVal('chouai-mut'),
+    chouaiCyb: getVal('chouai-cyb'),
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
+    skills: [],
+    parts: [], // ← 配置パーツ（マニューバ）
+    list: [],
+    history: [],
+    chouaiUses: []
+  };
 
-    // スキル
-    document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-        data.skills.push({
-            category: tr.querySelector('input')?.value || '',
-            name: tr.querySelector('select')?.value || '',
-            memo: tr.querySelector('textarea')?.value || ''
-        });
+  // スキルの取得
+  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+    data.skills.push({
+      category: tr.querySelector('input')?.value || '',
+      name: tr.querySelector('select')?.value || '',
+      memo: tr.querySelector('textarea')?.value || ''
     });
+  });
 
-    // パーツ
-    document.querySelectorAll('#parts-container tr').forEach(tr => {
-        const name = tr.querySelector('.p-name')?.value;
-        if (name) {
-            data.parts.push({
-                isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
-                location: tr.querySelector('.p-location')?.value || '',
-                name: name,
-                type: tr.querySelector('.p-type')?.value || '基本',
-                level: tr.querySelector('.p-level')?.value || '1',
-                timing: tr.querySelector('.p-timing')?.value || '',
-                cost: tr.querySelector('.p-cost')?.value || '',
-                range: tr.querySelector('.p-range')?.value || '',
-                memo: tr.querySelector('.p-memo')?.value || '',
-                isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
-            });
-        }
-    });
-
-    // 未練
-    document.querySelectorAll('#list tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
-        if (inputs.length >= 3) {
-            data.list.push({ target: inputs[0].value, emotion: inputs[1].value, madness: inputs[2].value });
-        }
-    });
-
-    // セッション履歴
-    document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
-        data.history.push({
-            scenario: tr.querySelector('.h-scenario')?.value || '',
-            battle: tr.querySelector('.battle-pts')?.value || 0,
-            personal: tr.querySelector('.personal-pts')?.value || 0,
-            memo: tr.querySelector('.h-memo')?.value || ''
-        });
-    });
-
-    // 寵愛点使い道
-    document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
-        data.chouaiUses.push({
-            used: tr.querySelector('.used-pts')?.value || 0,
-            memo: tr.querySelector('.use-memo')?.value || ''
-        });
-    });
-
-    return data;
-}
-
-// 2. localStorage管理ロジック
-const STORAGE_KEY = 'necro_sheets_list';
-
-function getAllSlots() {
-    const json = localStorage.getItem(STORAGE_KEY);
-    return json ? JSON.parse(json) : [];
-}
-
-function saveAllSlots(slots) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
-}
-
-// モーダル表示制御
-function openSaveModal() {
-    const modal = document.getElementById('save-load-modal');
-    if (!modal) return;
-    document.getElementById('modal-title').textContent = '💾 ブラウザに保存（スロット選択）';
-    document.getElementById('save-new-area').style.display = 'block';
-    renderSlotList('save');
-    modal.style.display = 'flex';
-}
-
-function openLoadModal() {
-    const modal = document.getElementById('save-load-modal');
-    if (!modal) return;
-    document.getElementById('modal-title').textContent = '📂 データを読み込む';
-    document.getElementById('save-new-area').style.display = 'none';
-    renderSlotList('load');
-    modal.style.display = 'flex';
-}
-
-function closeModal() {
-    const modal = document.getElementById('save-load-modal');
-    if (modal) modal.style.display = 'none';
-}
-
-// 3. モーダル内スロット一覧描画（名前・ポジション・クラス表示付き）
-function renderSlotList(mode) {
-    const container = document.getElementById('slot-list');
-    if (!container) return;
-    container.innerHTML = '';
-    const slots = getAllSlots();
-
-    if (slots.length === 0) {
-        container.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">保存されたデータはありません</div>';
-        return;
+  // ★パーツ/マニューバの取得（#parts-container 以下のすべての tr）
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const nameInput = tr.querySelector('.p-name');
+    if (nameInput) {
+      data.parts.push({
+        isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
+        location: tr.querySelector('.p-location')?.value || '頭部',
+        name: nameInput.value,
+        type: tr.querySelector('.p-type')?.value || '基本',
+        level: tr.querySelector('.p-level')?.value || '1',
+        timing: tr.querySelector('.p-timing')?.value || '',
+        cost: tr.querySelector('.p-cost')?.value || '',
+        range: tr.querySelector('.p-range')?.value || '',
+        memo: tr.querySelector('.p-memo')?.value || '',
+        isEditable: !nameInput.hasAttribute('readonly')
+      });
     }
+  });
 
-    slots.forEach((slot, index) => {
-        const item = document.createElement('div');
-        item.style.cssText = 'background: #121216; border: 1px solid #333; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;';
+  // 未練
+  document.querySelectorAll('#list tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    if (inputs.length >= 3) {
+      data.list.push({
+        target: inputs[0].value,
+        emotion: inputs[1].value,
+        madness: inputs[2].value
+      });
+    }
+  });
 
-        const data = slot.data || {};
-        const name = data.name || '無名ドール';
-        const dateStr = slot.updatedAt || '日時不明';
-        const pos = data.pos || '未設定';
-        const mc = data.mc || '未設定';
-        const sc = data.sc || '';
-
-        let classText = mc;
-        if (sc && sc !== mc) {
-            classText += ` / ${sc}`;
-        }
-
-        let actionButtonHtml = '';
-        if (mode === 'save') {
-            actionButtonHtml = `<button type="button" onclick="overwriteSlot(${index})" style="background: #44a; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">上書き保存</button>`;
-        } else {
-            actionButtonHtml = `<button type="button" onclick="loadSlot(${index})" style="background: #4a4; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">読み込む</button>`;
-        }
-
-        item.innerHTML = `
-            <div>
-                <div style="font-weight: bold; color: #eee; font-size: 1.05rem;">${name}</div>
-                <div style="font-size: 0.85em; color: #67e8f9; margin: 2px 0;">【${pos}】 ${classText}</div>
-                <div style="font-size: 0.75em; color: #888;">保存日時: ${dateStr}</div>
-            </div>
-            <div>
-                ${actionButtonHtml}
-                <button type="button" onclick="deleteSlot(${index}, '${mode}')" style="background: #a44; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">削除</button>
-            </div>
-        `;
-        container.appendChild(item);
+  // 履歴＆使い道
+  document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
+    data.history.push({
+      scenario: tr.querySelector('.h-scenario')?.value || '',
+      battle: tr.querySelector('.battle-pts')?.value || 0,
+      personal: tr.querySelector('.personal-pts')?.value || 0,
+      memo: tr.querySelector('.h-memo')?.value || ''
     });
-}
+  });
 
-// 4. 新規保存・上書き・読込・削除処理
-function saveNewSlot() {
-    const data = getFullData();
-    const slots = getAllSlots();
-    const now = new Date().toLocaleString('ja-JP');
-
-    slots.unshift({
-        id: Date.now(),
-        updatedAt: now,
-        data: data
+  document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
+    data.chouaiUses.push({
+      used: tr.querySelector('.used-pts')?.value || 0,
+      memo: tr.querySelector('.use-memo')?.value || ''
     });
-    saveAllSlots(slots);
-    alert(`「${data.name || '無名ドール'}」を新規保存しました！`);
-    closeModal();
+  });
+
+  return data;
 }
 
-function overwriteSlot(index) {
-    const slots = getAllSlots();
-    const data = getFullData();
-    if (!confirm(`「${slots[index].data?.name || '無名ドール'}」のデータを現在の入力内容で上書きしますか？`)) return;
+// --- 2. データ反映（マニューバ/パーツテーブルのHTML再描画） ---
+function applyData(data) {
+  const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
-    slots[index].updatedAt = new Date().toLocaleString('ja-JP');
-    slots[index].data = data;
+  setVal('pl', data.pl); setVal('name', data.name);
+  setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
+  setVal('age', data.age); setVal('ps', data.ps || '煉獄');
+  setVal('hint', data.hint); setVal('mem', data.mem);
+  setVal('act', data.act || '9'); setVal('fav', data.fav || '0'); setVal('tr', data.tr);
+  setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
 
-    saveAllSlots(slots);
-    alert('上書き保存しました！');
-    closeModal();
+  if (data.bonus) {
+    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  onClassChange();
+
+  // スキルの復元
+  const skillTbody = document.getElementById('skill-tbody');
+  if (skillTbody) {
+    skillTbody.innerHTML = '';
+    if (data.skills) {
+      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+    }
+  }
+
+  // ★パーツ/マニューバの復元
+  if (data.parts && Array.isArray(data.parts)) {
+    // 各部位のtbody（parts-tbody-head など）または全体コンテナのテーブル行をクリア
+    const locIds = ['head', 'arm', 'body', 'leg'];
+    locIds.forEach(id => {
+      const tbody = document.getElementById(`parts-tbody-${id}`);
+      if (tbody) tbody.innerHTML = '';
+    });
+
+    data.parts.forEach(p => {
+      // 部位名から対応するtbodyを取得（デフォルトは頭部）
+      let secId = 'head';
+      if (p.location === '腕部') secId = 'arm';
+      else if (p.location === '胴部') secId = 'body';
+      else if (p.location === '脚部') secId = 'leg';
+
+      const tbody = document.getElementById(`parts-tbody-${secId}`) || document.querySelector('#parts-container tbody');
+      if (tbody) {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location);
+        
+        // 破損状態の復元
+        const lastTr = tbody.querySelector('tr:last-child');
+        if (lastTr) {
+          const checkbox = lastTr.querySelector('input[type="checkbox"]');
+          if (checkbox) {
+            checkbox.checked = p.isBroken;
+            togglePartBreak(checkbox);
+          }
+        }
+      }
+    });
+  }
+
+  // 未練の復元
+  const listTbody = document.getElementById('list');
+  if (listTbody) {
+    listTbody.innerHTML = '';
+    if (data.list) {
+      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+    }
+  }
+
+  // 履歴の復元
+  const historyTbody = document.getElementById('session-history-tbody');
+  if (historyTbody) {
+    historyTbody.innerHTML = '';
+    if (data.history) {
+      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
+    }
+  }
+
+  // 使い道の復元
+  const useTbody = document.getElementById('chouai-use-tbody');
+  if (useTbody) {
+    useTbody.innerHTML = '';
+    if (data.chouaiUses) {
+      data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
+    }
+  }
+
+  // スキル（「歪極」「時計仕掛け」等）によるキャパ制限・LV3解放チェックを再適用
+  if (typeof checkSkillSelection === 'function') checkSkillSelection();
+  calcTotals();
 }
 
-function loadSlot(index) {
-    const slots = getAllSlots();
-    const slot = slots[index];
-    if (!slot) return;
-    applyData(slot.data);
-    alert(`「${slot.data?.name || '無名ドール'}」のデータを読み込みました！`);
-    closeModal();
-}
-
-function deleteSlot(index, mode) {
-    const slots = getAllSlots();
-    const targetName = slots[index].data?.name || '無名ドール';
-
-    if (!confirm(`「${targetName}」の保存データを削除してもよろしいですか？`)) return;
-    slots.splice(index, 1);
-    saveAllSlots(slots);
-    renderSlotList(mode);
-}
-
-// 5. JSONファイル出力
 function exportJSON() {
-    const data = getFullData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = (data.name || 'necro_character') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  const data = getFullData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (data.name || 'necro_character') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // --- キャラクター保管所・メモ貼り付け用テキスト出力 ---
