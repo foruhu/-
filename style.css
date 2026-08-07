@@ -40,17 +40,6 @@ h1 {
   margin-bottom: 12px;
 }
 
-.sticky-top-bar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(24, 24, 28, 0.95);
-  backdrop-filter: blur(4px);
-  border: 1px solid var(--red);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  margin-bottom: 12px;
-}
-
 .title {
   font-size: 0.95rem;
   font-weight: bold;
@@ -60,6 +49,57 @@ h1 {
   margin-bottom: 8px;
   font-family: serif;
 }
+
+/* ===================================================
+   緑・青紫・茶色の3大ボタンパネル（保存・読込・出力）
+   =================================================== */
+.save-load-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn {
+  padding: 10px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* 緑ボタン：ブラウザに保存 */
+.btn-save {
+  background: linear-gradient(135deg, #1b4d2e, #0e2a18);
+  border-color: #2e7d32;
+}
+
+/* 青紫ボタン：データを読み込む */
+.btn-load {
+  background: linear-gradient(135deg, #3d2b56, #21153b);
+  border-color: #6a1b9a;
+}
+
+/* 茶色ボタン：テキスト出力 */
+.btn-export {
+  background: linear-gradient(135deg, #5a3a1a, #331e0c);
+  border-color: #8d6e63;
+}
+
+/* =================================================== */
 
 .part-header {
   background: #2a0808;
@@ -95,7 +135,7 @@ label {
   margin-bottom: 2px;
 }
 
-/* フォーム要素の基本スタイル */
+/* フォーム要素 */
 input, select, textarea {
   width: 100%;
   padding: 5px;
@@ -105,11 +145,11 @@ input, select, textarea {
   color: #fff;
   font-size: 0.85rem;
   font-family: sans-serif;
-  text-align: left; /* 基本は左揃えに修正 */
+  text-align: left;
 }
 
 input[type="number"] {
-  text-align: center; /* 数値入力のみ中央揃え */
+  text-align: center;
 }
 
 textarea {
@@ -266,86 +306,4 @@ button.del {
 tr.broken input, tr.broken textarea {
   text-decoration: line-through;
   opacity: 0.5;
-}
-
-/* 保存・読込パネル */
-.save-load-panel {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-  margin: 15px 0;
-}
-
-/* メイン3大ボタンの共通デザイン */
-.btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 180px;
-  height: 70px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 16px;
-  text-decoration: none;
-  box-sizing: border-box;
-  transition: opacity 0.2s;
-  border: none;
-}
-
-.btn:hover {
-  opacity: 0.85;
-}
-
-.btn .icon {
-  font-size: 20px;
-  margin-bottom: 2px;
-}
-
-.btn-save {
-  background-color: #2b3d35;
-  border: 2px solid #529272;
-  color: #7ce8bc;
-}
-
-.btn-load {
-  background-color: #2b2b3b;
-  border: 2px solid #545199;
-  color: #8be1f8;
-}
-
-.btn-export {
-  background-color: #3b2c25;
-  border: 2px solid #8e5e43;
-  color: #f1aa7d;
-}
-
-/* モーダル内の選択グループ */
-.doll-select-group {
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.doll-select-group select {
-  padding: 6px 12px;
-  border-radius: 4px;
-  background: #1e1e24;
-  color: #fff;
-  border: 1px solid #444;
-  font-size: 14px;
-}
-
-/* モーダル内の小ボタン用（削除など） */
-.btn-delete {
-  background-color: #3b2525;
-  border: 2px solid #8e4343;
-  color: #f17d7d;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
 }
