@@ -731,26 +731,25 @@ function calcTotals() {
     }
   });
 
-  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
-  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
+  // スキル選択状態を取得（「時計仕掛け」と「業躯」）
+const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
+const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
 
-  const categories = [
-    { name: '武装', total: totals.wep, key: 'wep' },
-    { name: '変異', total: totals.mut, key: 'mut' },
-    { name: '改造', total: totals.cyb, key: 'cyb' }
-  ];
+const categories = [
+  { name: '武装', total: totals.wep, key: 'wep' },
+  { name: '変異', total: totals.mut, key: 'mut' },
+  { name: '改造', total: totals.cyb, key: 'cyb' }
+];
 
-  const limitTbody = document.getElementById('limit-tbody');
-  if (limitTbody) {
-    limitTbody.innerHTML = '';
-  }
+const limitTbody = document.getElementById('limit-tbody');
+if (limitTbody) { limitTbody.innerHTML = ''; }
 
-  categories.forEach(cat => {
-    const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
-    [1, 2, 3].forEach(lv => {
-      const baseLimit = limit[`lv${lv}`] || 0;
-      
-      // ボーナス適用判定：改造Lv3(時計仕掛け) または 変異Lv3(業躯)
+categories.forEach(cat => {
+  const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
+  [1, 2, 3].forEach(lv => {
+    const baseLimit = limit[`lv${lv}`] || 0;
+    
+    // ボーナス適用判定：改造Lv3(時計仕掛け) または 変異Lv3(業躯)
     let autoBonus = 0;
     if (cat.name === '改造' && lv === 3 && hasClockwork) {
       autoBonus = 1;
