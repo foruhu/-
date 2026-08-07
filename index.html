@@ -704,7 +704,10 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   calcTotals();
 }
 
-// --- 1. パーツ・計算関連処理 ---
+// ==========================================
+// 1. パーツ・計算関連処理（画像表示内容の復元）
+// ==========================================
+
 function togglePartBreak(checkbox) { 
     checkbox.closest('tr').classList.toggle('broken', checkbox.checked);
 } 
@@ -727,8 +730,19 @@ function onClassChange() {
         if (document.getElementById(`sc-${key}`)) document.getElementById(`sc-${key}`).textContent = scParts[idx]; 
     });
 
+    updateSkillOptions();
     calcTotals(); 
 } 
+
+function getLimitByVal(val) {
+    if (val <= 0) return { lv1: 0, lv2: 0, lv3: 0 };
+    if (val === 1) return { lv1: 2, lv2: 0, lv3: 0 };
+    if (val === 2) return { lv1: 2, lv2: 1, lv3: 0 };
+    if (val === 3) return { lv1: 3, lv2: 1, lv3: 0 };
+    if (val === 4) return { lv1: 3, lv2: 2, lv3: 1 };
+    if (val === 5) return { lv1: 4, lv2: 2, lv3: 1 };
+    return { lv1: 4 + (val - 5), lv2: 2 + Math.floor((val - 5) / 2), lv3: 1 + Math.floor((val - 5) / 3) };
+}
 
 function calcTotals() { 
     const getVal = id => parseInt(document.getElementById(id)?.value || document.getElementById(id)?.textContent, 10) || 0; 
@@ -762,19 +776,102 @@ function calcTotals() {
     ];
 
     const limitTbody = document.getElementById('limit-tbody'); 
-    if (limitTbody) limitTbody.innerHTML = ''; 
+    if (limitTbody) {
+        limitTbody.innerHTML = ''; 
+        categories.forEach(cat => { 
+            const limit = getLimitByVal(cat.total);
+            const tr = document.createElement('tr');
+            
+            let html = `<td>${cat.name}</td>`;
+            [1, 2, 3].forEach(lv => { 
+                const baseLimit = limit[`lv${lv}`] || 0; 
+                const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0; 
+                const maxAllowed = baseLimit + autoBonus; 
+                const current = currentCounts[cat.name][lv];
+                const isOver = current > maxAllowed;
+                
+                html += `<td style="${isOver ? 'color: #ff4444; font-weight: bold;' : ''}">${current} / ${maxAllowed}</td>`;
+            }); 
+            tr.innerHTML = html;
+            limitTbody.appendChild(tr);
+        });
+    }
 
-    categories.forEach(cat => { 
-        const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
-        [1, 2, 3].forEach(lv => { 
-            const baseLimit = limit[`lv${lv}`] || 0; 
-            const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0; 
-            const maxAllowed = baseLimit + autoBonus; 
-            const current = currentCounts[cat.name][lv];
-        }); 
-        if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
-    });
+    if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
 } 
+
+function renderPartsContainer() {
+    const container = document.getElementById('parts-container');
+    if (!container) return;
+
+    if (container.children.length === 0 && typeof DEFAULT_PARTS !== 'undefined') {
+        const table = document.createElement('table');
+        table.className = 'sheet-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>破損</th>
+                    <th>部位</th>
+                    <th>パーツ名</th>
+                    <th>分類</th>
+                    <th>Lv</th>
+                    <th>タイミング</th>
+                    <th>コスト</th>
+                    <th>射程</th>
+                    <th>効果/メモ</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="parts-tbody"></tbody>
+        `;
+        container.appendChild(table);
+
+        const tbody = document.getElementById('parts-tbody');
+        DEFAULT_PARTS.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+                <td><input type="text" class="p-location" value="${p.location}" style="width:50px;"></td>
+                <td><input type="text" class="p-name" value="${p.name}" readonly></td>
+                <td><input type="text" class="p-type" value="${p.type}" readonly style="width:50px;"></td>
+                <td><input type="number" class="p-level" value="${p.level}" readonly style="width:40px;"></td>
+                <td><input type="text" class="p-timing" value="${p.timing}" style="width:70px;"></td>
+                <td><input type="text" class="p-cost" value="${p.cost}" style="width:50px;"></td>
+                <td><input type="text" class="p-range" value="${p.range}" style="width:50px;"></td>
+                <td><input type="text" class="p-memo" value="${p.memo}"></td>
+                <td>-</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+function addExtraPartRow(partData = null) {
+    const tbody = document.getElementById('parts-tbody');
+    if (!tbody) return;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+        <td><input type="text" class="p-location" value="${partData?.location || '頭'}" style="width:50px;"></td>
+        <td><input type="text" class="p-name" value="${partData?.name || ''}"></td>
+        <td>
+            <select class="p-type" onchange="calcTotals()">
+                <option value="武装" ${partData?.type === '武装' ? 'selected' : ''}>武装</option>
+                <option value="変異" ${partData?.type === '変異' ? 'selected' : ''}>変異</option>
+                <option value="改造" ${partData?.type === '改造' ? 'selected' : ''}>改造</option>
+            </select>
+        </td>
+        <td><input type="number" class="p-level" value="${partData?.level || 1}" min="1" max="3" style="width:40px;" onchange="calcTotals()"></td>
+        <td><input type="text" class="p-timing" value="${partData?.timing || 'オート'}" style="width:70px;"></td>
+        <td><input type="text" class="p-cost" value="${partData?.cost || 'なし'}" style="width:50px;"></td>
+        <td><input type="text" class="p-range" value="${partData?.range || '自身'}" style="width:50px;"></td>
+        <td><input type="text" class="p-memo" value="${partData?.memo || ''}"></td>
+        <td><button type="button" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
+    `;
+    tbody.appendChild(tr);
+    calcTotals();
+}
 
 function addRow(target = '', emotion = '', madness = 0) { 
     const tbody = document.getElementById('list');
@@ -784,68 +881,64 @@ function addRow(target = '', emotion = '', madness = 0) {
     tbody.appendChild(tr); 
 } 
 
-function updateSkillOptions() {
-    // 1. 現在選択されているすべてのスキル名を取得（重複選択防止用、空の値は除く）
+// ==========================================
+// 2. スキル関連処理（選択肢消失＆消える問題の対策済）
+// ==========================================
+
+function updateSkillOptions() { 
     const selectedSkills = new Set(
         Array.from(document.querySelectorAll('#skill-tbody select'))
             .map(s => s.value)
             .filter(Boolean)
     );
 
-    // 2. 各スキルの行（tr）ごとに選択肢（option）を再構築する
-    document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-        const select = tr.querySelector('select');
-        if (!select) return;
+    document.querySelectorAll('#skill-tbody tr').forEach(tr => { 
+        const select = tr.querySelector('select'); 
+        if (!select) return; 
 
-        const categoryInput = tr.querySelector('input');
-        const category = categoryInput ? categoryInput.value : '';
-        const currentValue = select.value; // 現在選ばれている値を退避
+        const categoryInput = tr.querySelector('input'); 
+        const category = categoryInput ? categoryInput.value : ''; 
+        const currentValue = select.value; 
 
-        // 一旦選択肢をクリアして初期化
-        select.innerHTML = '<option value="">-- スキルを選択 --</option>';
+        select.innerHTML = '<option value="">-- スキルを選択 --</option>'; 
 
-        // SKILL_DATABASE から該当カテゴリのスキル一覧を取得して option を生成
-        if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
-            SKILL_DATABASE[category].forEach(skill => {
-                // 「自分自身が現在選択中のスキル」または「まだ他の行で選択されていないスキル」を選択肢に追加
-                if (skill.name === currentValue || !selectedSkills.has(skill.name)) {
-                    const opt = document.createElement('option');
-                    opt.value = skill.name;
-                    opt.textContent = skill.name;
-                    select.appendChild(opt);
-                }
-            });
-        }
+        if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) { 
+            SKILL_DATABASE[category].forEach(skill => { 
+                if (skill.name === currentValue || !selectedSkills.has(skill.name)) { 
+                    const opt = document.createElement('option'); 
+                    opt.value = skill.name; 
+                    opt.textContent = skill.name; 
+                    select.appendChild(opt); 
+                } 
+            }); 
+        } 
 
-        // 以前選ばれていた値を復元
-        select.value = currentValue;
+        select.value = currentValue; 
     });
-}
+} 
 
-function addSkillRow(category, skillName = '', memo = '') {
-    const tbody = document.getElementById('skill-tbody');
-    if (!tbody) return;
+function addSkillRow(category, skillName = '', memo = '') { 
+    const tbody = document.getElementById('skill-tbody'); 
+    if (!tbody) return; 
 
-    const tr = document.createElement('tr');
+    const tr = document.createElement('tr'); 
     tr.innerHTML = `
         <td><input type="text" value="${category}" readonly style="width: 80px;"></td>
         <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
         <td><textarea style="width: 100%; height: 40px;">${memo}</textarea></td>
         <td><button type="button" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions();">X</button></td>
-    `;
+    `; 
     tbody.appendChild(tr);
 
-    // 1. まず選択肢候補（<option>）を生成させる
-    updateSkillOptions();
+    updateSkillOptions(); 
 
-    // 2. 生成された選択肢の中に目的のスキルがあれば値をセット
     const select = tr.querySelector('select');
     if (select && skillName) {
         select.value = skillName;
     }
 
-    calcTotals();
-}
+    calcTotals(); 
+} 
 
 function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); } 
 function addMcSkillRow() { addSkillRow(document.getElementById('mc').value); } 
@@ -866,7 +959,10 @@ function onSkillSelect(selectElem) {
     calcTotals(); 
 } 
 
-// --- 3. セッション履歴 & 寵愛点計算 ---
+// ==========================================
+// 3. セッション履歴 & 寵愛点計算
+// ==========================================
+
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') { 
     const tbody = document.getElementById('session-history-tbody');
     if (!tbody) return; 
@@ -910,7 +1006,10 @@ function calcChouaiTotals() {
     } 
 }
 
-// --- 4. データ取得 & 複数ドール保存・読み込み管理機能 ---
+// ==========================================
+// 4. データ保存・管理・適用処理
+// ==========================================
+
 function getFullData() { 
     const getVal = id => document.getElementById(id)?.value || '';
     const data = { 
@@ -929,13 +1028,14 @@ function getFullData() {
         }); 
     });
 
-    document.querySelectorAll('#parts-container tr').forEach(tr => { 
+    document.querySelectorAll('#parts-tbody tr').forEach(tr => { 
         const name = tr.querySelector('.p-name')?.value; 
         if (name) { 
             data.parts.push({ 
                 isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false, 
                 location: tr.querySelector('.p-location')?.value || '', 
-                name: name, type: tr.querySelector('.p-type')?.value || '基本', 
+                name: name, 
+                type: tr.querySelector('.p-type')?.value || '基本', 
                 level: tr.querySelector('.p-level')?.value || '1', 
                 timing: tr.querySelector('.p-timing')?.value || '', 
                 cost: tr.querySelector('.p-cost')?.value || '', 
@@ -972,7 +1072,6 @@ function getFullData() {
     return data;
 }
 
-// 複数ドール保存管理用のヘルパー関数
 function getSavedDolls() {
     return JSON.parse(localStorage.getItem('necro_dolls_list') || '{}');
 }
@@ -1047,7 +1146,6 @@ function deleteSelectedDoll() {
     }
 }
 
-// ★データ適用処理（修正後）
 function applyData(data) { 
     const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; }; 
     setVal('pl', data.pl); setVal('name', data.name);
@@ -1061,7 +1159,6 @@ function applyData(data) {
         if (radio) radio.checked = true; 
     } 
 
-    // ★重要: クラス変更に伴うスキル候補の準備を先に行う
     onClassChange(); 
 
     // スキルの復元
@@ -1072,6 +1169,34 @@ function applyData(data) {
             data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo)); 
         } 
     } 
+
+    // パーツの復元
+    renderPartsContainer();
+    const partsTbody = document.getElementById('parts-tbody');
+    if (partsTbody && data.parts && data.parts.length > 0) {
+        partsTbody.innerHTML = '';
+        data.parts.forEach(p => {
+            if (p.isEditable) {
+                addExtraPartRow(p);
+            } else {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" ${p.isBroken ? 'checked' : ''} onchange="togglePartBreak(this)"></td>
+                    <td><input type="text" class="p-location" value="${p.location}" style="width:50px;"></td>
+                    <td><input type="text" class="p-name" value="${p.name}" readonly></td>
+                    <td><input type="text" class="p-type" value="${p.type}" readonly style="width:50px;"></td>
+                    <td><input type="number" class="p-level" value="${p.level}" readonly style="width:40px;"></td>
+                    <td><input type="text" class="p-timing" value="${p.timing}" style="width:70px;"></td>
+                    <td><input type="text" class="p-cost" value="${p.cost}" style="width:50px;"></td>
+                    <td><input type="text" class="p-range" value="${p.range}" style="width:50px;"></td>
+                    <td><input type="text" class="p-memo" value="${p.memo}"></td>
+                    <td>-</td>
+                `;
+                if (p.isBroken) tr.classList.add('broken');
+                partsTbody.appendChild(tr);
+            }
+        });
+    }
 
     // 未練の復元
     const listTbody = document.getElementById('list');
@@ -1103,7 +1228,10 @@ function applyData(data) {
     calcTotals(); 
 } 
 
-// --- 5. エクスポート・画面ロード処理 ---
+// ==========================================
+// 5. エクスポート・画面初期化
+// ==========================================
+
 function exportJSON() { 
     const data = getFullData(); 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1154,9 +1282,9 @@ function exportCcfolia() {
 } 
 
 window.onload = function() { 
-    if (typeof renderPartsContainer === 'function') renderPartsContainer(); 
+    renderPartsContainer(); 
     onClassChange(); 
-    updateDollSelectOptions(); // 複数ドール保存用のセレクトボックス初期化
+    updateDollSelectOptions(); 
 };
 </script>
 　<!-- 右下固定：README.mdへ移動するボタン -->
