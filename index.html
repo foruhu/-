@@ -1015,9 +1015,9 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込（修正版） ---
+// --- 保存・読込（修正完了版） ---
 
-// 1. 画面全体のデータを1つのオブジェクトに集約
+// 1. 画面全体のデータを1つのオブジェクトに正しく集約する関数
 function getFullData() {
     const getVal = (id) => document.getElementById(id)?.value || '';
 
@@ -1091,7 +1091,7 @@ function getFullData() {
         });
     });
 
-    // 寵愛点消費
+    // 寵愛点使い道
     document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
         data.chouaiUses.push({
             used: tr.querySelector('.used-pts')?.value || 0,
@@ -1102,7 +1102,7 @@ function getFullData() {
     return data;
 }
 
-// 2. localStorage用管理ロジック
+// 2. localStorage管理ロジック
 const STORAGE_KEY = 'necro_sheets_list';
 
 function getAllSlots() {
@@ -1138,7 +1138,7 @@ function closeModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// 3. モーダル内スロット一覧描画（修正版）
+// 3. モーダル内スロット一覧描画（名前・ポジション・クラス表示付き）
 function renderSlotList(mode) {
     const container = document.getElementById('slot-list');
     if (!container) return;
@@ -1175,7 +1175,7 @@ function renderSlotList(mode) {
 
         item.innerHTML = `
             <div>
-                <div style="font-weight: bold; color: #eee; font-size: 1rem;">${name}</div>
+                <div style="font-weight: bold; color: #eee; font-size: 1.05rem;">${name}</div>
                 <div style="font-size: 0.85em; color: #67e8f9; margin: 2px 0;">【${pos}】 ${classText}</div>
                 <div style="font-size: 0.75em; color: #888;">保存日時: ${dateStr}</div>
             </div>
@@ -1188,7 +1188,7 @@ function renderSlotList(mode) {
     });
 }
 
-// 4. 保存・読込・削除の実行処理
+// 4. 新規保存・上書き・読込・削除処理
 function saveNewSlot() {
     const data = getFullData();
     const slots = getAllSlots();
@@ -1236,7 +1236,7 @@ function deleteSlot(index, mode) {
     renderSlotList(mode);
 }
 
-// 5. JSON出力
+// 5. JSONファイル出力
 function exportJSON() {
     const data = getFullData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
