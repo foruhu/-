@@ -760,10 +760,20 @@ function getFullData() {
 function saveData() {
   const data = getFullData();
   localStorage.setItem('necro_sheet', JSON.stringify(data));
-  alert('ブラウザに保存しました！');
+  alert('ブラウザに保存しました');
 }
 
-// 2. ブラウザまたはJSONファイルから読込処理を反映する共通関数
+// 2. ブラウザからデータを読み込む
+function loadData() {
+  const json = localStorage.getItem('necro_sheet');
+  if (!json) return alert('保存されたデータがありません');
+  
+  const data = JSON.parse(json);
+  applyData(data);
+  alert('ブラウザからデータを読み込みました');
+}
+
+// データを画面に反映させる共通処理
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
@@ -820,38 +830,7 @@ function applyData(data) {
   if (typeof calcTotals === 'function') calcTotals();
 }
 
-// 2-A. ブラウザから読み込む（必要に応じて）
-function loadData() {
-  const json = localStorage.getItem('necro_sheet');
-  if (!json) return alert('ブラウザに保存されたデータがありません');
-  
-  const data = JSON.parse(json);
-  applyData(data);
-  alert('ブラウザからデータを読み込みました！');
-}
-
-// 2-B. 「データを読み込む」ボタン（JSONファイルの読み込み）
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      applyData(data);
-      alert('JSONファイルからデータを読み込みました！');
-    } catch (err) {
-      alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください。');
-    }
-  };
-  reader.readAsText(file);
-  
-  // 同じファイルを連続で選択できるようにリセット
-  event.target.value = '';
-}
-
-// 3. JSON出力
+// 3. JSONファイルとして出力（ダウンロード）
 function exportJSON() {
   const data = getFullData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
