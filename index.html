@@ -204,26 +204,59 @@
     </select>
   </div>
 
-  <div class="button-group">
-    <button type="button" class="btn btn-save" onclick="saveData()">
-      <span class="icon">💾</span>
-      <span class="label">ブラウザに保存</span>
-    </button>
+ <div class="save-load-panel">
+  <button type="button" class="btn btn-save" onclick="openSaveModal()">
+    <span class="icon">💾</span>
+    <span class="label">ブラウザに保存</span>
+  </button>
 
-    <button type="button" class="btn btn-load" onclick="loadData()">
-      <span class="icon">📁</span>
-      <span class="label">選択中を読み込む</span>
-    </button>
+  <button type="button" class="btn btn-load" onclick="openLoadModal()">
+    <span class="icon">📁</span>
+    <span class="label">データを読み込む</span>
+  </button>
 
-    <button type="button" class="btn btn-delete" onclick="deleteData()">
-      <span class="icon">🗑️</span>
-      <span class="label">選択中を削除</span>
-    </button>
+  <button type="button" class="btn btn-export" onclick="exportJSON()">
+    <span class="icon">📄</span>
+    <span class="label">JSON出力</span>
+  </button>
+</div>
 
-    <button type="button" class="btn btn-export" onclick="exportJSON()">
-      <span class="icon">📄</span>
-      <span class="label">JSON出力</span>
-    </button>
+<div id="save-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <h3>💾 ブラウザに保存</h3>
+    <p>新規保存するか、既存のドールを選択して上書き保存してください。</p>
+    
+    <div class="modal-body">
+      <label>保存先スロット：</label>
+      <select id="save-doll-select">
+        <option value="">✨ 新規保存（新しいドールとして追加）</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-modal btn-confirm" onclick="confirmSave()">保存実行</button>
+      <button type="button" class="btn-modal btn-cancel" onclick="closeModals()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div id="load-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <h3>📁 データを読み込む</h3>
+    <p>読み込むドールを選択してください。</p>
+    
+    <div class="modal-body">
+      <label>保存済みドール：</label>
+      <select id="load-doll-select">
+        <option value="">-- ドールを選択してください --</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-modal btn-confirm" onclick="confirmLoad()">読み込む</button>
+      <button type="button" class="btn-modal btn-delete" onclick="confirmDelete()">削除する</button>
+      <button type="button" class="btn-modal btn-cancel" onclick="closeModals()">キャンセル</button>
+    </div>
   </div>
 </div>
 
