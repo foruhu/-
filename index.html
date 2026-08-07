@@ -235,34 +235,11 @@
 </table>
 <button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 使い道を追加</button>
 
-<div class="save-load-panel" style="display: flex; gap: 10px; margin-bottom: 20px;">
-  <button type="button" class="btn btn-save" onclick="openSaveModal()">
-    <span class="icon">💾</span>
-    <span class="label">ブラウザに保存</span>
-  </button>
-
-  <button type="button" class="btn btn-load" onclick="openLoadModal()">
-    <span class="icon">📁</span>
-    <span class="label">データを読み込む</span>
-  </button>
-
-  <button type="button" class="btn btn-export" onclick="exportJSON()">
-    <span class="icon">📄</span>
-    <span class="label">JSON出力</span>
-  </button>
+<div class="save-load-panel">
+  <button class="btn btn-save" onclick="saveCurrentDoll()">💾 ブラウザに保存</button>
+  <button class="btn btn-load" onclick="loadCurrentDoll()">📂 データを読み込む</button>
+  <button class="btn btn-export" onclick="exportForHokanshoText()">📋 テキスト出力</button>
 </div>
-
-<div id="save-modal" class="modal-overlay" style="display: none;">
-  <div class="modal-content">
-    <h3>💾 ブラウザに保存</h3>
-    <p>新規保存するか、既存のドールを選択して上書き保存してください。</p>
-    
-    <div class="modal-body">
-      <label>保存先スロット：</label>
-      <select id="save-doll-select">
-        <option value="">✨ 新規保存（新しいドールとして追加）</option>
-      </select>
-    </div>
 
     <div class="modal-actions">
       <button type="button" class="btn-modal btn-confirm" onclick="confirmSave()">保存実行</button>
