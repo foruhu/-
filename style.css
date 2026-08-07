@@ -116,3 +116,26 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   border: 2px solid #8e4343;
   color: #f17d7d;
 }
+
+.doll-select-group {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doll-select-group select {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #1e1e24;
+  color: #fff;
+  border: 1px solid #444;
+  font-size: 14px;
+}
+
+/* 削除ボタンのデザイン（赤系） */
+.btn-delete {
+  background-color: #3b2525;
+  border: 2px solid #8e4343;
+  color: #f17d7d;
+}
