@@ -197,20 +197,34 @@
 </div>
 
 <div class="save-load-panel">
-  <button type="button" class="btn btn-save" onclick="saveData()">
-    <span class="icon">💾</span>
-    <span class="label">ブラウザに保存</span>
-  </button>
+  <div class="doll-select-group">
+    <label for="doll-list-select">保存済みドール:</label>
+    <select id="doll-list-select" onchange="onDollSelectChange()">
+      <option value="">-- ドールを選択 --</option>
+    </select>
+  </div>
 
-  <button type="button" class="btn btn-load" onclick="loadData()">
-    <span class="icon">📁</span>
-    <span class="label">データを読み込む</span>
-  </button>
+  <div class="button-group">
+    <button type="button" class="btn btn-save" onclick="saveData()">
+      <span class="icon">💾</span>
+      <span class="label">ブラウザに保存</span>
+    </button>
 
-  <button type="button" class="btn btn-export" onclick="exportJSON()">
-    <span class="icon">📄</span>
-    <span class="label">JSON出力</span>
-  </button>
+    <button type="button" class="btn btn-load" onclick="loadData()">
+      <span class="icon">📁</span>
+      <span class="label">選択中を読み込む</span>
+    </button>
+
+    <button type="button" class="btn btn-delete" onclick="deleteData()">
+      <span class="icon">🗑️</span>
+      <span class="label">選択中を削除</span>
+    </button>
+
+    <button type="button" class="btn btn-export" onclick="exportJSON()">
+      <span class="icon">📄</span>
+      <span class="label">JSON出力</span>
+    </button>
+  </div>
 </div>
 
 <!-- 寵愛点サマリー -->
