@@ -236,13 +236,15 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="btns">
-  <button type="button" onclick="saveData()">ブラウザ保存</button>
-  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
-</div>
-<div class="btns">
-  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
-  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
+<div class="save-load-panel" style="margin: 15px 0; padding: 10px; border: 1px solid var(--red); background: #1a0808;">
+  <label style="font-weight: bold; color: #f0a0a0;">【保存済みドール一覧】</label>
+  <select id="doll-selector" onchange="onDollSelectChange()" style="padding: 5px; min-width: 200px;">
+    <option value="">-- ドールを選択 --</option>
+  </select>
+
+  <button type="button" onclick="saveCurrentDoll()">上書き/新規保存</button>
+  <button type="button" onclick="loadSelectedDoll()">読み込む</button>
+  <button type="button" onclick="deleteSelectedDoll()" style="color: #ff6666;">削除</button>
 </div>
 
 <!-- 寵愛点サマリー -->
@@ -1036,19 +1038,101 @@ function getFullData() {
   return data;
 }
 
-function saveData() {
-  const data = getFullData();
-  localStorage.setItem('necro_sheet', JSON.stringify(data));
-  alert('ブラウザに保存しました');
+// localStorage用のキー名
+const MULTI_DOLL_STORAGE_KEY = 'necro_dolls_list';
+
+// ページ読み込み時にドール一覧をドロップダウンにセット
+window.addEventListener('DOMContentLoaded', () => {
+  refreshDollSelector();
+});
+
+// 1. 保存されている全ドールリストを取得
+function getDollList() {
+  const json = localStorage.getItem(MULTI_DOLL_STORAGE_KEY);
+  return json ? JSON.parse(json) : {};
 }
 
-function loadData() {
-  const json = localStorage.getItem('necro_sheet');
-  if (!json) return alert('保存されたデータがありません');
-  
-  const data = JSON.parse(json);
-  applyData(data);
-  alert('データを読み込みました');
+// 2. ドール選択ドロップダウンの表示更新
+function refreshDollSelector(selectedKey = '') {
+  const selector = document.getElementById('doll-selector');
+  if (!selector) return;
+
+  const dolls = getDollList();
+  selector.innerHTML = '<option value="">-- ドールを選択 --</option>';
+
+  Object.keys(dolls).forEach(id => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = dolls[id].name ? `${dolls[id].name} (ID:${id.slice(-4)})` : `無名ドール (${id})`;
+    if (id === selectedKey) option.selected = true;
+    selector.appendChild(option);
+  });
+}
+
+// 3. 現在入力中のドールデータを保存（新規または上書き）
+function saveCurrentDoll() {
+  const data = getFullData(); // 現在の入力データ取得関数
+  const selector = document.getElementById('doll-selector');
+  let dollId = selector ? selector.value : '';
+
+  // 選択中でない場合は新規ID（タイムスタンプ）を発行
+  if (!dollId) {
+    dollId = 'doll_' + Date.now();
+  }
+
+  const dolls = getDollList();
+  dolls[dollId] = {
+    id: dollId,
+    name: data.name || '無名のドール',
+    updatedAt: new Date().toLocaleString(),
+    sheetData: data
+  };
+
+  localStorage.setItem(MULTI_DOLL_STORAGE_KEY, JSON.stringify(dolls));
+  refreshDollSelector(dollId);
+  alert(`「${dolls[dollId].name}」を保存しました。`);
+}
+
+// 4. 選択されたドールデータを読み込み
+function loadSelectedDoll() {
+  const selector = document.getElementById('doll-selector');
+  const dollId = selector ? selector.value : '';
+
+  if (!dollId) {
+    alert('読み込むドールを選択してください。');
+    return;
+  }
+
+  const dolls = getDollList();
+  if (dolls[dollId] && dolls[dollId].sheetData) {
+    if (confirm(`「${dolls[dollId].name}」のデータを読み込みますか？\n（現在の入力内容は上書きされます）`)) {
+      loadFullData(dolls[dollId].sheetData); // 既存の復元関数を呼び出し
+      alert('読み込みが完了しました。');
+    }
+  } else {
+    alert('該当のドールデータが見つかりませんでした。');
+  }
+}
+
+// 5. 選択されたドールデータを削除
+function deleteSelectedDoll() {
+  const selector = document.getElementById('doll-selector');
+  const dollId = selector ? selector.value : '';
+
+  if (!dollId) {
+    alert('削除するドールを選択してください。');
+    return;
+  }
+
+  const dolls = getDollList();
+  if (dolls[dollId]) {
+    if (confirm(`「${dolls[dollId].name}」の保存データを削除してもよろしいですか？`)) {
+      delete dolls[dollId];
+      localStorage.setItem(MULTI_DOLL_STORAGE_KEY, JSON.stringify(dolls));
+      refreshDollSelector();
+      alert('削除しました。');
+    }
+  }
 }
 
 function applyData(data) {
