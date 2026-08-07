@@ -202,11 +202,10 @@
     <span class="label">ブラウザに保存</span>
   </button>
 
-  <label class="btn btn-load">
+  <button type="button" class="btn btn-load" onclick="loadData()">
     <span class="icon">📁</span>
     <span class="label">データを読み込む</span>
-    <input type="file" id="json-file-input" accept=".json" onchange="importJSON(event)" style="display: none;">
-  </label>
+  </button>
 
   <button type="button" class="btn btn-export" onclick="exportJSON()">
     <span class="icon">📄</span>
