@@ -1052,18 +1052,33 @@ function getDollList() {
   return json ? JSON.parse(json) : {};
 }
 
-// 2. ドール選択ドロップダウンの表示更新
+// 2. ドール選択ドロップダウンの表示更新（名前 / ポジション / クラスを表示）
 function refreshDollSelector(selectedKey = '') {
   const selector = document.getElementById('doll-selector');
   if (!selector) return;
 
   const dolls = getDollList();
-  selector.innerHTML = '<option value="">-- ドールを選択 --</option>';
+  selector.innerHTML = '<option value="">-- 新規作成 (未選択) --</option>';
 
   Object.keys(dolls).forEach(id => {
+    const data = dolls[id].sheetData || {};
+    
+    // getFullData() の返り値から取得
+    const name = data.name || dolls[id].name || '無名ドール';
+    const position = data.position || '未設定';
+    
+    // メインクラスとサブクラスを繋げて表示（サブクラスがない場合はメインのみ）
+    let classText = data.mainClass || data.class || '未設定';
+    if (data.subClass) {
+      classText += ` / ${data.subClass}`;
+    }
+
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = dolls[id].name ? `${dolls[id].name} (ID:${id.slice(-4)})` : `無名ドール (${id})`;
+    
+    // 表示形式: 「名前 【ポジション / クラス】」
+    option.textContent = `${name} 【${position} / ${classText}】`;
+    
     if (id === selectedKey) option.selected = true;
     selector.appendChild(option);
   });
