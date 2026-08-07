@@ -731,7 +731,7 @@ function calcTotals() {
     }
   });
 
-  // スキル選択状態を取得（「時計仕掛け」と「業躯」）
+// スキル選択状態を取得（「時計仕掛け」と「業躯」）
 const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
 const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
 
