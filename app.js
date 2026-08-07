@@ -1,3 +1,6 @@
+function applyData(data) {
+  const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
+
 // --- DB類 (memo未定義部分は自動で空文字扱い) ---
 const SKILL_DATABASE = {
   'アリス': [
