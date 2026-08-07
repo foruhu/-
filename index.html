@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css">
-<script src="app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ネクロニカ キャラクターシート</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
 </div>
 
 <div class="card">
-  <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
+  <div class="title">基本情報・強化値計算 &amp; レベル取得制限チェッカー</div>
   <div class="g2">
     <div><label>PL名</label><input type="text" id="pl"></div>
     <div><label>ドール名</label><input type="text" id="name"></div>
@@ -196,15 +196,46 @@
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="save-load-panel">
-  <div class="doll-select-group">
-    <label for="doll-list-select">保存済みドール:</label>
-    <select id="doll-list-select" onchange="onDollSelectChange()">
-      <option value="">-- ドールを選択 --</option>
-    </select>
+<div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
+  <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+    <div>獲得戦闘寵愛: <b id="total-battle-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>獲得個人寵愛: <b id="total-personal-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総獲得寵愛: <b id="total-earned-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総使用寵愛: <b id="total-used-chouai" style="color: #ff88c2;">0</b> pt</div>
+    <div style="font-size: 1.05rem;">現在の残り寵愛: <b id="current-chouai" style="color: #8ff; font-size: 1.2rem;">0</b> pt</div>
   </div>
+</div>
 
- <div class="save-load-panel">
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ セッション履歴（獲得寵愛）</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444;">メモ（参加日など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="session-history-tbody"></tbody>
+</table>
+<button type="button" onclick="addSessionHistoryRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 履歴を追加</button>
+
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ 寵愛点の使い道・強化履歴</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444; width: 110px;">使用点数</th>
+      <th style="padding: 6px; border: 1px solid #444;">使い道・備考（例: 武装基本値+1、基本パーツ修復など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="chouai-use-tbody"></tbody>
+</table>
+<button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 使い道を追加</button>
+
+<div class="save-load-panel" style="display: flex; gap: 10px; margin-bottom: 20px;">
   <button type="button" class="btn btn-save" onclick="openSaveModal()">
     <span class="icon">💾</span>
     <span class="label">ブラウザに保存</span>
@@ -260,66 +291,6 @@
   </div>
 </div>
 
-<!-- 寵愛点サマリー -->
-<div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
-  <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
-  <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
-    <div>獲得戦闘寵愛: <b id="total-battle-chouai" style="color: #8ff;">0</b> pt</div>
-    <div>獲得個人寵愛: <b id="total-personal-chouai" style="color: #8ff;">0</b> pt</div>
-    <div>総獲得寵愛: <b id="total-earned-chouai" style="color: #8ff;">0</b> pt</div>
-    <div>総使用寵愛: <b id="total-used-chouai" style="color: #ff88c2;">0</b> pt</div>
-    <div style="font-size: 1.05rem;">現在の残り寵愛: <b id="current-chouai" style="color: #8ff; font-size: 1.2rem;">0</b> pt</div>
-  </div>
-</div>
-
-<!-- セッション履歴（獲得） -->
-<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ セッション履歴（獲得寵愛）</h3>
-<table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem;">
-  <thead>
-    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
-      <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
-      <th style="padding: 6px; border: 1px solid #444;">メモ（参加日など）</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
-    </tr>
-  </thead>
-  <tbody id="session-history-tbody"></tbody>
-</table>
-<button type="button" onclick="addSessionHistoryRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 履歴を追加</button>
-
-<!-- 寵愛点の使い道（消費） -->
-<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ 寵愛点の使い道・強化履歴</h3>
-<table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.85rem;">
-  <thead>
-    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
-      <th style="padding: 6px; border: 1px solid #444; width: 110px;">使用点数</th>
-      <th style="padding: 6px; border: 1px solid #444;">使い道・備考（例: 武装基本値+1、基本パーツ修復など）</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
-    </tr>
-  </thead>
-  <tbody id="chouai-use-tbody"></tbody>
-</table>
-<button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
-
-<div class="doll-management-panel" style="border: 1px solid #555; padding: 12px; margin-bottom: 20px; background-color: #1a1a1a; border-radius: 6px;">
-  <h3 style="margin-top: 0; margin-bottom: 10px; color: #ff8888;">ドールデータ管理</h3>
-  
-  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-    <input type="text" id="save-doll-name" placeholder="ドール名を入力" style="padding: 6px; min-width: 160px;">
-    <button type="button" onclick="saveCurrentDollUI()" style="padding: 6px 12px;">保存</button>
-    
-    <span style="color: #888;">|</span>
-
-    <select id="saved-dolls-select" style="padding: 6px; min-width: 160px;">
-      <option value="">-- 保存済みドールを選択 --</option>
-    </select>
-    <button type="button" onclick="loadSelectedDollUI()" style="padding: 6px 12px;">読み込み</button>
-    <button type="button" onclick="deleteSelectedDollUI()" style="padding: 6px 12px; background-color: #aa3333; color: white; border: none; border-radius: 3px; cursor: pointer;">削除</button>
-  </div>
-</div>
-
-　<!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
   position: fixed;
   bottom: 20px;
@@ -340,5 +311,6 @@
 ">
   📜 使い方を見る
 </a>
+
 </body>
 </html>
