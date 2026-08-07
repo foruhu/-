@@ -665,50 +665,142 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 複数ドール対応：保存・読込・管理 ---
+// --- 保存・読込（モーダル管理） ---
 
 const STORAGE_KEY = 'necro_dolls_list';
 
-// ページ読み込み時にリストを初期化
-document.addEventListener('DOMContentLoaded', () => {
-  updateDollSelectOptions();
-});
-
-// ストレージから全ドールデータを取得（存在しない場合は空オブジェクト）
+// 全ドールデータの取得
 function getAllDolls() {
   const json = localStorage.getItem(STORAGE_KEY);
   return json ? JSON.parse(json) : {};
 }
 
-// ドール選択セレクトボックスの表示更新
-function updateDollSelectOptions(selectedId = '') {
-  const select = document.getElementById('doll-list-select');
-  if (!select) return;
+// モーダルを閉じる
+function closeModals() {
+  document.getElementById('save-modal').style.display = 'none';
+  document.getElementById('load-modal').style.display = 'none';
+}
 
+// ------------------------------------------
+// 1. 保存処理
+// ------------------------------------------
+
+// 保存ボタンを押した時（モーダルを開く）
+function openSaveModal() {
+  const select = document.getElementById('save-doll-select');
   const dolls = getAllDolls();
-  select.innerHTML = '<option value="">-- ドールを選択 --</option>';
+  const currentName = document.getElementById('name')?.value || '無名ドール';
 
+  // オプションリセット
+  select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
+
+  // 既存のドールを上書き選択肢としてリストに追加
   Object.keys(dolls).forEach(id => {
     const doll = dolls[id];
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = doll.name ? `${doll.name} (${doll.pos || '無職'})` : `(無名ドール: ${id})`;
-    if (id === selectedId) option.selected = true;
+    option.textContent = `🔄 上書き: ${doll.name || '無名ドール'} (${doll.pos || '無職'})`;
     select.appendChild(option);
   });
+
+  document.getElementById('save-modal').style.display = 'flex';
 }
 
-// ドール選択を変更した時の動作
-function onDollSelectChange() {
-  // 必要に応じて自動読み込みさせる場合はここに loadData() を入れることも可能
+// 保存の実行
+function confirmSave() {
+  const select = document.getElementById('save-doll-select');
+  const selectedId = select.value;
+  
+  const data = getFullData();
+  // IDが指定されていない（新規保存）場合はタイムスタンプでID生成
+  const dollId = selectedId || ('doll_' + Date.now());
+  data.id = dollId;
+
+  const dolls = getAllDolls();
+  dolls[dollId] = data;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
+  closeModals();
+  alert(`「${data.name || '無名ドール'}」を保存しました！`);
 }
 
-// 画面全体のデータを取得する
+// ------------------------------------------
+// 2. 読み込み・削除処理
+// ------------------------------------------
+
+// 読み込みボタンを押した時（モーダルを開く）
+function openLoadModal() {
+  const select = document.getElementById('load-doll-select');
+  const dolls = getAllDolls();
+  const keys = Object.keys(dolls);
+
+  if (keys.length === 0) {
+    return alert('ブラウザに保存されたドールデータがありません。');
+  }
+
+  // オプションリセット
+  select.innerHTML = '<option value="">-- ドールを選択してください --</option>';
+
+  keys.forEach(id => {
+    const doll = dolls[id];
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = `${doll.name || '無名ドール'} (ポジション: ${doll.pos || 'なし'} / PL: ${doll.pl || '未設定'})`;
+    select.appendChild(option);
+  });
+
+  document.getElementById('load-modal').style.display = 'flex';
+}
+
+// 読み込みの実行
+function confirmLoad() {
+  const select = document.getElementById('load-doll-select');
+  const dollId = select.value;
+
+  if (!dollId) {
+    return alert('読み込むドールを選択してください。');
+  }
+
+  const dolls = getAllDolls();
+  const data = dolls[dollId];
+
+  if (data) {
+    applyData(data);
+    closeModals();
+    alert(`「${data.name || '無名ドール'}」を読み込みました！`);
+  }
+}
+
+// 削除の実行
+function confirmDelete() {
+  const select = document.getElementById('load-doll-select');
+  const dollId = select.value;
+
+  if (!dollId) {
+    return alert('削除するドールを選択してください。');
+  }
+
+  const dolls = getAllDolls();
+  const targetName = dolls[dollId]?.name || '無名ドール';
+
+  if (!confirm(`本当に「${targetName}」を削除しますか？`)) {
+    return;
+  }
+
+  delete dolls[dollId];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
+  closeModals();
+  alert(`「${targetName}」を削除しました。`);
+}
+
+// ------------------------------------------
+// データ構造・復元処理
+// ------------------------------------------
+
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
 
-  const data = {
-    id: document.getElementById('doll-id')?.value || 'doll_' + Date.now(), // 一位のID
+  return {
     pl: getVal('pl'),
     name: getVal('name'),
     pos: getVal('pos'),
@@ -725,137 +817,40 @@ function getFullData() {
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
     bonus: document.querySelector('input[name="bonus"][value]:checked')?.value || 'wep',
-    skills: [],
-    parts: [],
-    list: [],
-    history: [],
-    chouaiUses: []
-  };
-
-  // スキル
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    data.skills.push({
+    skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
       category: tr.querySelector('input')?.value || '',
       name: tr.querySelector('select')?.value || '',
       memo: tr.querySelector('textarea')?.value || ''
-    });
-  });
-
-  // パーツ
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const name = tr.querySelector('.p-name')?.value;
-    if (name) {
-      data.parts.push({
-        isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
-        location: tr.querySelector('.p-location')?.value || '',
-        name: name,
-        type: tr.querySelector('.p-type')?.value || '基本',
-        level: tr.querySelector('.p-level')?.value || '1',
-        timing: tr.querySelector('.p-timing')?.value || '',
-        cost: tr.querySelector('.p-cost')?.value || '',
-        range: tr.querySelector('.p-range')?.value || '',
-        memo: tr.querySelector('.p-memo')?.value || '',
-        isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
-      });
-    }
-  });
-
-  // 未練
-  document.querySelectorAll('#list tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input');
-    if (inputs.length >= 3) {
-      data.list.push({
-        target: inputs[0].value,
-        emotion: inputs[1].value,
-        madness: inputs[2].value
-      });
-    }
-  });
-
-  // セッション履歴（獲得）
-  document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
-    data.history.push({
+    })),
+    parts: Array.from(document.querySelectorAll('#parts-container tr')).filter(tr => tr.querySelector('.p-name')?.value).map(tr => ({
+      isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
+      location: tr.querySelector('.p-location')?.value || '',
+      name: tr.querySelector('.p-name')?.value || '',
+      type: tr.querySelector('.p-type')?.value || '基本',
+      level: tr.querySelector('.p-level')?.value || '1',
+      timing: tr.querySelector('.p-timing')?.value || '',
+      cost: tr.querySelector('.p-cost')?.value || '',
+      range: tr.querySelector('.p-range')?.value || '',
+      memo: tr.querySelector('.p-memo')?.value || '',
+      isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
+    })),
+    list: Array.from(document.querySelectorAll('#list tr')).map(tr => {
+      const inputs = tr.querySelectorAll('input');
+      return inputs.length >= 3 ? { target: inputs[0].value, emotion: inputs[1].value, madness: inputs[2].value } : null;
+    }).filter(Boolean),
+    history: Array.from(document.querySelectorAll('#session-history-tbody tr')).map(tr => ({
       scenario: tr.querySelector('.h-scenario')?.value || '',
       battle: tr.querySelector('.battle-pts')?.value || 0,
       personal: tr.querySelector('.personal-pts')?.value || 0,
       memo: tr.querySelector('.h-memo')?.value || ''
-    });
-  });
-
-  // 寵愛点の使い道（消費）
-  document.querySelectorAll('#chouai-use-tbody tr').forEach(tr => {
-    data.chouaiUses.push({
+    })),
+    chouaiUses: Array.from(document.querySelectorAll('#chouai-use-tbody tr')).map(tr => ({
       used: tr.querySelector('.used-pts')?.value || 0,
       memo: tr.querySelector('.use-memo')?.value || ''
-    });
-  });
-
-  return data;
+    }))
+  };
 }
 
-// 1. ブラウザに保存（選択中のドールを更新、または新規保存）
-function saveData() {
-  const data = getFullData();
-  const select = document.getElementById('doll-list-select');
-  
-  // セレクトボックスで選択中のIDがあれば上書き、なければ新規ID作成
-  let dollId = select ? select.value : '';
-  if (!dollId) {
-    dollId = 'doll_' + Date.now();
-  }
-  data.id = dollId;
-
-  const dolls = getAllDolls();
-  dolls[dollId] = data;
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
-  updateDollSelectOptions(dollId);
-  alert(`「${data.name || '無名ドール'}」をブラウザに保存しました`);
-}
-
-// 2. 選択中のドールを読み込む
-function loadData() {
-  const select = document.getElementById('doll-list-select');
-  const dollId = select?.value;
-
-  if (!dollId) {
-    return alert('読み込むドールを一覧から選択してください');
-  }
-
-  const dolls = getAllDolls();
-  const data = dolls[dollId];
-
-  if (!data) {
-    return alert('選択されたドールのデータが見つかりませんでした');
-  }
-
-  applyData(data);
-  alert(`「${data.name || '無名ドール'}」のデータを読み込みました`);
-}
-
-// 3. 選択中のドールを削除する
-function deleteData() {
-  const select = document.getElementById('doll-list-select');
-  const dollId = select?.value;
-
-  if (!dollId) {
-    return alert('削除するドールを一覧から選択してください');
-  }
-
-  const dolls = getAllDolls();
-  const targetName = dolls[dollId]?.name || '無名ドール';
-
-  if (!confirm(`「${targetName}」をストレージから削除しますか？`)) {
-    return;
-  }
-
-  delete dolls[dollId];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
-  updateDollSelectOptions();
-  alert(`「${targetName}」を削除しました`);
-}
-
-// データを画面に反映させる処理
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
@@ -873,46 +868,33 @@ function applyData(data) {
 
   if (typeof onClassChange === 'function') onClassChange();
 
-  // スキルの復元
   const skillTbody = document.getElementById('skill-tbody');
   if (skillTbody) {
     skillTbody.innerHTML = '';
-    if (data.skills) {
-      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
-    }
+    if (data.skills) data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
   }
 
-  // 未練の復元
   const listTbody = document.getElementById('list');
   if (listTbody) {
     listTbody.innerHTML = '';
-    if (data.list) {
-      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
-    }
+    if (data.list) data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
   }
 
-  // 履歴の復元
   const historyTbody = document.getElementById('session-history-tbody');
   if (historyTbody) {
     historyTbody.innerHTML = '';
-    if (data.history) {
-      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
-    }
+    if (data.history) data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
   }
 
-  // 使い道の復元
   const useTbody = document.getElementById('chouai-use-tbody');
   if (useTbody) {
     useTbody.innerHTML = '';
-    if (data.chouaiUses) {
-      data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
-    }
+    if (data.chouaiUses) data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
   }
 
   if (typeof calcTotals === 'function') calcTotals();
 }
 
-// 4. JSON出力
 function exportJSON() {
   const data = getFullData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
