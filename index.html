@@ -245,6 +245,18 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
 </div>
 
+<div class="doll-manager" style="margin: 10px 0; padding: 10px; border: 1px solid #444; background: #222;">
+  <label for="doll-select" style="color: #fff; font-weight: bold;">保存済みドール一覧：</label>
+  <select id="doll-select" style="min-width: 250px; padding: 4px;">
+    <option value="">-- ドールを選択 --</option>
+  </select>
+
+  <button type="button" onclick="loadSelectedDoll()">読込</button>
+  <button type="button" onclick="saveCurrentDoll()">上書き/新規保存</button>
+  <button type="button" onclick="deleteSelectedDoll()" style="color: #ff6666;">削除</button>
+  <button type="button" onclick="clearFormForNewDoll()">新規作成（クリア）</button>
+</div>
+
 <!-- 寵愛点サマリー -->
 <div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
   <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
@@ -1117,6 +1129,140 @@ function exportJSON() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// --- 複数ドール管理機能 ---
+
+// 保存されているドール一覧を取得
+function getDollList() {
+  const json = localStorage.getItem('necro_doll_list');
+  return json ? JSON.parse(json) : [];
+}
+
+// ドール一覧の保存
+function saveDollList(list) {
+  localStorage.setItem('necro_doll_list', JSON.stringify(list));
+}
+
+// ドール選択UI（セレクトボックス）の更新
+function updateDollSelect() {
+  const select = document.getElementById('doll-select');
+  if (!select) return;
+
+  const dolls = getDollList();
+  const currentId = select.value;
+
+  select.innerHTML = '<option value="">-- ドールを選択 --</option>';
+  dolls.forEach(d => {
+    const option = document.createElement('option');
+    option.value = d.id;
+    // 名前、ポジション、メイン/サブクラスを表示
+    option.textContent = `${d.name || '無名'} [${d.pos || '未設定'}] (${d.mc || '-'}/${d.sc || '-'})`;
+    select.appendChild(option);
+  });
+
+  if (currentId && dolls.some(d => d.id === currentId)) {
+    select.value = currentId;
+  }
+}
+
+// 現在選択されているドール（または新規）として保存
+function saveCurrentDoll() {
+  const select = document.getElementById('doll-select');
+  let currentId = select ? select.value : '';
+  
+  const data = getFullData(); // 既存のデータ取得関数
+  
+  // 新規作成時またはIDがない場合は新規IDを発行
+  if (!currentId) {
+    currentId = 'doll_' + Date.now();
+  }
+
+  // スロット保存用オブジェクト
+  const dollEntry = {
+    id: currentId,
+    name: data.name || '無名',
+    pos: data.pos || '未設定',
+    mc: data.mc || '-',
+    sc: data.sc || '-',
+    data: data
+  };
+
+  const dolls = getDollList();
+  const index = dolls.findIndex(d => d.id === currentId);
+
+  if (index >= 0) {
+    dolls[index] = dollEntry;
+  } else {
+    dolls.push(dollEntry);
+  }
+
+  saveDollList(dolls);
+  updateDollSelect();
+  
+  if (select) select.value = currentId;
+  alert(`「${dollEntry.name}」のデータを保存しました。`);
+}
+
+// セレクトボックスで選択したドールを読み込む
+function loadSelectedDoll() {
+  const select = document.getElementById('doll-select');
+  const selectedId = select ? select.value : '';
+  
+  if (!selectedId) {
+    alert('読み込むドールを選択してください。');
+    return;
+  }
+
+  const dolls = getDollList();
+  const target = dolls.find(d => d.id === selectedId);
+
+  if (target && target.data) {
+    applyData(target.data); // 既存のデータ反映関数
+    alert(`「${target.name}」を読み込みました。`);
+  }
+}
+
+// 選択中のドールを削除
+function deleteSelectedDoll() {
+  const select = document.getElementById('doll-select');
+  const selectedId = select ? select.value : '';
+
+  if (!selectedId) {
+    alert('削除するドールを選択してください。');
+    return;
+  }
+
+  const dolls = getDollList();
+  const target = dolls.find(d => d.id === selectedId);
+
+  if (target && confirm(`本当に「${target.name}」を削除しますか？`)) {
+    const updated = dolls.filter(d => d.id !== selectedId);
+    saveDollList(updated);
+    updateDollSelect();
+    alert('削除しました。');
+  }
+}
+
+// フォームを新規作成用にリセット（クリア）
+function clearFormForNewDoll() {
+  if (confirm('入力内容をクリアして新規作成を行いますか？（未保存の変更は失われます）')) {
+    // 空のデータを読み込ませて初期化
+    applyData({
+      pl: '', name: '', pos: 'アリス', mc: 'ロマネスク', sc: 'ロマネスク',
+      age: '', ps: '煉獄', hint: '', mem: '', act: '9', fav: '0', tr: '',
+      chouaiWep: '0', chouaiMut: '0', chouaiCyb: '0', bonus: 'wep',
+      skills: [], parts: [], list: [], history: [], chouaiUses: []
+    });
+    
+    const select = document.getElementById('doll-select');
+    if (select) select.value = '';
+  }
+}
+
+// 初期化（onload等の最後に追加）
+window.addEventListener('DOMContentLoaded', () => {
+  updateDollSelect();
+});
 
 // --- キャラクター保管所・メモ貼り付け用テキスト出力 ---
 function exportForHokanshoText() {
