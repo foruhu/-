@@ -268,8 +268,9 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
 
 <!-- 保存・読込ボタンエリア -->
 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-  <button type="button" onclick="openSaveModal()" style="background: #2a4836; color: #8ff; border: 1px solid #4a8; padding: 6px 12px; border-radius: 4px; cursor: pointer;">💾 ブラウザに保存</button>
-  <button type="button" onclick="openLoadModal()" style="background: #363648; color: #8ff; border: 1px solid #66f; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📂 データを読み込む</button>
+ <button type="button" onclick="openSaveModal()">保存</button>
+
+<button type="button" onclick="openLoadModal()">読み込み</button>
   <button type="button" onclick="exportJSON()" style="background: #4a362a; color: #ffb888; border: 1px solid #864; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📄 JSON出力</button>
 </div>
 
