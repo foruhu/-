@@ -666,27 +666,28 @@ function calcChouaiTotals() {
 
 // --- 保存・読込（モーダル管理） ---
 
+// --- 定数・共通ヘルパー関数の補完 ---
 const STORAGE_KEY = 'necro_dolls_list';
 
-// 全ドールデータの取得
 function getAllDolls() {
   const json = localStorage.getItem(STORAGE_KEY);
   return json ? JSON.parse(json) : {};
 }
 
-// モーダルを閉じる
 function closeModals() {
-  document.getElementById('save-modal').style.display = 'none';
-  document.getElementById('load-modal').style.display = 'none';
+  const saveModal = document.getElementById('save-modal');
+  const loadModal = document.getElementById('load-modal');
+  if (saveModal) saveModal.style.display = 'none';
+  if (loadModal) loadModal.style.display = 'none';
 }
 
 // ------------------------------------------
 // 1. 保存処理
 // ------------------------------------------
 
-// 保存ボタンを押した時（モーダルを開く）
 function openSaveModal() {
   const select = document.getElementById('save-doll-select');
+  if (!select) return;
   const dolls = getAllDolls();
   const currentName = document.getElementById('name')?.value || '無名ドール';
 
@@ -702,16 +703,15 @@ function openSaveModal() {
     select.appendChild(option);
   });
 
-  document.getElementById('save-modal').style.display = 'flex';
+  const modal = document.getElementById('save-modal');
+  if (modal) modal.style.display = 'flex';
 }
 
-// 保存の実行
 function confirmSave() {
   const select = document.getElementById('save-doll-select');
-  const selectedId = select.value;
+  const selectedId = select ? select.value : '';
   
   const data = getFullData();
-  // IDが指定されていない（新規保存）場合はタイムスタンプでID生成
   const dollId = selectedId || ('doll_' + Date.now());
   data.id = dollId;
 
@@ -727,9 +727,9 @@ function confirmSave() {
 // 2. 読み込み・削除処理
 // ------------------------------------------
 
-// 読み込みボタンを押した時（モーダルを開く）
 function openLoadModal() {
   const select = document.getElementById('load-doll-select');
+  if (!select) return;
   const dolls = getAllDolls();
   const keys = Object.keys(dolls);
 
@@ -748,13 +748,13 @@ function openLoadModal() {
     select.appendChild(option);
   });
 
-  document.getElementById('load-modal').style.display = 'flex';
+  const modal = document.getElementById('load-modal');
+  if (modal) modal.style.display = 'flex';
 }
 
-// 読み込みの実行
 function confirmLoad() {
   const select = document.getElementById('load-doll-select');
-  const dollId = select.value;
+  const dollId = select ? select.value : '';
 
   if (!dollId) {
     return alert('読み込むドールを選択してください。');
@@ -770,10 +770,9 @@ function confirmLoad() {
   }
 }
 
-// 削除の実行
 function confirmDelete() {
   const select = document.getElementById('load-doll-select');
-  const dollId = select.value;
+  const dollId = select ? select.value : '';
 
   if (!dollId) {
     return alert('削除するドールを選択してください。');
@@ -815,10 +814,11 @@ function getFullData() {
     chouaiWep: getVal('chouai-wep'),
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
-  bonus: document.querySelector(‘input[name=“bonus”]:checked’)?.value || ‘wep’,
+    // 全角引用符を半角に修復
+    bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
     skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
-      category: tr.querySelector('input')?.value || '',
-      name: tr.querySelector('select')?.value || '',
+      category: tr.querySelector('input')?.value || tr.children[0]?.textContent || '',
+      name: tr.querySelector('select')?.value || tr.querySelector('input[type="text"]')?.value || '',
       memo: tr.querySelector('textarea')?.value || ''
     })),
     parts: Array.from(document.querySelectorAll('#parts-container tr')).filter(tr => tr.querySelector('.p-name')?.value).map(tr => ({
@@ -870,25 +870,33 @@ function applyData(data) {
   const skillTbody = document.getElementById('skill-tbody');
   if (skillTbody) {
     skillTbody.innerHTML = '';
-    if (data.skills) data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+    if (data.skills && typeof addSkillRow === 'function') {
+      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+    }
   }
 
   const listTbody = document.getElementById('list');
   if (listTbody) {
     listTbody.innerHTML = '';
-    if (data.list) data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+    if (data.list && typeof addRow === 'function') {
+      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+    }
   }
 
   const historyTbody = document.getElementById('session-history-tbody');
   if (historyTbody) {
     historyTbody.innerHTML = '';
-    if (data.history) data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
+    if (data.history && typeof addSessionHistoryRow === 'function') {
+      data.history.forEach(h => addSessionHistoryRow(h.scenario, h.battle, h.personal, h.memo));
+    }
   }
 
   const useTbody = document.getElementById('chouai-use-tbody');
   if (useTbody) {
     useTbody.innerHTML = '';
-    if (data.chouaiUses) data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
+    if (data.chouaiUses && typeof addChouaiUseRow === 'function') {
+      data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
+    }
   }
 
   if (typeof calcTotals === 'function') calcTotals();
@@ -907,5 +915,5 @@ function exportJSON() {
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
-  onClassChange();
+  if (typeof onClassChange === 'function') onClassChange();
 };
