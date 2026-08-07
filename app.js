@@ -1,3 +1,16 @@
+- [cite_start]`generateOptionGroup`, `addPartRow`, `openSaveModal`, `applyData` 内で、`${...}` 変数埋め込みを使用しているにもかかわらず、バックスラッシュのエスケープミスやバックティックの抜けがありました [cite: 705, 708, 712, 714]。これらを正しく囲み直しました。
+
+2. **`addPartRow` 内のドロップダウン生成ロジックの修正**
+   - 種類（`p-type`）を選択する `<select>` 要素のオプション生成部で、JavaScriptの評価文（`${['基本','武装','変異','改造'].map(...).join('')}`）が正しく埋め込まれておらず構文エラーになっていた箇所を修正しました。
+
+3. [cite_start]**`applyData` におけるパーツ情報の復元処理の追加** [cite: 705]
+   - [cite_start]保存時（`getFullData`）に取得しているパーツ一覧（`data.parts`）を、データ読み込み時に画面に反映・復元する処理（`parts-tbody-*` への行追加）を追加しました [cite: 705]。
+
+---
+
+### 📄 修正後の完全なJavaScriptコード
+
+```javascript
 const LIMIT_TABLE_DATA = [
   { lv1: 1, lv2: 0, lv3: 0 }, { lv1: 1, lv2: 1, lv3: 0 }, { lv1: 1, lv2: 1, lv3: 1 },
   { lv1: 2, lv2: 1, lv3: 1 }, { lv1: 2, lv2: 2, lv3: 1 }, { lv1: 2, lv2: 2, lv3: 2 },
@@ -5,11 +18,6 @@ const LIMIT_TABLE_DATA = [
 ];
 
 const STORAGE_KEY = 'necro_dolls_list';
-
-function applyData(data) {
-  const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
-
-
 
 function getLimitByVal(val) {
   if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
@@ -24,17 +32,17 @@ function generateOptionGroup(list, maxAllowedMap, prefix, label) {
     if (allowed > 0) {
       const isExists = isPartAlreadyExists(p.name);
       const disabledAttr = isExists ? 'disabled' : '';
-      const nameText = isExists ? \${p.name} (選択済み)` : p.name;`
-      groupHtml += \<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}`;`
+      const nameText = isExists ? `${p.name} (選択済み)` : p.name;
+      groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
     }
   });
   return groupHtml ? `<optgroup label="${label}">${groupHtml}</optgroup>` : '';
 }
 
 function updateExtraPartOptions() {
-  const totalWep = parseInt(document.getElementById('total-wep').textContent, 10) || 0;
-  const totalMut = parseInt(document.getElementById('total-mut').textContent, 10) || 0;
-  const totalCyb = parseInt(document.getElementById('total-cyb').textContent, 10) || 0;
+  const totalWep = parseInt(document.getElementById('total-wep')?.textContent, 10) || 0;
+  const totalMut = parseInt(document.getElementById('total-mut')?.textContent, 10) || 0;
+  const totalCyb = parseInt(document.getElementById('total-cyb')?.textContent, 10) || 0;
 
   let hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
 
@@ -62,10 +70,10 @@ function updateExtraPartOptions() {
 
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
 
-    if (EXTRA_PARTS_DB[sec.id]) {
+    if (typeof EXTRA_PARTS_DB !== 'undefined' && EXTRA_PARTS_DB[sec.id]) {
       optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], maxAllowedMap, sec.id, `【${sec.title}専用パーツ】`);
     }
-    if (COMMON_EXTRA_PARTS.length > 0) {
+    if (typeof COMMON_EXTRA_PARTS !== 'undefined' && COMMON_EXTRA_PARTS.length > 0) {
       optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, maxAllowedMap, 'common', '【共通・汎用パーツ】');
     }
 
@@ -171,6 +179,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
   const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
   const locOptions = locations.map(loc => `<option value="${loc}" ${loc === defaultLoc ? 'selected' : ''}>${loc}</option>`).join('');
+  const typeOptions = ['基本', '武装', '変異', '改造'].map(t => `<option ${type === t ? 'selected' : ''}>${t}</option>`).join('');
 
   tr.innerHTML = `
     <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
@@ -178,7 +187,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
-        $['基本','武装','変異','改造'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
+        ${typeOptions}
       </select>
     </td>
     <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
@@ -206,8 +215,8 @@ function resetUsed() {
 function onClassChange() {
   const mc = document.getElementById('mc')?.value || '';
   const sc = document.getElementById('sc')?.value || '';
-  const mcParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[mc]) || [0,0,2];
-  const scParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[sc]) || [0,0,2];
+  const mcParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[mc]) || [0, 0, 2];
+  const scParts = (typeof CLASS_PARTS !== 'undefined' && CLASS_PARTS[sc]) || [0, 0, 2];
 
   ['wep', 'mut', 'cyb'].forEach((key, idx) => {
     if (document.getElementById(`mc-${key}`)) document.getElementById(`mc-${key}`).textContent = mcParts[idx];
@@ -241,35 +250,33 @@ function calcTotals() {
     }
   });
 
-// スキル選択状態を取得（「時計仕掛け」と「業躯」）
-const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
-const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
+  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
+  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
 
-const categories = [
-  { name: '武装', total: totals.wep, key: 'wep' },
-  { name: '変異', total: totals.mut, key: 'mut' },
-  { name: '改造', total: totals.cyb, key: 'cyb' }
-];
+  const categories = [
+    { name: '武装', total: totals.wep, key: 'wep' },
+    { name: '変異', total: totals.mut, key: 'mut' },
+    { name: '改造', total: totals.cyb, key: 'cyb' }
+  ];
 
-const limitTbody = document.getElementById('limit-tbody');
-if (limitTbody) { limitTbody.innerHTML = ''; }
+  const limitTbody = document.getElementById('limit-tbody');
+  if (limitTbody) { limitTbody.innerHTML = ''; }
 
-categories.forEach(cat => {
-  const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
-  [1, 2, 3].forEach(lv => {
-    const baseLimit = limit[`lv${lv}`] || 0;
-    
-    // ボーナス適用判定：改造Lv3(時計仕掛け) または 変異Lv3(業躯)
-    let autoBonus = 0;
-    if (cat.name === '改造' && lv === 3 && hasClockwork) {
-      autoBonus = 1;
-    } else if (cat.name === '変異' && lv === 3 && hasGouku) {
-      autoBonus = 1;
-    }
+  categories.forEach(cat => {
+    const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
+    [1, 2, 3].forEach(lv => {
+      const baseLimit = limit[`lv${lv}`] || 0;
+      
+      let autoBonus = 0;
+      if (cat.name === '改造' && lv === 3 && hasClockwork) {
+        autoBonus = 1;
+      } else if (cat.name === '変異' && lv === 3 && hasGouku) {
+        autoBonus = 1;
+      }
 
-    const maxAllowed = baseLimit + autoBonus;
-    const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
-    
+      const maxAllowed = baseLimit + autoBonus;
+      const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
+      
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
       if (usedSpan) usedSpan.textContent = current;
@@ -355,9 +362,9 @@ function addSkillRow(category, skillName = '', memo = '') {
   calcTotals();
 }
 
-function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); }
-function addMcSkillRow() { addSkillRow(document.getElementById('mc').value); }
-function addScSkillRow() { addSkillRow(document.getElementById('sc').value); }
+function addPosSkillRow() { addSkillRow(document.getElementById('pos')?.value || ''); }
+function addMcSkillRow() { addSkillRow(document.getElementById('mc')?.value || ''); }
+function addScSkillRow() { addSkillRow(document.getElementById('sc')?.value || ''); }
 
 function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
@@ -376,7 +383,6 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
-// --- 1. セッション履歴（獲得）の行追加 ---
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
   if (!tbody) return;
@@ -404,7 +410,6 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   calcChouaiTotals();
 }
 
-// --- 2. 寵愛点の使い道（消費）の行追加 ---
 function addChouaiUseRow(used = 0, memo = '') {
   const tbody = document.getElementById('chouai-use-tbody');
   if (!tbody) return;
@@ -426,21 +431,17 @@ function addChouaiUseRow(used = 0, memo = '') {
   calcChouaiTotals();
 }
 
-// --- 3. 寵愛点計算処理 ---
 function calcChouaiTotals() {
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
 
-  // 獲得寵愛の計算
   document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
     totalBattle += parseInt(input.value, 10) || 0;
   });
   document.querySelectorAll('#session-history-tbody .personal-pts').forEach(input => {
     totalPersonal += parseInt(input.value, 10) || 0;
   });
-
-  // 使用寵愛の計算
   document.querySelectorAll('#chouai-use-tbody .used-pts').forEach(input => {
     totalUsed += parseInt(input.value, 10) || 0;
   });
@@ -465,11 +466,6 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込（モーダル管理） ---
-
-// --- 定数・共通ヘルパー関数の補完 ---
-const STORAGE_KEY = 'necro_dolls_list';
-
 function getAllDolls() {
   const json = localStorage.getItem(STORAGE_KEY);
   return json ? JSON.parse(json) : {};
@@ -482,20 +478,14 @@ function closeModals() {
   if (loadModal) loadModal.style.display = 'none';
 }
 
-// ------------------------------------------
-// 1. 保存処理
-// ------------------------------------------
-
 function openSaveModal() {
   const select = document.getElementById('save-doll-select');
   if (!select) return;
   const dolls = getAllDolls();
   const currentName = document.getElementById('name')?.value || '無名ドール';
 
-  // オプションリセット
   select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
 
-  // 既存のドールを上書き選択肢としてリストに追加
   Object.keys(dolls).forEach(id => {
     const doll = dolls[id];
     const option = document.createElement('option');
@@ -524,10 +514,6 @@ function confirmSave() {
   alert(`「${data.name || '無名ドール'}」を保存しました！`);
 }
 
-// ------------------------------------------
-// 2. 読み込み・削除処理
-// ------------------------------------------
-
 function openLoadModal() {
   const select = document.getElementById('load-doll-select');
   if (!select) return;
@@ -538,7 +524,6 @@ function openLoadModal() {
     return alert('ブラウザに保存されたドールデータがありません。');
   }
 
-  // オプションリセット
   select.innerHTML = '<option value="">-- ドールを選択してください --</option>';
 
   keys.forEach(id => {
@@ -592,10 +577,6 @@ function confirmDelete() {
   alert(`「${targetName}」を削除しました。`);
 }
 
-// ------------------------------------------
-// データ構造・復元処理
-// ------------------------------------------
-
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
 
@@ -615,7 +596,6 @@ function getFullData() {
     chouaiWep: getVal('chouai-wep'),
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
-    // 全角引用符を半角に修復
     bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
     skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
       category: tr.querySelector('input')?.value || tr.children[0]?.textContent || '',
@@ -674,6 +654,32 @@ function applyData(data) {
     if (data.skills && typeof addSkillRow === 'function') {
       data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
     }
+  }
+
+  // --- パーツ情報の復元処理を追加 ---
+  if (data.parts && Array.isArray(data.parts)) {
+    // 既存のパーツ行をすべてリセット（初期状態にする）
+    if (typeof renderPartsContainer === 'function') renderPartsContainer();
+    
+    // データに基づいて行を追加
+    const locReverseMap = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
+    data.parts.forEach(p => {
+      const secId = locReverseMap[p.location] || 'head';
+      const tbody = document.getElementById(`parts-tbody-${secId}`) || document.querySelector('#parts-container tbody');
+      if (tbody && typeof addPartRow === 'function') {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location);
+        
+        // 破損（isBroken）状態の復元
+        const lastTr = tbody.lastElementChild;
+        if (lastTr && p.isBroken) {
+          const checkbox = lastTr.querySelector('input[type="checkbox"]');
+          if (checkbox) {
+            checkbox.checked = true;
+            togglePartBreak(checkbox);
+          }
+        }
+      }
+    });
   }
 
   const listTbody = document.getElementById('list');
