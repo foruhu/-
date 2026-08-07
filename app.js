@@ -665,13 +665,50 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込 ---
+// --- 複数ドール対応：保存・読込・管理 ---
+
+const STORAGE_KEY = 'necro_dolls_list';
+
+// ページ読み込み時にリストを初期化
+document.addEventListener('DOMContentLoaded', () => {
+  updateDollSelectOptions();
+});
+
+// ストレージから全ドールデータを取得（存在しない場合は空オブジェクト）
+function getAllDolls() {
+  const json = localStorage.getItem(STORAGE_KEY);
+  return json ? JSON.parse(json) : {};
+}
+
+// ドール選択セレクトボックスの表示更新
+function updateDollSelectOptions(selectedId = '') {
+  const select = document.getElementById('doll-list-select');
+  if (!select) return;
+
+  const dolls = getAllDolls();
+  select.innerHTML = '<option value="">-- ドールを選択 --</option>';
+
+  Object.keys(dolls).forEach(id => {
+    const doll = dolls[id];
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = doll.name ? `${doll.name} (${doll.pos || '無職'})` : `(無名ドール: ${id})`;
+    if (id === selectedId) option.selected = true;
+    select.appendChild(option);
+  });
+}
+
+// ドール選択を変更した時の動作
+function onDollSelectChange() {
+  // 必要に応じて自動読み込みさせる場合はここに loadData() を入れることも可能
+}
 
 // 画面全体のデータを取得する
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
 
   const data = {
+    id: document.getElementById('doll-id')?.value || 'doll_' + Date.now(), // 一位のID
     pl: getVal('pl'),
     name: getVal('name'),
     pos: getVal('pos'),
@@ -756,24 +793,69 @@ function getFullData() {
   return data;
 }
 
-// 1. ブラウザに保存
+// 1. ブラウザに保存（選択中のドールを更新、または新規保存）
 function saveData() {
   const data = getFullData();
-  localStorage.setItem('necro_sheet', JSON.stringify(data));
-  alert('ブラウザに保存しました');
-}
-
-// 2. ブラウザからデータを読み込む
-function loadData() {
-  const json = localStorage.getItem('necro_sheet');
-  if (!json) return alert('保存されたデータがありません');
+  const select = document.getElementById('doll-list-select');
   
-  const data = JSON.parse(json);
-  applyData(data);
-  alert('ブラウザからデータを読み込みました');
+  // セレクトボックスで選択中のIDがあれば上書き、なければ新規ID作成
+  let dollId = select ? select.value : '';
+  if (!dollId) {
+    dollId = 'doll_' + Date.now();
+  }
+  data.id = dollId;
+
+  const dolls = getAllDolls();
+  dolls[dollId] = data;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
+  updateDollSelectOptions(dollId);
+  alert(`「${data.name || '無名ドール'}」をブラウザに保存しました`);
 }
 
-// データを画面に反映させる共通処理
+// 2. 選択中のドールを読み込む
+function loadData() {
+  const select = document.getElementById('doll-list-select');
+  const dollId = select?.value;
+
+  if (!dollId) {
+    return alert('読み込むドールを一覧から選択してください');
+  }
+
+  const dolls = getAllDolls();
+  const data = dolls[dollId];
+
+  if (!data) {
+    return alert('選択されたドールのデータが見つかりませんでした');
+  }
+
+  applyData(data);
+  alert(`「${data.name || '無名ドール'}」のデータを読み込みました`);
+}
+
+// 3. 選択中のドールを削除する
+function deleteData() {
+  const select = document.getElementById('doll-list-select');
+  const dollId = select?.value;
+
+  if (!dollId) {
+    return alert('削除するドールを一覧から選択してください');
+  }
+
+  const dolls = getAllDolls();
+  const targetName = dolls[dollId]?.name || '無名ドール';
+
+  if (!confirm(`「${targetName}」をストレージから削除しますか？`)) {
+    return;
+  }
+
+  delete dolls[dollId];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
+  updateDollSelectOptions();
+  alert(`「${targetName}」を削除しました`);
+}
+
+// データを画面に反映させる処理
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
@@ -830,7 +912,7 @@ function applyData(data) {
   if (typeof calcTotals === 'function') calcTotals();
 }
 
-// 3. JSONファイルとして出力（ダウンロード）
+// 4. JSON出力
 function exportJSON() {
   const data = getFullData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
