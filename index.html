@@ -732,6 +732,7 @@ function calcTotals() {
   });
 
   const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
+  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
 
   const categories = [
     { name: '武装', total: totals.wep, key: 'wep' },
@@ -748,10 +749,17 @@ function calcTotals() {
     const limit = (typeof getLimitByVal === 'function') ? getLimitByVal(cat.total) : { lv1:0, lv2:0, lv3:0 };
     [1, 2, 3].forEach(lv => {
       const baseLimit = limit[`lv${lv}`] || 0;
-      const autoBonus = (cat.name === '改造' && lv === 3 && hasClockwork) ? 1 : 0;
-      const maxAllowed = baseLimit + autoBonus; 
-      const current = currentCounts[cat.name][lv];
+      
+      // ボーナス適用判定：改造Lv3(時計仕掛け) または 変異Lv3(業躯)
+    let autoBonus = 0;
+    if (cat.name === '改造' && lv === 3 && hasClockwork) {
+      autoBonus = 1;
+    } else if (cat.name === '変異' && lv === 3 && hasGouku) {
+      autoBonus = 1;
+    }
 
+    const maxAllowed = baseLimit + autoBonus;
+    
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
       if (usedSpan) usedSpan.textContent = current;
