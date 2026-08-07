@@ -307,3 +307,12 @@ tr.broken input, tr.broken textarea {
   text-decoration: line-through;
   opacity: 0.5;
 }
+
+/* 上部固定バー用の指定を追加する場合 */
+.sticky-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(24, 24, 28, 0.95); /* スクロール時に背景が透けないように */
+  backdrop-filter: blur(4px);
+}
