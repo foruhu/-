@@ -815,7 +815,7 @@ function getFullData() {
     chouaiWep: getVal('chouai-wep'),
     chouaiMut: getVal('chouai-mut'),
     chouaiCyb: getVal('chouai-cyb'),
-    bonus: document.querySelector('input[name="bonus"][value]:checked')?.value || 'wep',
+  bonus: document.querySelector(‘input[name=“bonus”]:checked’)?.value || ‘wep’,
     skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
       category: tr.querySelector('input')?.value || '',
       name: tr.querySelector('select')?.value || '',
