@@ -905,8 +905,6 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-});
-
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
