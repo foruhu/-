@@ -1,3 +1,4 @@
+<script src="data.js"></script>
 // --- DB類 (memo未定義部分は自動で空文字扱い) ---
 const SKILL_DATABASE = {
   'アリス': [
@@ -209,3 +210,4 @@ const LIMIT_TABLE_DATA = [
   { lv1: 2, lv2: 1, lv3: 1 }, { lv1: 2, lv2: 2, lv3: 1 }, { lv1: 2, lv2: 2, lv3: 2 },
   { lv1: 3, lv2: 2, lv3: 2 }, { lv1: 3, lv2: 3, lv3: 2 }, { lv1: 3, lv2: 3, lv3: 3 }
 ];
+<script src="app.js"></script>
