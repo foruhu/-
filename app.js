@@ -223,8 +223,8 @@ function generateOptionGroup(list, maxAllowedMap, prefix, label) {
     if (allowed > 0) {
       const isExists = isPartAlreadyExists(p.name);
       const disabledAttr = isExists ? 'disabled' : '';
-      const nameText = isExists ? `${p.name} (選択済み)` : p.name;
-      groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
+      const nameText = isExists ? \${p.name} (選択済み)` : p.name;`
+      groupHtml += \<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}`;`
     }
   });
   return groupHtml ? `<optgroup label="${label}">${groupHtml}</optgroup>` : '';
@@ -377,7 +377,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
-        ${['基本','武装','変異','改造'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
+        $['基本','武装','変異','改造'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
     <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
