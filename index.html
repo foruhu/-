@@ -247,6 +247,23 @@
 </table>
 <button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
 
+<div class="doll-management-panel" style="border: 1px solid #555; padding: 12px; margin-bottom: 20px; background-color: #1a1a1a; border-radius: 6px;">
+  <h3 style="margin-top: 0; margin-bottom: 10px; color: #ff8888;">ドールデータ管理</h3>
+  
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <input type="text" id="save-doll-name" placeholder="ドール名を入力" style="padding: 6px; min-width: 160px;">
+    <button type="button" onclick="saveCurrentDollUI()" style="padding: 6px 12px;">保存</button>
+    
+    <span style="color: #888;">|</span>
+
+    <select id="saved-dolls-select" style="padding: 6px; min-width: 160px;">
+      <option value="">-- 保存済みドールを選択 --</option>
+    </select>
+    <button type="button" onclick="loadSelectedDollUI()" style="padding: 6px 12px;">読み込み</button>
+    <button type="button" onclick="deleteSelectedDollUI()" style="padding: 6px 12px; background-color: #aa3333; color: white; border: none; border-radius: 3px; cursor: pointer;">削除</button>
+  </div>
+</div>
+
 　<!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
   position: fixed;
