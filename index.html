@@ -259,6 +259,72 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   </div>
 </div>
 
+<!-- 画像デザイン再現版 保存・読込ボタンエリア -->
+<div style="display: flex; gap: 12px; margin-bottom: 15px; width: 100%; max-width: 800px;">
+  <!-- ブラウザに保存 -->
+  <button type="button" onclick="openSaveModal()" style="
+    flex: 1;
+    background: #233b2e;
+    color: #6ee7b7;
+    border: 2px solid #489b74;
+    border-radius: 8px;
+    padding: 12px 8px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    transition: filter 0.2s;
+  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+    <span style="font-size: 1.3rem;">💾</span> ブラウザに保存
+  </button>
+
+  <!-- データを読み込む -->
+  <button type="button" onclick="openLoadModal()" style="
+    flex: 1;
+    background: #313143;
+    color: #67e8f9;
+    border: 2px solid #5b5b9c;
+    border-radius: 8px;
+    padding: 12px 8px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    transition: filter 0.2s;
+  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+    <span style="font-size: 1.3rem;">📂</span> データを読み込む
+  </button>
+
+  <!-- JSON出力 -->
+  <button type="button" onclick="exportJSON()" style="
+    flex: 1;
+    background: #412f27;
+    color: #fdba74;
+    border: 2px solid #855339;
+    border-radius: 8px;
+    padding: 12px 8px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    transition: filter 0.2s;
+  " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+    <span style="font-size: 1.3rem;">📄</span> JSON出力
+  </button>
+</div>
+
 <!-- セッション履歴（獲得） -->
 <h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ セッション履歴（獲得寵愛）</h3>
 <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem;">
