@@ -784,42 +784,68 @@ function addRow(target = '', emotion = '', madness = 0) {
     tbody.appendChild(tr); 
 } 
 
-// --- 2. スキル関連処理（★修正後） ---
-function updateSkillOptions() { 
-    const selectedSkills = new Set(Array.from(document.querySelectorAll('#skill-tbody select')).map(s => s.value).filter(Boolean)); 
-    document.querySelectorAll('#skill-tbody tr').forEach(tr => { 
-        const select = tr.querySelector('select'); 
-        if (!select) return; 
-        const category = tr.querySelector('input')?.value || ''; 
-        const currentValue = select.value;
+function updateSkillOptions() {
+    // 1. 現在選択されているすべてのスキル名を取得（重複選択防止用、空の値は除く）
+    const selectedSkills = new Set(
+        Array.from(document.querySelectorAll('#skill-tbody select'))
+            .map(s => s.value)
+            .filter(Boolean)
+    );
 
-        // 選択肢を再生成する処理がある場合はここで行う
+    // 2. 各スキルの行（tr）ごとに選択肢（option）を再構築する
+    document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+        const select = tr.querySelector('select');
+        if (!select) return;
+
+        const categoryInput = tr.querySelector('input');
+        const category = categoryInput ? categoryInput.value : '';
+        const currentValue = select.value; // 現在選ばれている値を退避
+
+        // 一旦選択肢をクリアして初期化
+        select.innerHTML = '<option value="">-- スキルを選択 --</option>';
+
+        // SKILL_DATABASE から該当カテゴリのスキル一覧を取得して option を生成
+        if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+            SKILL_DATABASE[category].forEach(skill => {
+                // 「自分自身が現在選択中のスキル」または「まだ他の行で選択されていないスキル」を選択肢に追加
+                if (skill.name === currentValue || !selectedSkills.has(skill.name)) {
+                    const opt = document.createElement('option');
+                    opt.value = skill.name;
+                    opt.textContent = skill.name;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        // 以前選ばれていた値を復元
+        select.value = currentValue;
     });
-} 
+}
 
-function addSkillRow(category, skillName = '', memo = '') { 
-    const tbody = document.getElementById('skill-tbody'); 
-    if (!tbody) return; 
+function addSkillRow(category, skillName = '', memo = '') {
+    const tbody = document.getElementById('skill-tbody');
+    if (!tbody) return;
 
-    const tr = document.createElement('tr'); 
+    const tr = document.createElement('tr');
     tr.innerHTML = `
         <td><input type="text" value="${category}" readonly style="width: 80px;"></td>
         <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
         <td><textarea style="width: 100%; height: 40px;">${memo}</textarea></td>
         <td><button type="button" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions();">X</button></td>
-    `; 
+    `;
     tbody.appendChild(tr);
 
-    // ★修正ポイント: 選択肢（<option>）を生成した後に値をセットする
-    updateSkillOptions(); 
+    // 1. まず選択肢候補（<option>）を生成させる
+    updateSkillOptions();
 
+    // 2. 生成された選択肢の中に目的のスキルがあれば値をセット
     const select = tr.querySelector('select');
     if (select && skillName) {
         select.value = skillName;
     }
 
-    calcTotals(); 
-} 
+    calcTotals();
+}
 
 function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); } 
 function addMcSkillRow() { addSkillRow(document.getElementById('mc').value); } 
