@@ -28,7 +28,6 @@ function openSaveModal() {
   
   // オプションリセット（バックティック修復）
   select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
-  
   // 既存のドールを上書き選択肢としてリストに追加
   Object.keys(dolls).forEach(id => {
     const doll = dolls[id];
@@ -56,6 +55,7 @@ function confirmSave() {
   
   closeModals();
   alert(`「${data.name || '無名ドール'}」を保存しました！`);
+confirm(`本当に「${targetName}」を削除しますか？`);
 }
 
 // ------------------------------------------
