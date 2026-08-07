@@ -236,15 +236,6 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="btns">
-  <button type="button" onclick="saveData()">ブラウザ保存</button>
-  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
-</div>
-<div class="btns">
-  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
-  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
-</div>
-
 <div class="doll-controls" style="margin: 10px 0; padding: 10px; border: 1px solid #444; background: #222; text-align: left;">
   <button type="button" onclick="openLoadModal()" style="padding: 6px 14px; font-weight: bold; cursor: pointer;">📂 保存済みドールから読込</button>
   <button type="button" onclick="saveCurrentDoll()" style="padding: 6px 14px; cursor: pointer;">💾 現在のドールを保存</button>
@@ -1142,7 +1133,7 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-// --- 複数ドール管理機能 ---
+// --- 複数ドール管理機能（メイン保存・読込） ---
 
 // 保存されているドール一覧を取得
 function getDollList() {
@@ -1156,40 +1147,44 @@ function saveDollList(list) {
 }
 
 // ドール選択UI（セレクトボックス）の更新
-function updateDollSelect() {
+function updateDollSelect(targetId = null) {
     const select = document.getElementById('doll-select');
     if (!select) return;
 
-    const dolls = getDollList();
-    const currentId = select.value;
+    // 現在選択されているID（引数指定があればそれを優先）
+    const selectedId = targetId !== null ? targetId : select.value;
 
-    select.innerHTML = '<option value="">-- ドールを選択 --</option>';
+    const dolls = getDollList();
+
+    // セレクトボックスを再構築
+    select.innerHTML = '<option value="">-- 新規作成 (未選択) --</option>';
     dolls.forEach(d => {
         const option = document.createElement('option');
         option.value = d.id;
-        // 名前、ポジション、メイン/サブクラスを表示
         option.textContent = `${d.name || '無名'} [${d.pos || '未設定'}] (${d.mc || '-'}/${d.sc || '-'})`;
         select.appendChild(option);
     });
 
-    if (currentId && dolls.some(d => d.id === currentId)) {
-        select.value = currentId;
+    // 選択状態を復元・設定
+    if (selectedId && dolls.some(d => d.id === selectedId)) {
+        select.value = selectedId;
+    } else {
+        select.value = "";
     }
 }
 
-// 現在選択されているドール（または新規）として保存
+// 現在の入力内容を保存（選択中なら上書き、新規なら追加保存枠を作成）
 function saveCurrentDoll() {
     const select = document.getElementById('doll-select');
     let currentId = select ? select.value : '';
 
-    const data = getFullData(); // 既存のデータ取得関数
+    const data = getFullData();
 
-    // 新規作成時またはIDがない場合は新規IDを発行
+    // IDが空（新規作成状態）なら新しいIDを発行
     if (!currentId) {
         currentId = 'doll_' + Date.now();
     }
 
-    // スロット保存用オブジェクト
     const dollEntry = {
         id: currentId,
         name: data.name || '無名',
@@ -1203,30 +1198,26 @@ function saveCurrentDoll() {
     const index = dolls.findIndex(d => d.id === currentId);
 
     if (index >= 0) {
-        dolls[index] = dollEntry;
+        dolls[index] = dollEntry; // 既存枠の上書き
     } else {
-        dolls.push(dollEntry);
+        dolls.push(dollEntry);    // 新規保存枠の追加
     }
 
     saveDollList(dolls);
-    updateDollSelect();
+    
+    // 保存したドールを選択状態にしてUI更新
+    updateDollSelect(currentId);
 
-    // 【修正点】セレクトボックスの選択状態を今保存したドールに更新する
-    if (select) {
-        select.value = currentId;
-    }
-
-    // 【修正点】「」の引用符構文エラーを修正
     alert(`「${dollEntry.name}」のデータを保存しました。`);
 }
 
-// セレクトボックスで選択したドールを読み込む
+// リストで選択中のドールを読み込む
 function loadSelectedDoll() {
     const select = document.getElementById('doll-select');
     const selectedId = select ? select.value : '';
 
     if (!selectedId) {
-        alert('読み込むドールを選択してください。');
+        alert('読み込むドールをリストから選択してください。');
         return;
     }
 
@@ -1234,9 +1225,10 @@ function loadSelectedDoll() {
     const target = dolls.find(d => d.id === selectedId);
 
     if (target && target.data) {
-        applyData(target.data); // 既存のデータ反映関数
-        // 【修正点】「」の引用符構文エラーを修正
+        applyData(target.data);
         alert(`「${target.name}」を読み込みました。`);
+    } else {
+        alert('データが見つかりませんでした。');
     }
 }
 
@@ -1246,42 +1238,43 @@ function deleteSelectedDoll() {
     const selectedId = select ? select.value : '';
 
     if (!selectedId) {
-        alert('削除するドールを選択してください。');
+        alert('削除するドールをリストから選択してください。');
         return;
     }
 
     const dolls = getDollList();
     const target = dolls.find(d => d.id === selectedId);
 
-    // 【修正点】「」の引用符構文エラーを修正
     if (target && confirm(`本当に「${target.name}」を削除しますか？`)) {
         const updated = dolls.filter(d => d.id !== selectedId);
         saveDollList(updated);
-        updateDollSelect();
+        
+        updateDollSelect("");
         alert('削除しました。');
     }
 }
 
-// フォームを新規作成用にリセット（クリア）
+// 入力をクリアして新規作成状態にする
 function clearFormForNewDoll() {
     if (confirm('入力内容をクリアして新規作成を行いますか？（未保存の変更は失われます）')) {
-        // セレクトボックスの選択を解除（新規ID発行状態にする）
         const select = document.getElementById('doll-select');
         if (select) select.value = '';
 
-        // 空のデータを読み込ませて初期化
+        // 入力フォームの初期化
         applyData({
             pl: '', name: '', pos: 'アリス', mc: 'ロマネスク', sc: 'ロマネスク',
             age: '', ps: '煉獄', hint: '', mem: '', act: '9', fav: '0', tr: '',
             chouaiWep: '0', chouaiMut: '0', chouaiCyb: '0', bonus: 'wep',
             skills: [], parts: [], list: [], history: [], chouaiUses: []
         });
+        
+        updateDollSelect("");
     }
 }
 
-// 初期化（onload等の最後に追加）
+// ページ読み込み時の初期化
 window.addEventListener('DOMContentLoaded', () => {
-  updateDollSelect();
+    updateDollSelect();
 });
 
 // --- キャラクター保管所・メモ貼り付け用テキスト出力 ---
