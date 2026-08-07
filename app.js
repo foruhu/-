@@ -299,6 +299,13 @@ window.addEventListener('click', function(e) {
   }
 });
 
+function saveCurrentDoll) { openSaveModal &&
+openSaveModal(); }function loadCurrentDoll)
+{ openLoadModal && openLoadModal(); }
+function exportForHokanshoText()
+{ exportSON && exportJSON(); }
+・これで既存 HTML の onclick （saveC
+
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   if (typeof onClassChange === 'function') onClassChange();
