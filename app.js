@@ -905,6 +905,11 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
+// 修正例（要素がない場合でもエラーにならない記述）
+document.getElementById('modal-save-btn')?.addEventListener('click', () => {
+  // 保存処理
+});
+
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
