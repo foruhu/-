@@ -195,13 +195,36 @@
   <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="btns">
-  <button type="button" onclick="saveData()">ブラウザ保存</button>
-  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
-</div>
-<div class="btns">
-  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
-  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
+<div class="card">
+  <div class="title">キャラクター管理（複数保存）</div>
+  <div class="slot-select-row">
+    <label>保存済みキャラクター</label>
+    <select id="save-slot">
+      <option value="">-- 新規保存 --</option>
+    </select>
+  </div>
+  <div class="action-btn-row">
+    <button type="button" class="action-btn c-green" onclick="saveData()">
+      <span class="icon">💾</span><span>ブラウザに<br>保存</span>
+    </button>
+    <button type="button" class="action-btn c-blue" onclick="loadData()">
+      <span class="icon">📂</span><span>データを<br>読み込む</span>
+    </button>
+    <button type="button" class="action-btn c-red" onclick="deleteSelectedSave()">
+      <span class="icon">🗑</span><span>選択中を<br>削除</span>
+    </button>
+  </div>
+  <div class="action-btn-row">
+    <button type="button" class="action-btn c-orange" onclick="exportJSON()">
+      <span class="icon">📄</span><span>JSON<br>出力</span>
+    </button>
+    <button type="button" class="action-btn c-purple" onclick="exportCcfolia()">
+      <span class="icon">🎲</span><span>ココフォリア<br>出力</span>
+    </button>
+  </div>
+  <div style="font-size:0.7rem; color:#888; margin-top:4px;">
+    ※「保存済みキャラクター」で既存の名前を選んでから保存すると上書き保存、「新規保存」のままだと名前を聞かれて新しいキャラとして保存されます。
+  </div>
 </div>
 
 <!-- 寵愛点サマリー -->
