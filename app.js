@@ -146,7 +146,7 @@ function getFullData() {
     chouaiCyb: getVal('chouai-cyb'),
     bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
     skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
-  category: tr.querySelector('input')?.value || tr.children[0]?.textContent || '',
+  category: tr.querySelector('input')?.value || tr.children[0]?.textContent?.trim() || '',
   name: tr.querySelector('select')?.value || tr.querySelector('input[type="text"]')?.value || '',
   memo: tr.querySelector('textarea')?.value || ''
 }))
