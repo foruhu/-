@@ -322,12 +322,12 @@ window.addEventListener('click', function(e) {
   }
 });
 
-function saveCurrentDoll) { openSaveModal &&
-openSaveModal(); }function loadCurrentDoll)
+function (saveCurrentDoll) { openSaveModal &&
+openSaveModal(); }function (loadCurrentDoll)
 { openLoadModal && openLoadModal(); }
 function exportForHokanshoText()
 { exportSON && exportJSON(); }
-・これで既存 HTML の onclick （saveC
+onclick （saveC
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
