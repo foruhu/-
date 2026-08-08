@@ -1,3 +1,252 @@
+// ==========================================================
+// 元に戻す（Undo）・未保存の変更検知・自動保存
+// ==========================================================
+let undoStack = [];
+const UNDO_LIMIT = 15;
+let isDirty = false;
+let autosaveTimer = null;
+const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
+
+function pushUndoSnapshot() {
+  try {
+    undoStack.push(JSON.stringify(getFullData()));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    updateUndoButtonState();
+  } catch (e) {
+    // 取得に失敗しても致命的ではないので握りつぶす
+  }
+}
+
+function updateUndoButtonState() {
+  const btn = document.getElementById('undo-btn');
+  if (btn) btn.disabled = undoStack.length === 0;
+}
+
+function undoLastAction() {
+  if (undoStack.length === 0) {
+    alert('これ以上元に戻せません');
+    return;
+  }
+  const prevJson = undoStack.pop();
+  updateUndoButtonState();
+  try {
+    const data = JSON.parse(prevJson);
+    applyData(data);
+    markDirty();
+  } catch (e) {
+    alert('元に戻す処理に失敗しました');
+  }
+}
+
+// パーツ／スキル／未練／履歴などの行削除ボタン共通処理（削除前にUndo用スナップショットを保存する）
+function removeRowWithUndo(button, afterFn) {
+  pushUndoSnapshot();
+  const tr = button.closest('tr');
+  if (tr) tr.remove();
+  markDirty();
+  if (typeof afterFn === 'function') afterFn();
+}
+
+function markDirty() {
+  isDirty = true;
+}
+
+function setupDirtyTracking() {
+  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input']);
+  document.addEventListener('input', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
+  });
+}
+
+window.addEventListener('beforeunload', function (e) {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+function formatTimeHM(d) {
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function updateAutosaveStatusText(text) {
+  const el = document.getElementById('autosave-status');
+  if (el) el.textContent = text;
+}
+
+function startAutosaveTimer() {
+  if (autosaveTimer) clearInterval(autosaveTimer);
+  autosaveTimer = setInterval(() => {
+    if (!isDirty) return;
+    performAutosave();
+  }, AUTOSAVE_INTERVAL_MS);
+}
+
+// 未保存の変更を静かに自動保存する（選択中のキャラがあればそこへ上書き、無ければ専用の下書き枠へ）
+function performAutosave() {
+  try {
+    const data = getFullData();
+    const select = document.getElementById('save-slot');
+    const sheets = getSavedSheets();
+    let id = select ? select.value : '';
+
+    if (id && sheets[id]) {
+      sheets[id] = { ...sheets[id], pl: data.pl || '', savedAt: new Date().toISOString(), data };
+    } else {
+      id = 'autosave_draft';
+      const existingImage = sheets[id] ? sheets[id].image : null;
+      sheets[id] = {
+        name: '（自動保存）' + (data.name || '下書き'),
+        pl: data.pl || '',
+        savedAt: new Date().toISOString(),
+        image: existingImage,
+        data: data
+      };
+    }
+
+    setSavedSheets(sheets);
+    isDirty = false;
+    updateAutosaveStatusText('自動保存 ' + formatTimeHM(new Date()));
+    renderSaveCards(select ? select.value : '');
+  } catch (e) {
+    // 自動保存の失敗はアラートを出さず静かに諦める（次のタイミングで再試行される）
+  }
+}
+
+// ==========================================================
+// 保存済みキャラクターのカード表示
+// ==========================================================
+function escapeHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function renderSaveCards(selectedId = '') {
+  const container = document.getElementById('save-cards');
+  if (!container) return;
+
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.78rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isSelected = id === selectedId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard('${id}')" data-id="${id}">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectSaveCard(id) {
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
+  renderSaveCards(id);
+}
+
+// ==========================================================
+// キャラクターの複製
+// ==========================================================
+function duplicateSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('複製するキャラクターをカードから選択してください');
+
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした');
+
+  const defaultName = (entry.name || '(無名)') + 'のコピー';
+  const newName = prompt('複製後の名前を入力してください', defaultName);
+  if (newName === null) return;
+
+  const newId = 'char_' + Date.now();
+  sheets[newId] = {
+    name: newName || defaultName,
+    pl: entry.pl || '',
+    savedAt: new Date().toISOString(),
+    image: entry.image || null,
+    data: JSON.parse(JSON.stringify(entry.data))
+  };
+
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions(newId);
+  alert(`「${newName || defaultName}」として複製しました`);
+}
+
+// ==========================================================
+// サムネイル画像の設定
+// ==========================================================
+function resizeImageToDataURL(file, maxDim = 160, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+        } else {
+          if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function onThumbFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください（未保存の場合は先にブラウザに保存してください）');
+    return;
+  }
+
+  resizeImageToDataURL(file).then(dataUrl => {
+    const sheets = getSavedSheets();
+    if (!sheets[id]) return;
+    sheets[id].image = dataUrl;
+    setSavedSheets(sheets);
+    renderSaveCards(id);
+    alert('サムネイル画像を設定しました');
+  }).catch(err => {
+    alert('画像の設定に失敗しました: ' + (err && err.message ? err.message : err));
+  });
+}
+
 function getLimitByVal(val) {
   if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
   return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
@@ -195,9 +444,10 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
     <td><textarea class="p-memo" ${readOnlyAttr}>${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals();">X</button></td>
+    <td><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
+  markDirty();
   calcTotals();
 }
 
@@ -206,10 +456,12 @@ function togglePartBreak(checkbox) {
 }
 
 function resetUsed() {
+  pushUndoSnapshot();
   document.querySelectorAll('#parts-container tr input[type="checkbox"]').forEach(cb => {
     cb.checked = false;
     cb.closest('tr').classList.remove('broken');
   });
+  markDirty();
 }
 
 function onClassChange() {
@@ -320,9 +572,10 @@ function addRow(target = '', emotion = '', madness = 0) {
     <td><input type="text" value="${target}"></td>
     <td><input type="text" value="${emotion}"></td>
     <td><input type="number" value="${madness}" min="0"></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove()">X</button></td>
+    <td><button type="button" class="del" onclick="removeRowWithUndo(this)">X</button></td>
   `;
   tbody.appendChild(tr);
+  markDirty();
 }
 
 function updateSkillOptions() {
@@ -355,13 +608,14 @@ function addSkillRow(category, skillName = '', memo = '') {
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><textarea style="height:38px;">${memo}</textarea></td>
-    <td><button type="button" class="del" onclick="this.closest('tr').remove(); calcTotals(); updateSkillOptions();">X</button></td>
+    <td><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
 
   // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
   if (skillName) tr.querySelector('select').value = skillName;
+  markDirty();
   calcTotals();
 }
 
@@ -406,11 +660,12 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
       <input type="text" class="h-memo" value="${memo}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+      <button type="button" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
     </td>
   `;
 
   tbody.appendChild(tr);
+  markDirty();
   calcChouaiTotals();
 }
 
@@ -428,11 +683,12 @@ function addChouaiUseRow(used = 0, memo = '') {
       <input type="text" class="use-memo" value="${memo}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="this.closest('tr').remove(); calcChouaiTotals();" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+      <button type="button" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
     </td>
   `;
 
   tbody.appendChild(tr);
+  markDirty();
   calcChouaiTotals();
 }
 
@@ -592,6 +848,7 @@ function refreshSaveSlotOptions(selectedId = '') {
     html += `<option value="${id}" ${id === selectedId ? 'selected' : ''}>${label}</option>`;
   });
   select.innerHTML = html;
+  renderSaveCards(selectedId);
 }
 
 // 旧バージョン（単一スロット保存）のデータが残っていれば、複数保存形式に自動移行する
@@ -621,6 +878,7 @@ function saveData() {
   const select = document.getElementById('save-slot');
   const sheets = getSavedSheets();
   let id = select ? select.value : '';
+  const wasNew = !id;
 
   if (!id) {
     // 新規保存
@@ -632,6 +890,7 @@ function saveData() {
       name: inputName || defaultName,
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
+      image: null,
       data: data
     };
   } else {
@@ -643,11 +902,18 @@ function saveData() {
       name: existingName,
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
+      image: existing ? existing.image || null : null,
       data: data
     };
   }
 
+  // 新規保存が完了したら、自動保存の下書き枠は不要になるので片付ける
+  if (wasNew && sheets['autosave_draft']) {
+    delete sheets['autosave_draft'];
+  }
+
   setSavedSheets(sheets);
+  isDirty = false;
   refreshSaveSlotOptions(id);
   alert('ブラウザに保存しました');
 }
@@ -655,20 +921,22 @@ function saveData() {
 function loadData() {
   const select = document.getElementById('save-slot');
   const id = select ? select.value : '';
-  if (!id) return alert('読み込むキャラクターを「保存済みキャラクター」から選択してください');
+  if (!id) return alert('読み込むキャラクターをカードから選択してください');
 
   const sheets = getSavedSheets();
   const entry = sheets[id];
   if (!entry) return alert('データが見つかりませんでした');
 
+  pushUndoSnapshot(); // 今の編集内容が失われないよう、読み込み前の状態を退避
   applyData(entry.data);
+  isDirty = false;
   alert(`「${entry.name}」を読み込みました`);
 }
 
 function deleteSelectedSave() {
   const select = document.getElementById('save-slot');
   const id = select ? select.value : '';
-  if (!id) return alert('削除するキャラクターを「保存済みキャラクター」から選択してください');
+  if (!id) return alert('削除するキャラクターをカードから選択してください');
 
   const sheets = getSavedSheets();
   const entry = sheets[id];
@@ -878,6 +1146,7 @@ function onJsonFileSelected(event) {
   reader.onload = function (e) {
     try {
       const data = JSON.parse(e.target.result);
+      pushUndoSnapshot(); // 読み込み前の状態を退避
       applyData(data);
       afterExternalLoad(data);
     } catch (err) {
@@ -922,6 +1191,7 @@ function importShareCode() {
   try {
     const json = decodeURIComponent(escape(atob(encoded.trim())));
     const data = JSON.parse(json);
+    pushUndoSnapshot(); // 読み込み前の状態を退避
     applyData(data);
     afterExternalLoad(data);
   } catch (err) {
@@ -934,4 +1204,8 @@ window.onload = function() {
   onClassChange();
   if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();
   if (typeof refreshSaveSlotOptions === 'function') refreshSaveSlotOptions();
+  if (typeof setupDirtyTracking === 'function') setupDirtyTracking();
+  if (typeof startAutosaveTimer === 'function') startAutosaveTimer();
+  if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
+  isDirty = false; // ページを開いた直後はまだ何も編集していない状態にする
 };
