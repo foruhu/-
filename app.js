@@ -127,9 +127,16 @@ function escapeHtml(str) {
   }[ch]));
 }
 
+function updateSelectedActionsVisibility(selectedId) {
+  const el = document.getElementById('selected-actions');
+  if (el) el.style.display = selectedId ? '' : 'none';
+}
+
 function renderSaveCards(selectedId = '') {
   const container = document.getElementById('save-cards');
   if (!container) return;
+
+  updateSelectedActionsVisibility(selectedId);
 
   const sheets = getSavedSheets();
   const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
