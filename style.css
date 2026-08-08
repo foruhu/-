@@ -38,3 +38,15 @@ button.sec { background: #4a4a52; }
 button.del { background: #522; color: #f88; padding: 2px 6px; }
 .add-part-select { width: 100%; margin-top: 6px; padding: 6px; background: #25252d; color: #f0a0a0; border: 1px dashed var(--border); border-radius: 3px; font-size: .85rem; cursor: pointer; }
 tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.5; }
+
+/* --- キャラクター管理（複数保存）--- */
+.slot-select-row { margin-bottom: 8px; }
+.action-btn-row { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.action-btn { flex: 0 0 auto; min-width: 132px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #14161a; border: 1.5px solid #444; font-weight: bold; font-size: .82rem; cursor: pointer; text-align: left; line-height: 1.3; font-family: sans-serif; }
+.action-btn:active { opacity: 0.75; }
+.action-btn .icon { font-size: 1.5rem; flex-shrink: 0; }
+.action-btn.c-green  { border-color: #2f6b4f; background: #14211a; color: #7fe3a8; }
+.action-btn.c-blue   { border-color: #4b4bcf; background: #17182c; color: #9aa4ff; }
+.action-btn.c-orange { border-color: #8a5a2e; background: #271b10; color: #ffbb80; }
+.action-btn.c-red    { border-color: #7a3232; background: #241313; color: #ff9a9a; }
+.action-btn.c-purple { border-color: #6a3e9e; background: #1e1626; color: #cba3ff; }
