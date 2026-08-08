@@ -720,11 +720,24 @@ function applyData(data) {
 }
 
 // 保存されたパーツ配列から、4部位（頭部/腕部/胴部/脚部）のテーブルを再構築する
+// 保存されたパーツ配列から、4部位（頭部/腕部/胴部/脚部）のテーブルを再構築する
+// 「基本」パーツは常に固定のため保存データには頼らず毎回自動配置し、
+// 武装・変異・改造などの追加パーツのみ保存データから復元する
 function restorePartsFromData(parts) {
   const sectionIds = ['head', 'arm', 'body', 'leg'];
-  sectionIds.forEach(id => {
-    const tbody = document.getElementById(`parts-tbody-${id}`);
-    if (tbody) tbody.innerHTML = '';
+  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+
+  sectionIds.forEach(secId => {
+    const tbody = document.getElementById(`parts-tbody-${secId}`);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // 1. 基本パーツを常に固定で再配置
+    if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[secId]) {
+      DEFAULT_PARTS[secId].forEach(p => {
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId]);
+      });
+    }
   });
 
   if (!parts || !Array.isArray(parts)) {
@@ -734,12 +747,13 @@ function restorePartsFromData(parts) {
 
   const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
 
-  parts.forEach(p => {
+  // 2. 武装・変異・改造など「基本」以外の追加パーツのみ保存データから復元
+  parts.filter(p => p.type !== '基本').forEach(p => {
     const secId = locToSection[p.location] || 'body';
     const tbody = document.getElementById(`parts-tbody-${secId}`);
     if (!tbody) return;
 
-    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || '頭部');
+    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId]);
 
     if (p.isBroken) {
       const rows = tbody.querySelectorAll('tr');
