@@ -28,12 +28,9 @@ function openSaveModal() {
   const currentName = document.getElementById('name')?.value || '無名ドール';
   
   select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
-  Object.keys(dolls).forEach(id => {
-    const doll = dolls[id];
-    const option = document.createElement('option');
-    option.value = id;
-    option.textContent = `🔄 上書き: ${doll.name || '無名ドール'} (${doll.pos || '無職'})`;
-    select.appendChild(option);
+option.textContent = `🔄 上書き: ${doll.name || '無名ドール'} (${doll.pos || '無職'})`;
+alert(`「${data.name || '無名ドール'}」を保存しました！`);
+a.download = `${safeName}.json`;
   });
   
   const modal = document.getElementById('save-modal');
