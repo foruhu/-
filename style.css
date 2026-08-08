@@ -38,6 +38,8 @@ button.sec { background: #4a4a52; }
 button.del { background: #522; color: #f88; padding: 2px 6px; }
 .add-part-select { width: 100%; margin-top: 6px; padding: 6px; background: #25252d; color: #f0a0a0; border: 1px dashed var(--border); border-radius: 3px; font-size: .85rem; cursor: pointer; }
 tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.5; }
+tr.used td { background: rgba(255, 220, 100, 0.07); }
+tr.used input:not([type="checkbox"]), tr.used textarea, tr.used select { opacity: 0.65; }
 
 /* --- キャラクター管理（複数保存）--- */
 .slot-select-row { margin-bottom: 8px; }
