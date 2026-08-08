@@ -541,19 +541,122 @@ function getFullData() {
   return data;
 }
 
+// --- 複数キャラクター保存管理 ---
+const SHEETS_KEY = 'necro_sheets';
+
+function getSavedSheets() {
+  try {
+    return JSON.parse(localStorage.getItem(SHEETS_KEY) || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function setSavedSheets(sheets) {
+  localStorage.setItem(SHEETS_KEY, JSON.stringify(sheets));
+}
+
+function refreshSaveSlotOptions(selectedId = '') {
+  const select = document.getElementById('save-slot');
+  if (!select) return;
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  let html = '<option value="">-- 新規保存 --</option>';
+  ids.forEach(id => {
+    const s = sheets[id];
+    const label = `${s.name || '(無名)'}${s.pl ? '［' + s.pl + '］' : ''}`;
+    html += `<option value="${id}" ${id === selectedId ? 'selected' : ''}>${label}</option>`;
+  });
+  select.innerHTML = html;
+}
+
+// 旧バージョン（単一スロット保存）のデータが残っていれば、複数保存形式に自動移行する
+function migrateOldSingleSave() {
+  const oldJson = localStorage.getItem('necro_sheet');
+  if (!oldJson) return;
+  const sheets = getSavedSheets();
+  if (Object.keys(sheets).length > 0) return; // 既に複数保存データがあるなら何もしない
+
+  try {
+    const oldData = JSON.parse(oldJson);
+    const id = 'char_' + Date.now();
+    sheets[id] = {
+      name: oldData.name || '(旧データ)',
+      pl: oldData.pl || '',
+      savedAt: new Date().toISOString(),
+      data: oldData
+    };
+    setSavedSheets(sheets);
+  } catch (e) {
+    // 変換に失敗した場合は何もしない
+  }
+}
+
 function saveData() {
   const data = getFullData();
-  localStorage.setItem('necro_sheet', JSON.stringify(data));
+  const select = document.getElementById('save-slot');
+  const sheets = getSavedSheets();
+  let id = select ? select.value : '';
+
+  if (!id) {
+    // 新規保存
+    const defaultName = data.name || 'ドール';
+    const inputName = prompt('保存するキャラクター名を入力してください', defaultName);
+    if (inputName === null) return; // キャンセル
+    id = 'char_' + Date.now();
+    sheets[id] = {
+      name: inputName || defaultName,
+      pl: data.pl || '',
+      savedAt: new Date().toISOString(),
+      data: data
+    };
+  } else {
+    // 上書き保存
+    const existing = sheets[id];
+    const existingName = existing ? existing.name : '(無名)';
+    if (!confirm(`「${existingName}」に上書き保存します。よろしいですか？`)) return;
+    sheets[id] = {
+      name: existingName,
+      pl: data.pl || '',
+      savedAt: new Date().toISOString(),
+      data: data
+    };
+  }
+
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions(id);
   alert('ブラウザに保存しました');
 }
 
 function loadData() {
-  const json = localStorage.getItem('necro_sheet');
-  if (!json) return alert('保存されたデータがありません');
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('読み込むキャラクターを「保存済みキャラクター」から選択してください');
 
-  const data = JSON.parse(json);
-  applyData(data);
-  alert('データを読み込みました');
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした');
+
+  applyData(entry.data);
+  alert(`「${entry.name}」を読み込みました`);
+}
+
+function deleteSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('削除するキャラクターを「保存済みキャラクター」から選択してください');
+
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return;
+
+  if (!confirm(`「${entry.name}」を削除します。この操作は取り消せません。よろしいですか？`)) return;
+
+  delete sheets[id];
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions('');
+  alert('削除しました');
 }
 
 function applyData(data) {
@@ -684,4 +787,6 @@ function exportCcfolia() {
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
+  if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();
+  if (typeof refreshSaveSlotOptions === 'function') refreshSaveSlotOptions();
 };
