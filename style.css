@@ -23,7 +23,7 @@ body {
 
 /* ===================================================
    緑・青紫・茶色の3大ボタンパネル（保存・読込・出力）
-=================================================== */
+   =================================================== */
 .save-load-panel {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -31,35 +31,32 @@ body {
   margin-bottom: 12px;
 }
 
-/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */
+/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */ /* ★「*/」で正しく閉じる */
 @media (max-width: 480px) {
   .save-load-panel {
     grid-template-columns: 1fr;
   }
 }
 
-/* ボタン共通スタイル（これを追加することで見た目が安定します） */
-.save-load-panel button,
-.btn {
-  font-family: inherit;      /* bodyのフォントを継承 */
+/* ボタンのリセットと共通スタイル */
+.save-load-panel button, .btn {
+  font-family: inherit;
   font-size: 13px;
-  color: #ffffff;            /* 暗い背景に合わせた白文字 */
+  color: #ffffff;
   padding: 8px 12px;
   border-width: 1px;
-  border-style: solid;
+  border-style: solid; /* ★枠線のスタイルを明示 */
   border-radius: 4px;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.1s ease;
 }
 
-.save-load-panel button:hover,
-.btn:hover {
-  opacity: 0.85;             /* ホバー時に少し透明にして反応を出す */
+.save-load-panel button:hover, .btn:hover {
+  opacity: 0.85;
 }
 
-.save-load-panel button:active,
-.btn:active {
-  transform: scale(0.98);    /* 押した時に少し沈む演出 */
+.save-load-panel button:active, .btn:active {
+  transform: scale(0.98);
 }
 
 /* 緑ボタン：ブラウザに保存 */
