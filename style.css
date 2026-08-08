@@ -31,7 +31,7 @@ body {
   margin-bottom: 12px;
 }
 
-/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */ /* ★「*/」で正しく閉じる */
+/* 画面幅が狭いスマホ表示用の対応 */
 @media (max-width: 480px) {
   .save-load-panel {
     grid-template-columns: 1fr;
@@ -39,23 +39,26 @@ body {
 }
 
 /* ボタンのリセットと共通スタイル */
-.save-load-panel button, .btn {
+.save-load-panel button,
+.btn {
   font-family: inherit;
   font-size: 13px;
   color: #ffffff;
   padding: 8px 12px;
   border-width: 1px;
-  border-style: solid; /* ★枠線のスタイルを明示 */
+  border-style: solid;
   border-radius: 4px;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.1s ease;
 }
 
-.save-load-panel button:hover, .btn:hover {
+.save-load-panel button:hover,
+.btn:hover {
   opacity: 0.85;
 }
 
-.save-load-panel button:active, .btn:active {
+.save-load-panel button:active,
+.btn:active {
   transform: scale(0.98);
 }
 
@@ -75,28 +78,4 @@ body {
 .btn-export {
   background: linear-gradient(135deg, #5a3a1a, #331e0c);
   border-color: #8d6e63;
-}
-
-/* モーダル全体（初期状態は非表示にする） */
-.modal {
-  display: none; /* ← これがないと最初から画面上に白い枠が出続けてしまいます */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* 背景を暗い半透明に */
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* モーダルの中身（ダークテーマに合わせる） */
-.modal-content {
-  background-color: #18181c; /* ダーク系の背景色 */
-  color: #e0e0e0;            /* 文字色 */
-  border: 1px solid #3a3a42;  /* 枠線 */
-  padding: 20px;
-  border-radius: 8px;
-  min-width: 300px;
 }
