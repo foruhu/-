@@ -4,16 +4,18 @@ function getLimitByVal(val) {
 }
 
 // オプションのHTML生成用ヘルパー関数（重複防止・共通化）
-function generateOptionGroup(list, maxAllowedMap, prefix, label) {
+function generateOptionGroup(list, remainingMap, prefix, label) {
   let groupHtml = '';
   list.forEach((p, idx) => {
-    const allowed = maxAllowedMap[p.type]?.[p.level] || 0;
-    if (allowed > 0) {
-      const isExists = isPartAlreadyExists(p.name);
-      const disabledAttr = isExists ? 'disabled' : '';
-      const nameText = isExists ? `${p.name} (選択済み)` : p.name;
-      groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
-    }
+    const remaining = remainingMap[p.type]?.[p.level] ?? 0;
+    const isExists = isPartAlreadyExists(p.name);
+
+    // 種別・レベルの上限に達している（かつ未配置の）パーツは一覧に出さない
+    if (remaining <= 0 && !isExists) return;
+
+    const disabledAttr = isExists ? 'disabled' : '';
+    const nameText = isExists ? `${p.name} (選択済み)` : p.name;
+    groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
   });
   return groupHtml ? `<optgroup label="${label}">${groupHtml}</optgroup>` : '';
 }
@@ -23,7 +25,8 @@ function updateExtraPartOptions() {
   const totalMut = parseInt(document.getElementById('total-mut').textContent, 10) || 0;
   const totalCyb = parseInt(document.getElementById('total-cyb').textContent, 10) || 0;
 
-  let hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
+  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
+  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
 
   const limitWep = getLimitByVal(totalWep);
   const limitMut = getLimitByVal(totalMut);
@@ -36,6 +39,25 @@ function updateExtraPartOptions() {
   };
 
   if (hasClockwork) maxAllowedMap['改造'][3] += 1;
+  if (hasGouku) maxAllowedMap['変異'][3] += 1;
+
+  // 種別・レベルごとの現在の配置数を集計
+  const currentCounts = { '武装': {1:0,2:0,3:0}, '変異': {1:0,2:0,3:0}, '改造': {1:0,2:0,3:0} };
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const type = tr.querySelector('.p-type')?.value;
+    const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
+    if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
+      currentCounts[type][lv]++;
+    }
+  });
+
+  // 残り枠数（＝実際に選択できる数）を算出
+  const remainingMap = { '武装': {}, '変異': {}, '改造': {} };
+  ['武装', '変異', '改造'].forEach(type => {
+    [1, 2, 3].forEach(lv => {
+      remainingMap[type][lv] = (maxAllowedMap[type][lv] || 0) - (currentCounts[type][lv] || 0);
+    });
+  });
 
   const sections = [
     { id: 'head', title: '頭部' }, { id: 'arm', title: '腕部' },
@@ -50,10 +72,10 @@ function updateExtraPartOptions() {
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
 
     if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], maxAllowedMap, sec.id, `【${sec.title}専用パーツ】`);
+      optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], remainingMap, sec.id, `【${sec.title}専用パーツ】`);
     }
     if (COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, maxAllowedMap, 'common', '【共通・汎用パーツ】');
+      optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, remainingMap, 'common', '【共通・汎用パーツ】');
     }
 
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
