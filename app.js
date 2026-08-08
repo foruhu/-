@@ -146,10 +146,10 @@ function getFullData() {
     chouaiCyb: getVal('chouai-cyb'),
     bonus: document.querySelector('input[name="bonus"]:checked')?.value || 'wep',
     skills: Array.from(document.querySelectorAll('#skill-tbody tr')).map(tr => ({
-      category: tr.querySelector('input')?.value || tr.children[0]?.textContent || '',
-      name: tr.querySelector('select')?.value || tr.querySelector('input[type="text"]')?.value || '',
-      memo: tr.querySelector('textarea')?.value || ''
-    })),
+  category: tr.querySelector('input')?.value || tr.children[0]?.textContent || '',
+  name: tr.querySelector('select')?.value || tr.querySelector('input[type="text"]')?.value || '',
+  memo: tr.querySelector('textarea')?.value || ''
+}))
     parts: Array.from(document.querySelectorAll('#parts-container tr')).filter(tr => tr.querySelector('.p-name')?.value).map(tr => ({
       isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
       location: tr.querySelector('.p-location')?.value || '',
@@ -200,10 +200,10 @@ function applyData(data) {
   setVal('chouai-mut', data.chouaiMut || '0');
   setVal('chouai-cyb', data.chouaiCyb || '0');
   
-  if (data.bonus) {
-    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
-    if (radio) radio.checked = true;
-  }
+  if (data.bonus && window.CSS && CSS.escape) {
+  const radio = document.querySelector(`input[name="bonus"][value="${CSS.escape(data.bonus)}"]`);
+  if (radio) radio.checked = true;
+}
   
   if (typeof onClassChange === 'function') onClassChange();
   
@@ -216,37 +216,54 @@ function applyData(data) {
     }
   }
 
-  // パーツ（マニューバ）の復元
-  if (data.parts && typeof renderPartsContainer === 'function') {
-    renderPartsContainer();
+// パーツ（マニューバ）の復元例
+if (data.parts && typeof renderPartsContainer === 'function') {
+  renderPartsContainer(); // 初期化
+  
+  data.parts.forEach((p, idx) => {
+    let rows = document.querySelectorAll('#parts-container tr');
     
-    const rows = document.querySelectorAll('#parts-container tr');
-    data.parts.forEach((p, idx) => {
-      if (rows[idx]) {
-        const tr = rows[idx];
-        
-        const cb = tr.querySelector('input[type="checkbox"]');
-        if (cb) {
-          cb.checked = !!p.isBroken;
-          tr.classList.toggle('broken', !!p.isBroken);
-        }
-        
-        const setFieldVal = (cls, val) => {
-          const input = tr.querySelector(cls);
-          if (input) input.value = val || '';
-        };
-        
-        setFieldVal('.p-location', p.location);
-        setFieldVal('.p-name', p.name);
-        setFieldVal('.p-type', p.type);
-        setFieldVal('.p-level', p.level);
-        setFieldVal('.p-timing', p.timing);
-        setFieldVal('.p-cost', p.cost);
-        setFieldVal('.p-range', p.range);
-        setFieldVal('.p-memo', p.memo);
+    // 行が足りない場合、追加関数があれば呼び出して行を増やす
+    if (!rows[idx] && typeof addPartRow === 'function') {
+      addPartRow();
+      rows = document.querySelectorAll('#parts-container tr');
+    }
+    
+    const tr = rows[idx];
+    if (tr) {
+      // 破損チェックの復元
+      const cb = tr.querySelector('input[type="checkbox"]');
+      if (cb) {
+        cb.checked = !!p.isBroken;
+        tr.classList.toggle('broken', !!p.isBroken);
       }
-    });
-  }
+      
+      const setFieldVal = (cls, val) => {
+        const input = tr.querySelector(cls);
+        if (input) input.value = val || '';
+      };
+      
+      setFieldVal('.p-location', p.location);
+      setFieldVal('.p-name', p.name);
+      setFieldVal('.p-type', p.type);
+      setFieldVal('.p-level', p.level);
+      setFieldVal('.p-timing', p.timing);
+      setFieldVal('.p-cost', p.cost);
+      setFieldVal('.p-range', p.range);
+      setFieldVal('.p-memo', p.memo);
+
+      // readonly（編集可否）の復元
+      const nameInput = tr.querySelector('.p-name');
+      if (nameInput) {
+        if (p.isEditable) {
+          nameInput.removeAttribute('readonly');
+        } else {
+          nameInput.setAttribute('readonly', 'readonly');
+        }
+      }
+    }
+  });
+}
   
   // 未練リストの復元
   const listTbody = document.getElementById('list');
