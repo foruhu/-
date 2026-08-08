@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ネクロニカ キャラクターシート</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>永い後日談のネクロニカ</h1>
+
+<div class="card sticky-top-bar">
+  <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#ff6b6b; font-weight:bold;">武装</span>
+      <span>
+        Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> | 
+        Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span> | 
+        Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span>
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#4dabf7; font-weight:bold;">変異</span>
+      <span>
+        Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span> | 
+        Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span> | 
+        Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span>
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#ffd43b; font-weight:bold;">改造</span>
+      <span>
+        Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span> | 
+        Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> | 
+        Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
+  <div class="g2">
+    <div><label>PL名</label><input type="text" id="pl"></div>
+    <div><label>ドール名</label><input type="text" id="name"></div>
+  </div>
+  <div class="table-scroll">
+    <table class="calc-table">
+      <thead>
+        <tr>
+          <th style="width:30%">区分</th>
+          <th style="width:34%">選択</th>
+          <th style="width:12%">武装</th>
+          <th style="width:12%">変異</th>
+          <th style="width:12%">改造</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label-cell">ポジション：</td>
+          <td>
+            <select id="pos" onchange="onClassChange()">
+              <option>アリス</option><option>ホリック</option><option>オートマトン</option><option>ジャンク</option><option>コート</option><option>ソロリティ</option>
+            </select>
+          </td>
+          <td>-</td><td>-</td><td>-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">メインクラス：</td>
+          <td>
+            <select id="mc" onchange="onClassChange()">
+              <option selected>ロマネスク</option><option>ステーシー</option><option>タナトス</option><option>レクイエム</option><option>バロック</option><option>ホリック</option><option>ゴシック</option>
+            </select>
+          </td>
+          <td id="mc-wep">0</td><td id="mc-mut">0</td><td id="mc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">サブクラス：</td>
+          <td>
+            <select id="sc" onchange="onClassChange()">
+              <option selected>ステーシー</option><option>タナトス</option><option>ゴシック</option><option>レクイエム</option><option>バロック</option><option>ロマネスク</option>
+            </select>
+          </td>
+          <td id="sc-wep">0</td><td id="sc-mut">0</td><td id="sc-cyb">2</td>
+        </tr>
+        <tr>
+          <td class="label-cell">ボーナス：</td>
+          <td style="color:#aaa;font-size:.75rem">いずれか+1</td>
+          <td><input type="radio" name="bonus" value="wep" checked onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="mut" onchange="calcTotals()"></td>
+          <td><input type="radio" name="bonus" value="cyb" onchange="calcTotals()"></td>
+        </tr>
+        <tr>
+          <td class="label-cell">寵愛による修正：</td>
+          <td style="color:#aaa;font-size:.75rem">手入力加算</td>
+          <td><input type="number" id="chouai-wep" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-mut" value="0" min="0" oninput="calcTotals()"></td>
+          <td><input type="number" id="chouai-cyb" value="0" min="0" oninput="calcTotals()"></td>
+        </tr>
+        <tr class="total-row">
+          <td class="label-cell" style="color:#ffaaaa">総計</td>
+          <td style="font-size:.75rem;color:#ccc">パーツ配置上限</td>
+          <td id="total-wep">1</td>
+          <td id="total-mut">0</td>
+          <td id="total-cyb">5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-scroll">
+    <table class="limit-table">
+      <thead>
+        <tr>
+          <th style="width:20%">カテゴリ</th>
+          <th style="width:12%">レベル</th>
+          <th style="width:18%">規定上限</th>
+          <th style="width:15%">現在取得</th>
+          <th style="width:20%">判定</th>
+        </tr>
+      </thead>
+      <tbody id="limit-tbody"></tbody>
+    </table>
+    <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
+      ※「時計仕掛け」「業躯」のスキルを選ぶとLv3の追加枠が自動で+1されます
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:8px;">
+    <div><label>享年/外見</label><input type="text" id="age"></div>
+    <div><label>初期配置</label>
+      <select id="ps">
+        <option>煉獄</option><option>花園</option><option>楽園</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div><label>暗示</label><input type="text" id="hint"></div>
+    <div><label>記憶のカケラ</label><input type="text" id="mem"></div>
+  </div>
+  <div class="g2">
+    <div><label>最大行動値</label><input type="number" id="act" value="9"></div>
+    <div><label>獲得寵愛点</label><input type="number" id="fav" value="0"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title">習得スキル</div>
+  <div class="table-scroll">
+    <table class="sheet-table">
+      <thead>
+        <tr>
+          <th style="width:20%;">区分</th>
+          <th style="width:30%;">スキル名</th>
+          <th>効果メモ</th>
+          <th style="width:10%;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="skill-tbody"></tbody>
+    </table>
+  </div>
+  <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+    <button type="button" class="sec" onclick="addPosSkillRow()" style="width:100%;padding:6px">+ ポジション</button>
+    <button type="button" class="sec" onclick="addMcSkillRow()" style="width:100%;padding:6px">+ メインクラス</button>
+    <button type="button" class="sec" onclick="addScSkillRow()" style="width:100%;padding:6px">+ サブクラス</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>マニューバ</span>
+    <button type="button" class="sec" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+  </div>
+  <div id="parts-container"></div>
+</div>
+
+<div class="card">
+  <div class="title">たからもの・未練（姉妹への感情）</div>
+  <div style="margin-bottom:6px"><label>たからもの</label><input type="text" id="tr"></div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">対象（姉妹）</th>
+          <th style="width:25%">未練（感情）</th>
+          <th style="width:35%">狂気点</th>
+          <th style="width:15%">操作</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+  <button type="button" class="sec" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
+</div>
+
+<div class="btns">
+  <button type="button" onclick="saveData()">ブラウザ保存</button>
+  <button type="button" class="sec" onclick="loadData()">保存データを読み込む</button>
+</div>
+<div class="btns">
+  <button type="button" class="sec" onclick="exportCcfolia()">ココフォリア出力</button>
+  <button type="button" class="sec" onclick="exportJSON()">JSON保存</button>
+</div>
+
+<!-- 寵愛点サマリー -->
+<div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
+  <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+    <div>獲得戦闘寵愛: <b id="total-battle-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>獲得個人寵愛: <b id="total-personal-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総獲得寵愛: <b id="total-earned-chouai" style="color: #8ff;">0</b> pt</div>
+    <div>総使用寵愛: <b id="total-used-chouai" style="color: #ff88c2;">0</b> pt</div>
+    <div style="font-size: 1.05rem;">現在の残り寵愛: <b id="current-chouai" style="color: #8ff; font-size: 1.2rem;">0</b> pt</div>
+  </div>
+</div>
+
+<!-- セッション履歴（獲得） -->
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ セッション履歴（獲得寵愛）</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444;">シナリオ名</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
+      <th style="padding: 6px; border: 1px solid #444;">メモ（参加日など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="session-history-tbody"></tbody>
+</table>
+<button type="button" onclick="addSessionHistoryRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 履歴を追加</button>
+
+<!-- 寵愛点の使い道（消費） -->
+<h3 style="color: #ccc; font-size: 0.95rem; margin-bottom: 6px;">■ 寵愛点の使い道・強化履歴</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.85rem;">
+  <thead>
+    <tr style="background: #1e1e24; color: #aaa; text-align: center;">
+      <th style="padding: 6px; border: 1px solid #444; width: 110px;">使用点数</th>
+      <th style="padding: 6px; border: 1px solid #444;">使い道・備考（例: 武装基本値+1、基本パーツ修復など）</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+    </tr>
+  </thead>
+  <tbody id="chouai-use-tbody"></tbody>
+</table>
+<button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
+
+<!-- 右下固定：README.mdへ移動するボタン -->
+<a href="./README.md" target="_blank" rel="noopener noreferrer" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #1e1e24;
+  color: #8ff;
+  border: 1px solid #555;
+  padding: 8px 14px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+">
+  📜 使い方を見る
+</a>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
