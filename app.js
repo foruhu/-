@@ -685,6 +685,9 @@ function applyData(data) {
     }
   }
 
+  // パーツ（武装・変異・改造など）の復元
+  restorePartsFromData(data.parts);
+
   // 未練の復元
   const listTbody = document.getElementById('list');
   if (listTbody) {
@@ -713,6 +716,43 @@ function applyData(data) {
   }
 
   calcTotals();
+  calcChouaiTotals();
+}
+
+// 保存されたパーツ配列から、4部位（頭部/腕部/胴部/脚部）のテーブルを再構築する
+function restorePartsFromData(parts) {
+  const sectionIds = ['head', 'arm', 'body', 'leg'];
+  sectionIds.forEach(id => {
+    const tbody = document.getElementById(`parts-tbody-${id}`);
+    if (tbody) tbody.innerHTML = '';
+  });
+
+  if (!parts || !Array.isArray(parts)) {
+    if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
+    return;
+  }
+
+  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
+
+  parts.forEach(p => {
+    const secId = locToSection[p.location] || 'body';
+    const tbody = document.getElementById(`parts-tbody-${secId}`);
+    if (!tbody) return;
+
+    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || '頭部');
+
+    if (p.isBroken) {
+      const rows = tbody.querySelectorAll('tr');
+      const lastRow = rows[rows.length - 1];
+      const cb = lastRow ? lastRow.querySelector('input[type="checkbox"]') : null;
+      if (cb) {
+        cb.checked = true;
+        togglePartBreak(cb);
+      }
+    }
+  });
+
+  if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
 }
 
 function exportJSON() {
