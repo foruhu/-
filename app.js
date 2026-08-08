@@ -289,15 +289,137 @@ function hasSkill(skillName) {
 // ============================================================
 
 function getBasicParts() {
-  if (typeof DEFAULT_PARTS !== 'undefined') {
+  // data.js に DEFAULT_PARTS がある場合はそれを使用
+  if (
+    typeof DEFAULT_PARTS !== 'undefined' &&
+    DEFAULT_PARTS &&
+    Object.keys(DEFAULT_PARTS).length > 0
+  ) {
     return DEFAULT_PARTS;
   }
 
+  // DEFAULT_PARTS が存在しない場合でも、
+  // ネクロニカの基本パーツ12個を必ず表示する
   return {
-    head: [],
-    arm: [],
-    body: [],
-    leg: []
+    head: [
+      {
+        name: 'のうみそ',
+        type: '基本',
+        level: 1,
+        timing: 'オート',
+        cost: '-',
+        range: '-',
+        memo: '最大行動値＋2'
+      },
+      {
+        name: 'めだま',
+        type: '基本',
+        level: 1,
+        timing: 'オート',
+        cost: '-',
+        range: '-',
+        memo: '最大行動値＋1'
+      },
+      {
+        name: 'あご',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 2,
+        range: 0,
+        memo: '肉弾攻撃1'
+      }
+    ],
+
+    arm: [
+      {
+        name: 'こぶし',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 2,
+        range: 0,
+        memo: '肉弾攻撃1'
+      },
+      {
+        name: 'うで',
+        type: '基本',
+        level: 1,
+        timing: 'ジャッジ',
+        cost: 1,
+        range: 0,
+        memo: '支援1'
+      },
+      {
+        name: 'かた',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 4,
+        range: 0,
+        memo: '移動1'
+      }
+    ],
+
+    body: [
+      {
+        name: 'せぼね',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 1,
+        range: 0,
+        memo: '同じエリアにある「はらわた」1つを修復する'
+      },
+      {
+        name: 'はらわた',
+        type: '基本',
+        level: 1,
+        timing: 'オート',
+        cost: '-',
+        range: '-',
+        memo: ''
+      },
+      {
+        name: 'はらわた',
+        type: '基本',
+        level: 1,
+        timing: 'オート',
+        cost: '-',
+        range: '-',
+        memo: ''
+      }
+    ],
+
+    leg: [
+      {
+        name: 'ほね',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 3,
+        range: 0,
+        memo: '移動1'
+      },
+      {
+        name: 'ほね',
+        type: '基本',
+        level: 1,
+        timing: 'アクション',
+        cost: 3,
+        range: 0,
+        memo: '移動1'
+      },
+      {
+        name: 'あし',
+        type: '基本',
+        level: 1,
+        timing: 'ジャッジ',
+        cost: 1,
+        range: 0,
+        memo: '妨害1'
+      }
+    ]
   };
 }
 
