@@ -1699,33 +1699,53 @@ function restoreSkills(skills) {
 // ============================================================
 
 function restoreParts(parts) {
+  // まず基本パーツ12個を表示
   renderPartsContainer();
 
   if (!Array.isArray(parts)) {
+    updatePartLimits();
     return;
   }
+
+  const indexMap = {
+    head: 0,
+    arm: 1,
+    body: 2,
+    leg: 3
+  };
+
+  // 各部位について、
+  // 保存データを順番に対応させる
+  const usedBasicRows = {
+    head: new Set(),
+    arm: new Set(),
+    body: new Set(),
+    leg: new Set()
+  };
 
   parts.forEach(saved => {
     let location = 'body';
 
-    const loc =
-      saved.location || '';
+    const loc = saved.location || '';
 
     if (
       loc.includes('頭') ||
       loc === 'head'
     ) {
       location = 'head';
+
     } else if (
       loc.includes('腕') ||
       loc === 'arm'
     ) {
       location = 'arm';
+
     } else if (
       loc.includes('脚') ||
       loc === 'leg'
     ) {
       location = 'leg';
+
     } else if (
       loc.includes('胴') ||
       loc === 'body'
@@ -1734,17 +1754,11 @@ function restoreParts(parts) {
     }
 
     const sections =
-      $('parts-container')
-        ?.querySelectorAll('.parts-section');
+      $('parts-container')?.querySelectorAll(
+        '.parts-section'
+      );
 
     if (!sections) return;
-
-    const indexMap = {
-      head: 0,
-      arm: 1,
-      body: 2,
-      leg: 3
-    };
 
     const section =
       sections[indexMap[location]];
@@ -1756,32 +1770,61 @@ function restoreParts(parts) {
 
     if (!tbody) return;
 
-    // 基本パーツは既にあるので、
-    // 同じ名前の基本パーツがあれば再利用
-    let row = Array.from(
-      tbody.querySelectorAll('tr')
-    ).find(tr =>
-      tr.querySelector('.p-name')?.value ===
-      saved.name
-    );
+    const rows =
+      Array.from(tbody.querySelectorAll('tr'));
 
-    if (!row) {
+    // 同じ名前でも、
+    // 「はらわた①」「はらわた②」
+    // 「ほね①」「ほね②」を別々に扱う
+    let rowIndex = -1;
+
+    for (let i = 0; i < rows.length; i++) {
+      if (usedBasicRows[location].has(i)) {
+        continue;
+      }
+
+      const name =
+        rows[i].querySelector('.p-name')?.value || '';
+
+      if (
+        name === saved.name &&
+        !rows[i]
+          .querySelector('.p-name')
+          ?.hasAttribute('data-custom')
+      ) {
+        rowIndex = i;
+        break;
+      }
+    }
+
+    let row;
+
+    if (rowIndex >= 0) {
+      row = rows[rowIndex];
+      usedBasicRows[location].add(rowIndex);
+    } else {
+      // 基本パーツに存在しない追加パーツ
       row = createPartRow(
         saved,
         location,
         !!saved.isEditable
       );
 
+      row.querySelector('.p-name')
+        ?.setAttribute('data-custom', 'true');
+
       tbody.appendChild(row);
     }
 
-    const cb =
+    // 破損
+    const checkbox =
       row.querySelector(
         'input[type="checkbox"]'
       );
 
-    if (cb) {
-      cb.checked = !!saved.isBroken;
+    if (checkbox) {
+      checkbox.checked =
+        !!saved.isBroken;
 
       row.classList.toggle(
         'broken',
@@ -1789,15 +1832,15 @@ function restoreParts(parts) {
       );
     }
 
-    const setField =
-      (selector, value) => {
-        const el =
-          row.querySelector(selector);
+    // 各項目を復元
+    const setField = (selector, value) => {
+      const el =
+        row.querySelector(selector);
 
-        if (el) {
-          el.value = value ?? '';
-        }
-      };
+      if (el) {
+        el.value = value ?? '';
+      }
+    };
 
     setField(
       '.p-location',
@@ -1840,12 +1883,18 @@ function restoreParts(parts) {
       saved.memo
     );
 
+    // 基本パーツは編集不可、
+    // 追加パーツは保存時の設定を維持
     const nameInput =
       row.querySelector('.p-name');
 
     if (nameInput) {
       if (saved.isEditable) {
         nameInput.removeAttribute('readonly');
+        nameInput.setAttribute(
+          'data-custom',
+          'true'
+        );
       } else {
         nameInput.setAttribute(
           'readonly',
@@ -1857,7 +1906,6 @@ function restoreParts(parts) {
 
   updatePartLimits();
 }
-
 
 // ============================================================
 // JSON出力
