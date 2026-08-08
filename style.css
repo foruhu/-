@@ -1,117 +1,90 @@
-:root {
-  --bg: #0f0f12;
-  --card: #18181c;
-  --red: #8b0000;
-  --text: #e0e0e0;
-  --border: #3a3a42;
-  --input: #222228;
-  --header-bg: #1a1a20;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Georgia", serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  padding: 12px;
-  font-size: 13px;
-}
-
-/* ===================================================
-   緑・青紫・茶色の3大ボタンパネル（保存・読込・出力）
-   =================================================== */
-.save-load-panel {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */
-@media (max-width: 480px) {
-  .save-load-panel {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ボタンのリセットと共通スタイル */
-.save-load-panel button, .btn {
-  font-family: inherit;
-  font-size: 13px;
-  color: #ffffff;
-  padding: 8px 12px;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-}
-
-.save-load-panel button:hover, .btn:hover {
-  opacity: 0.85;
-}
-
-.save-load-panel button:active, .btn:active {
-  transform: scale(0.98);
-}
-
-/* 緑ボタン：ブラウザに保存 */
-.btn-save {
-  background: linear-gradient(135deg, #1b4d2e, #0e2a18);
-  border-color: #2e7d32;
-}
-
-/* 青紫ボタン：データを読み込む */
-.btn-load {
-  background: linear-gradient(135deg, #3d2b56, #21153b);
-  border-color: #6a1b9a;
-}
-
-/* 茶色ボタン：テキスト出力 */
-.btn-export {
-  background: linear-gradient(135deg, #5a3a1a, #331e0c);
-  border-color: #8d6e63;
-}
-
-/* モーダル全体（初期状態は非表示にする） */
+/* モーダルの表示制御は aria-hidden 属性で行います（JS 側で切り替え） */
 .modal-overlay {
-  display: none; /* JSで表示時に display='flex' にします */
+  display: none;
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  transition: opacity 160ms ease;
+  opacity: 0;
 }
 
-/* モーダルの中身（ダークテーマに合わせる） */
+/* show 状態（JS: setAttribute('aria-hidden','false')） */
+.modal-overlay[aria-hidden="false"] {
+  display: flex;
+  opacity: 1;
+}
+
+/* 背面スクロール抑止用クラス（JSで body.classList.add/remove） */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* モーダル本体 */
 .modal-content {
   background-color: var(--card);
   color: var(--text);
   border: 1px solid var(--border);
-  padding: 20px;
-  border-radius: 8px;
+  padding: 18px;
+  border-radius: 10px;
   min-width: 300px;
+  max-width: 92%;
+  width: 420px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  transform: translateY(-6px);
+  transition: transform 180ms ease, opacity 180ms ease;
+  outline: none;
 }
 
-/* モーダル内のフォーム要素をダークテーマに */
+/* ヘッダ調整 */
+.modal-content h3 { margin: 0 0 8px 0; font-size: 1.05rem; }
+
+/* 操作ボタン領域 */
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* モーダル内フォーム要素 */
 .modal-content select,
 .modal-content input,
-.modal-content button,
-.modal-content textarea {
+.modal-content textarea,
+.modal-content button {
   background: var(--input);
   color: var(--text);
   border: 1px solid #333;
   padding: 6px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
 
-/* 小画面向け */
+/* iOS の select 白背景対策 */
+.modal-content select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #888 50%),
+                    linear-gradient(135deg, #888 50%, transparent 50%),
+                    linear-gradient(to right, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+  background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), 100% 0;
+  background-size: 6px 6px, 6px 6px, 1px 1.6em;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* フォーカスの見やすさ */
+.modal-content select:focus,
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content button:focus {
+  box-shadow: 0 0 0 3px rgba(136, 136, 255, 0.06);
+  border-color: rgba(136,136,255,0.6);
+}
+
+/* 小画面 */
 @media (max-width:420px){
   .modal-content { width: 92%; }
 }
