@@ -362,7 +362,7 @@ function renderPartsContainer() {
         <table>
           <thead>
             <tr>
-              <th style="width:5%;">損</th><th style="width:12%;">配置部位</th>
+              <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:12%;">配置部位</th>
               <th style="width:18%;">パーツ名</th><th style="width:10%;">分類</th>
               <th style="width:8%;">Lv</th><th style="width:10%;">タイミング</th>
               <th style="width:8%;">コスト</th><th style="width:8%;">射程</th>
@@ -438,7 +438,8 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   const locOptions = locations.map(loc => `<option value="${loc}" ${loc === defaultLoc ? 'selected' : ''}>${loc}</option>`).join('');
 
   tr.innerHTML = `
-    <td><input type="checkbox" onchange="togglePartBreak(this)"></td>
+    <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
+    <td><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
@@ -462,11 +463,24 @@ function togglePartBreak(checkbox) {
   checkbox.closest('tr').classList.toggle('broken', checkbox.checked);
 }
 
+function togglePartUsed(checkbox) {
+  checkbox.closest('tr').classList.toggle('used', checkbox.checked);
+}
+
 function resetUsed() {
   pushUndoSnapshot();
-  document.querySelectorAll('#parts-container tr input[type="checkbox"]').forEach(cb => {
+  document.querySelectorAll('#parts-container tr input.p-broken').forEach(cb => {
     cb.checked = false;
     cb.closest('tr').classList.remove('broken');
+  });
+  markDirty();
+}
+
+function resetPartUsedFlags() {
+  pushUndoSnapshot();
+  document.querySelectorAll('#parts-container tr input.p-used').forEach(cb => {
+    cb.checked = false;
+    cb.closest('tr').classList.remove('used');
   });
   markDirty();
 }
@@ -780,7 +794,8 @@ function getFullData() {
     const name = tr.querySelector('.p-name')?.value;
     if (name) {
       data.parts.push({
-        isBroken: tr.querySelector('input[type="checkbox"]')?.checked || false,
+        isBroken: tr.querySelector('.p-broken')?.checked || false,
+        isUsed: tr.querySelector('.p-used')?.checked || false,
         location: tr.querySelector('.p-location')?.value || '',
         name: name,
         type: tr.querySelector('.p-type')?.value || '基本',
@@ -1024,47 +1039,58 @@ function applyData(data) {
 function restorePartsFromData(parts) {
   const sectionIds = ['head', 'arm', 'body', 'leg'];
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+  const savedParts = Array.isArray(parts) ? parts : [];
 
   sectionIds.forEach(secId => {
     const tbody = document.getElementById(`parts-tbody-${secId}`);
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // 1. 基本パーツを常に固定で再配置
+    // このセクションの「基本」パーツの損傷・使用状態（DEFAULT_PARTSと同じ並び順で対応させる）
+    const savedBaseStates = savedParts.filter(p => p.type === '基本' && p.location === locMap[secId]);
+
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[secId]) {
-      DEFAULT_PARTS[secId].forEach(p => {
+      DEFAULT_PARTS[secId].forEach((p, idx) => {
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId]);
+        const saved = savedBaseStates[idx];
+        if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed);
       });
     }
   });
 
-  if (!parts || !Array.isArray(parts)) {
+  if (savedParts.length === 0) {
     if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
     return;
   }
 
   const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
 
-  // 2. 武装・変異・改造など「基本」以外の追加パーツのみ保存データから復元
-  parts.filter(p => p.type !== '基本').forEach(p => {
+  // 武装・変異・改造など「基本」以外の追加パーツを保存データから復元
+  savedParts.filter(p => p.type !== '基本').forEach(p => {
     const secId = locToSection[p.location] || 'body';
     const tbody = document.getElementById(`parts-tbody-${secId}`);
     if (!tbody) return;
 
     addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId]);
-
-    if (p.isBroken) {
-      const rows = tbody.querySelectorAll('tr');
-      const lastRow = rows[rows.length - 1];
-      const cb = lastRow ? lastRow.querySelector('input[type="checkbox"]') : null;
-      if (cb) {
-        cb.checked = true;
-        togglePartBreak(cb);
-      }
-    }
+    applyRowFlags(tbody, p.isBroken, p.isUsed);
   });
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
+}
+
+// 追加したばかりの行（tbodyの最後の行）に損傷・使用チェックの状態を反映する
+function applyRowFlags(tbody, isBroken, isUsed) {
+  const rows = tbody.querySelectorAll('tr');
+  const lastRow = rows[rows.length - 1];
+  if (!lastRow) return;
+  if (isBroken) {
+    const cb = lastRow.querySelector('.p-broken');
+    if (cb) { cb.checked = true; togglePartBreak(cb); }
+  }
+  if (isUsed) {
+    const cb = lastRow.querySelector('.p-used');
+    if (cb) { cb.checked = true; togglePartUsed(cb); }
+  }
 }
 
 function exportJSON() {
@@ -1117,10 +1143,11 @@ function exportForHokanshoText() {
     const pTiming = tr.querySelector('.p-timing')?.value || '';
     const pCost = tr.querySelector('.p-cost')?.value || '';
     const pRange = tr.querySelector('.p-range')?.value || '';
-    const isBroken = tr.querySelector('input[type="checkbox"]')?.checked;
+    const isBroken = tr.querySelector('.p-broken')?.checked;
+    const isUsed = tr.querySelector('.p-used')?.checked;
 
     if (pName) {
-      const status = isBroken ? '[破損] ' : '';
+      const status = (isBroken ? '[破損] ' : '') + (isUsed ? '[使用済] ' : '');
       text += `・${status}[${pLoc}] ${pName} (${pType}Lv${pLv}) / ${pTiming} / コスト:${pCost} / 射程:${pRange}\n`;
     }
   });
@@ -1133,7 +1160,76 @@ function exportForHokanshoText() {
 }
 
 function exportCcfolia() {
-  alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
+  const data = getFullData();
+
+  const actValue = parseInt(data.act, 10) || 0;
+  const currentChouaiEl = document.getElementById('current-chouai');
+  const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
+
+  const status = [
+    { label: '行動値', value: actValue, max: actValue },
+    { label: '寵愛点', value: currentChouai, max: currentChouai }
+  ];
+
+  const params = [
+    { label: 'PL名', value: data.pl || '' },
+    { label: 'ポジション', value: data.pos || '' },
+    { label: 'メインクラス', value: data.mc || '' },
+    { label: 'サブクラス', value: data.sc || '' },
+    { label: '享年/外見', value: data.age || '' },
+    { label: '初期配置', value: data.ps || '' },
+    { label: '暗示', value: data.hint || '' },
+    { label: '記憶のカケラ', value: data.mem || '' }
+  ].filter(p => p.value);
+
+  const commandLines = [];
+  commandLines.push('■スキル');
+  (data.skills || []).forEach(s => {
+    if (!s.name) return;
+    const memo = (s.memo || '').replace(/\n/g, ' ');
+    commandLines.push(`【${s.name}】${memo}`);
+  });
+
+  commandLines.push('');
+  commandLines.push('■マニューバ');
+  (data.parts || []).forEach(p => {
+    if (!p.name) return;
+    const spec = [p.timing, p.cost && `コスト${p.cost}`, p.range && `射程${p.range}`].filter(Boolean).join('/');
+    const memo = (p.memo || '').replace(/\n/g, ' ');
+    commandLines.push(`【${p.name}】(${p.type}Lv${p.level}) ${spec}${memo ? ' ' + memo : ''}`);
+  });
+
+  const memoLines = [];
+  if (data.tr) memoLines.push(`たからもの: ${data.tr}`);
+  (data.list || []).forEach(l => {
+    if (l.target || l.emotion) {
+      memoLines.push(`未練[${l.target || '?'}] ${l.emotion || ''}（狂気点${l.madness || 0}）`);
+    }
+  });
+
+  const ccfoliaData = {
+    kind: 'character',
+    data: {
+      name: data.name || '(無名)',
+      initiative: actValue,
+      externalUrl: '',
+      iconUrl: '',
+      memo: memoLines.join('\n'),
+      status: status,
+      params: params,
+      commands: commandLines.join('\n')
+    }
+  };
+
+  const blob = new Blob([JSON.stringify(ccfoliaData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (data.name || 'necro_character') + '_ccfolia.json';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  alert('ココフォリア用のJSONファイルを書き出しました。\nダウンロードしたファイルをココフォリアの画面にドラッグ＆ドロップすると読み込めます。');
 }
 
 // --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
