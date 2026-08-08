@@ -236,10 +236,35 @@
 <button type="button" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-bottom: 20px;">+ 使い道を追加</button>
 
 <div class="save-load-panel">
- 💾 ブラウザに保存📂 データを読み込む📋 テキスト出力
+  <button type="button" class="btn-save" onclick="openSaveModal()">💾 ブラウザに保存</button>
+  <button type="button" class="btn-load" onclick="openLoadModal()">📂 データを読み込む</button>
+  <button type="button" class="btn-export" onclick="exportJSON()">📋 JSON出力</button>
 </div>
 
-id=“save-modal”,“load-modal”,“save-doll-select”,“load-doll-select”
+<div id="save-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <h3>データを保存</h3>
+    <p>保存先または上書き対象を選択してください：</p>
+    <select id="save-doll-select"></select>
+    <div style="margin-top:10px; display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" onclick="confirmSave()">保存実行</button>
+      <button type="button" onclick="closeModals()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div id="load-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <h3>データを読み込む</h3>
+    <p>読み込むドールを選択してください：</p>
+    <select id="load-doll-select"></select>
+    <div style="margin-top:10px; display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" onclick="confirmLoad()">読み込み</button>
+      <button type="button" onclick="confirmDeleteDoll()" style="background:#8b0000; color:#fff;">削除</button>
+      <button type="button" onclick="closeModals()">キャンセル</button>
+    </div>
+  </div>
+</div>
 
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
   position: fixed;
