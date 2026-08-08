@@ -50,3 +50,6 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
 .action-btn.c-orange { border-color: #8a5a2e; background: #271b10; color: #ffbb80; }
 .action-btn.c-red    { border-color: #7a3232; background: #241313; color: #ff9a9a; }
 .action-btn.c-purple { border-color: #6a3e9e; background: #1e1626; color: #cba3ff; }
+.action-btn.c-teal   { border-color: #2e7a72; background: #102420; color: #7ae8da; }
+.action-btn.c-yellow { border-color: #8a7a2e; background: #26230f; color: #f0d878; }
+.action-btn.c-cyan   { border-color: #2e6a8a; background: #0f1f26; color: #7ac4f0; }
