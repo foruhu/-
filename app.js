@@ -398,6 +398,45 @@ function isPartAlreadyExists(partName) {
   return Array.from(document.querySelectorAll('#parts-container .p-name')).some(input => input.value.trim() === partName.trim());
 }
 
+// 「たからもの」欄の名前を、選んだ部位にマニューバとして配置する
+function placeTreasureAsPart() {
+  const nameInput = document.getElementById('tr');
+  const name = (nameInput && nameInput.value || '').trim();
+  if (!name) {
+    alert('先に「たからもの」欄に名前を入力してください');
+    return;
+  }
+
+  const alreadyPlaced = Array.from(document.querySelectorAll('#parts-container .p-type'))
+    .some(sel => sel.value === 'たからもの');
+  if (alreadyPlaced) {
+    alert('たからものは既にパーツとして配置されています。移動したい場合は、先に既存の「たからもの」の行を削除してください。');
+    return;
+  }
+
+  const locSelect = document.getElementById('treasure-location');
+  const location = locSelect ? locSelect.value : '頭部';
+  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg', '任意・その他': 'body' };
+  const secId = locToSection[location] || 'body';
+  const tbody = document.getElementById(`parts-tbody-${secId}`);
+  if (!tbody) return;
+
+  addPartRow(
+    tbody,
+    name,
+    'たからもの',
+    '',
+    'オート',
+    '無し',
+    '自身',
+    'バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除く',
+    false,
+    location
+  );
+
+  alert(`「${name}」を${location}のパーツとして配置しました`);
+}
+
 function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
@@ -444,7 +483,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
-        ${['基本','武装','変異','改造'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
+        ${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
     <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
@@ -460,7 +499,26 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 }
 
 function togglePartBreak(checkbox) {
-  checkbox.closest('tr').classList.toggle('broken', checkbox.checked);
+  const tr = checkbox.closest('tr');
+  const typeSelect = tr.querySelector('.p-type');
+  const isTreasure = typeSelect && typeSelect.value === 'たからもの';
+
+  if (checkbox.checked && isTreasure) {
+    // Undoで壊れる前の状態に戻せるよう、一時的にチェックを外した状態でスナップショットを取ってから取り除く
+    checkbox.checked = false;
+    pushUndoSnapshot();
+    checkbox.checked = true;
+
+    const name = tr.querySelector('.p-name')?.value || 'たからもの';
+    tr.remove();
+    markDirty();
+    calcTotals();
+    calcActionValue();
+    alert(`「${name}」は損傷したため、所持パーツから取り除かれました。`);
+    return;
+  }
+
+  tr.classList.toggle('broken', checkbox.checked);
   calcActionValue();
 }
 
