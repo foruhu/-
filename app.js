@@ -337,8 +337,9 @@ function addSkillRow(category, skillName = '', memo = '') {
   `;
   tbody.appendChild(tr);
 
-  if (skillName) tr.querySelector('select').value = skillName;
+  // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
+  if (skillName) tr.querySelector('select').value = skillName;
   calcTotals();
 }
 
