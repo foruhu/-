@@ -68,3 +68,23 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
 #autosave-status { font-size: .68rem; color: #7fe3a8; }
 .undo-btn { background: #2a2a32; color: #f0d878; border: 1px solid #555; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: bold; cursor: pointer; font-family: sans-serif; }
 .undo-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* --- 表示モード（編集画面と分離） --- */
+body.view-mode .edit-only { display: none !important; }
+body.view-mode .del { display: none !important; }
+
+body.view-mode input:not([type="checkbox"]),
+body.view-mode select,
+body.view-mode textarea {
+  pointer-events: none !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+body.view-mode input[type="radio"] { opacity: 0.85; }
+
+/* 損傷チェックだけはセッション中も操作できるよう残す */
+body.view-mode input[type="checkbox"] { pointer-events: auto !important; }
+
+body.view-mode .part-header .val,
+body.view-mode th { color: #ddd; }
