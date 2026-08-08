@@ -218,12 +218,25 @@
     <button type="button" class="action-btn c-orange" onclick="exportJSON()">
       <span class="icon">📄</span><span>JSON<br>出力</span>
     </button>
+    <button type="button" class="action-btn c-teal" onclick="document.getElementById('json-file-input').click()">
+      <span class="icon">📁</span><span>JSONを<br>読み込む</span>
+    </button>
     <button type="button" class="action-btn c-purple" onclick="exportCcfolia()">
       <span class="icon">🎲</span><span>ココフォリア<br>出力</span>
     </button>
   </div>
+  <input type="file" id="json-file-input" accept=".json,application/json" style="display:none" onchange="onJsonFileSelected(event)">
+  <div class="action-btn-row">
+    <button type="button" class="action-btn c-yellow" onclick="exportShareCode()">
+      <span class="icon">📤</span><span>共有コードを<br>作成</span>
+    </button>
+    <button type="button" class="action-btn c-cyan" onclick="importShareCode()">
+      <span class="icon">📥</span><span>共有コードから<br>読み込む</span>
+    </button>
+  </div>
   <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-    ※「保存済みキャラクター」で既存の名前を選んでから保存すると上書き保存、「新規保存」のままだと名前を聞かれて新しいキャラとして保存されます。
+    ※「保存済みキャラクター」で既存の名前を選んでから保存すると上書き保存、「新規保存」のままだと名前を聞かれて新しいキャラとして保存されます。<br>
+    ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有コードを作成」してコピーした文字列をLINE等に貼り、別端末の「共有コードから読み込む」に貼り付けてください。
   </div>
 </div>
 
