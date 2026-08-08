@@ -22,17 +22,27 @@ function closeModals() {
 // ------------------------------------------
 function openSaveModal() {
   const select = document.getElementById('save-doll-select');
-  if (!select) return;
-  
+  if (!select) return console.warn('save-doll-select not found');
+
   const dolls = getAllDolls();
   const currentName = document.getElementById('name')?.value || '無名ドール';
-  
-  select.innerHTML = `<option value="">✨ 新規保存（「${currentName}」として追加）</option>`;
-option.textContent = `🔄 上書き: ${doll.name || '無名ドール'} (${doll.pos || '無職'})`;
-alert(`「${data.name || '無名ドール'}」を保存しました！`);
-a.download = `${safeName}.json`;
+
+  // 新規保存オプション
+  select.innerHTML = '';
+  const newOpt = document.createElement('option');
+  newOpt.value = '';
+  newOpt.textContent = `✨ 新規保存（「${currentName}」として追加）`;
+  select.appendChild(newOpt);
+
+  // 既存ドール一覧を追加
+  Object.keys(dolls).forEach(id => {
+    const doll = dolls[id];
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `🔄 上書き: ${doll.name || '無名ドール'} (ポジション: ${doll.pos || 'なし'})`;
+    select.appendChild(opt);
   });
-  
+
   const modal = document.getElementById('save-modal');
   if (modal) modal.style.display = 'flex';
 }
@@ -40,15 +50,15 @@ a.download = `${safeName}.json`;
 function confirmSave() {
   const select = document.getElementById('save-doll-select');
   const selectedId = select ? select.value : '';
-  
+
   const data = getFullData();
   const dollId = selectedId || ('doll_' + Date.now());
-  
+
   data.id = dollId;
   const dolls = getAllDolls();
   dolls[dollId] = data;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
-  
+
   closeModals();
   alert(`「${data.name || '無名ドール'}」を保存しました！`);
 }
@@ -59,16 +69,16 @@ function confirmSave() {
 function openLoadModal() {
   const select = document.getElementById('load-doll-select');
   if (!select) return;
-  
+
   const dolls = getAllDolls();
   const keys = Object.keys(dolls);
-  
+
   if (keys.length === 0) {
     return alert('ブラウザに保存されたドールデータがありません。');
   }
-  
+
   select.innerHTML = '<option value="">-- ドールを選択してください --</option>';
-  
+
   keys.forEach(id => {
     const doll = dolls[id];
     const option = document.createElement('option');
@@ -76,7 +86,7 @@ function openLoadModal() {
     option.textContent = `${doll.name || '無名ドール'} (ポジション: ${doll.pos || 'なし'} / PL: ${doll.pl || '未設定'})`;
     select.appendChild(option);
   });
-  
+
   const modal = document.getElementById('load-modal');
   if (modal) modal.style.display = 'flex';
 }
@@ -84,11 +94,11 @@ function openLoadModal() {
 function confirmLoad() {
   const select = document.getElementById('load-doll-select');
   const dollId = select ? select.value : '';
-  
+
   if (!dollId) {
     return alert('読み込むドールを選択してください。');
   }
-  
+
   const dolls = getAllDolls();
   const data = dolls[dollId];
   if (data) {
@@ -101,18 +111,18 @@ function confirmLoad() {
 function confirmDelete() {
   const select = document.getElementById('load-doll-select');
   const dollId = select ? select.value : '';
-  
+
   if (!dollId) {
     return alert('削除するドールを選択してください。');
   }
-  
+
   const dolls = getAllDolls();
   const targetName = dolls[dollId]?.name || '無名ドール';
-  
+
   if (!confirm(`本当に「${targetName}」を削除しますか？`)) {
     return;
   }
-  
+
   delete dolls[dollId];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(dolls));
   closeModals();
@@ -124,7 +134,7 @@ function confirmDelete() {
 // ------------------------------------------
 function getFullData() {
   const getVal = id => document.getElementById(id)?.value || '';
-  
+
   return {
     pl: getVal('pl'),
     name: getVal('name'),
