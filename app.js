@@ -451,7 +451,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
     <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
-    <td><textarea class="p-memo" ${readOnlyAttr}>${memo}</textarea></td>
+    <td><textarea class="p-memo" ${readOnlyAttr} oninput="calcActionValue()">${memo}</textarea></td>
     <td><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -461,6 +461,47 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
 function togglePartBreak(checkbox) {
   checkbox.closest('tr').classList.toggle('broken', checkbox.checked);
+  calcActionValue();
+}
+
+// メモ欄のテキストから「最大行動値+N」の合計を抽出する
+function extractActionBonus(memoText) {
+  let sum = 0;
+  const matches = (memoText || '').match(/最大行動値\+(\d+)/g);
+  if (matches) {
+    matches.forEach(m => {
+      const n = parseInt(m.replace('最大行動値+', ''), 10);
+      if (!isNaN(n)) sum += n;
+    });
+  }
+  return sum;
+}
+
+// 基本行動値 ＋ 損傷していないパーツの「最大行動値+N」の合計を自動計算して反映する
+function calcActionValue() {
+  const baseInput = document.getElementById('act-base');
+  const base = parseInt(baseInput && baseInput.value, 10) || 0;
+
+  let bonus = 0;
+  document.querySelectorAll('#parts-container tr').forEach(tr => {
+    const isBroken = tr.querySelector('.p-broken')?.checked;
+    if (isBroken) return; // 損傷しているパーツの効果は反映しない
+    const memo = tr.querySelector('.p-memo')?.value || '';
+    bonus += extractActionBonus(memo);
+  });
+
+  const total = base + bonus;
+  const actInput = document.getElementById('act');
+  if (actInput) actInput.value = total;
+
+  const breakdownEl = document.getElementById('act-breakdown');
+  if (breakdownEl) {
+    breakdownEl.textContent = bonus !== 0
+      ? `（基本${base} ＋ パーツ${bonus >= 0 ? '+' : ''}${bonus}）`
+      : `（基本${base}）`;
+  }
+
+  return total;
 }
 
 function togglePartUsed(checkbox) {
@@ -583,6 +624,7 @@ function calcTotals() {
   });
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
+  if (typeof calcActionValue === 'function') calcActionValue();
 }
 
 function addRow(target = '', emotion = '', madness = 0) {
@@ -767,6 +809,7 @@ function getFullData() {
     hint: getVal('hint'),
     mem: getVal('mem'),
     act: getVal('act'),
+    actBase: getVal('act-base'),
     fav: getVal('fav'),
     tr: getVal('tr'),
     chouaiWep: getVal('chouai-wep'),
@@ -982,6 +1025,16 @@ function applyData(data) {
   setVal('act', data.act || '9'); setVal('fav', data.fav || '0'); setVal('tr', data.tr);
   setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
 
+  // 基本行動値の復元。旧バージョンの保存データ（actBase無し）は、
+  // 保存時点の最大行動値からパーツ由来の増加分を逆算して基本行動値を求める
+  if (data.actBase !== undefined && data.actBase !== '') {
+    setVal('act-base', data.actBase);
+  } else {
+    const oldAct = parseInt(data.act, 10) || 0;
+    const bonusAtSaveTime = (data.parts || []).reduce((sum, p) => sum + (p.isBroken ? 0 : extractActionBonus(p.memo)), 0);
+    setVal('act-base', String(oldAct - bonusAtSaveTime));
+  }
+
   if (data.bonus) {
     const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
     if (radio) radio.checked = true;
@@ -1032,7 +1085,6 @@ function applyData(data) {
   calcChouaiTotals();
 }
 
-// 保存されたパーツ配列から、4部位（頭部/腕部/胴部/脚部）のテーブルを再構築する
 // 保存されたパーツ配列から、4部位（頭部/腕部/胴部/脚部）のテーブルを再構築する
 // 「基本」パーツは常に固定のため保存データには頼らず毎回自動配置し、
 // 武装・変異・改造などの追加パーツのみ保存データから復元する
