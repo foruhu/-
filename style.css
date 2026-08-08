@@ -53,3 +53,18 @@ tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.
 .action-btn.c-teal   { border-color: #2e7a72; background: #102420; color: #7ae8da; }
 .action-btn.c-yellow { border-color: #8a7a2e; background: #26230f; color: #f0d878; }
 .action-btn.c-cyan   { border-color: #2e6a8a; background: #0f1f26; color: #7ac4f0; }
+.action-btn.c-pink   { border-color: #9e3e6a; background: #26101c; color: #ff9ac4; }
+
+/* --- 保存キャラクターのカード表示 --- */
+.save-cards-row { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px 2px; -webkit-overflow-scrolling: touch; }
+.save-card { flex: 0 0 auto; width: 92px; background: #16161c; border: 2px solid #3a3a42; border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
+.save-card.selected { border-color: #f0a0a0; background: #241416; box-shadow: 0 0 0 1px #f0a0a0 inset; }
+.save-card-thumb { width: 78px; height: 78px; object-fit: cover; border-radius: 6px; display: block; margin: 0 auto 4px auto; background: #222228; }
+.save-card-thumb-placeholder { display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #555; }
+.save-card-name { font-size: .72rem; font-weight: bold; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-card-sub { font-size: .62rem; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- 自動保存ステータス・元に戻すボタン --- */
+#autosave-status { font-size: .68rem; color: #7fe3a8; }
+.undo-btn { background: #2a2a32; color: #f0d878; border: 1px solid #555; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: bold; cursor: pointer; font-family: sans-serif; }
+.undo-btn:disabled { opacity: 0.4; cursor: default; }
