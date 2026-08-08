@@ -180,9 +180,12 @@
 </div>
 
 <div class="card">
-  <div class="title" style="display:flex;justify-content:space-between;align-items:center">
+  <div class="title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
     <span>マニューバ</span>
-    <button type="button" class="sec edit-only" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+    <span style="display:flex;gap:4px;">
+      <button type="button" class="sec edit-only" onclick="resetPartUsedFlags()" style="font-size:.7rem;padding:2px 6px">使用チェックを一括解除</button>
+      <button type="button" class="sec edit-only" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
+    </span>
   </div>
   <div id="parts-container"></div>
 </div>
