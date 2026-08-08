@@ -31,7 +31,7 @@ body {
   margin-bottom: 12px;
 }
 
-/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */ /* ★「*/」で正しく閉じる */
+/* 画面幅が狭い場合（スマホ等）は縦並びにする設定 */
 @media (max-width: 480px) {
   .save-load-panel {
     grid-template-columns: 1fr;
@@ -45,7 +45,7 @@ body {
   color: #ffffff;
   padding: 8px 12px;
   border-width: 1px;
-  border-style: solid; /* ★枠線のスタイルを明示 */
+  border-style: solid;
   border-radius: 4px;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.1s ease;
@@ -78,14 +78,11 @@ body {
 }
 
 /* モーダル全体（初期状態は非表示にする） */
-.modal {
-  display: none; /* ← これがないと最初から画面上に白い枠が出続けてしまいます */
+.modal-overlay {
+  display: none; /* JSで表示時に display='flex' にします */
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* 背景を暗い半透明に */
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -93,10 +90,28 @@ body {
 
 /* モーダルの中身（ダークテーマに合わせる） */
 .modal-content {
-  background-color: #18181c; /* ダーク系の背景色 */
-  color: #e0e0e0;            /* 文字色 */
-  border: 1px solid #3a3a42;  /* 枠線 */
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
   padding: 20px;
   border-radius: 8px;
   min-width: 300px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+/* モーダル内のフォーム要素をダークテーマに */
+.modal-content select,
+.modal-content input,
+.modal-content button,
+.modal-content textarea {
+  background: var(--input);
+  color: var(--text);
+  border: 1px solid #333;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+/* 小画面向け */
+@media (max-width:420px){
+  .modal-content { width: 92%; }
 }
