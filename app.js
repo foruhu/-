@@ -290,18 +290,6 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-
-/* モーダルコンテンツ */
-.modal-content {
-  background: #18181c;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #3a3a42;
-  min-width: 280px;
-  max-width: 90%;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-}
-
 // モーダルの外側クリックで閉じるイベント
 window.addEventListener('click', function(e) {
   const saveModal = document.getElementById('save-modal');
@@ -311,6 +299,7 @@ window.addEventListener('click', function(e) {
   }
 });
 
+// ボタン操作用ラッパー関数
 function saveCurrentDoll() {
   if (typeof openSaveModal === 'function') openSaveModal();
 }
