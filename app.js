@@ -290,6 +290,29 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
+/* モーダル背景 */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+/* モーダルコンテンツ */
+.modal-content {
+  background: #18181c;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #3a3a42;
+  min-width: 280px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+
 // モーダルの外側クリックで閉じるイベント
 window.addEventListener('click', function(e) {
   const saveModal = document.getElementById('save-modal');
