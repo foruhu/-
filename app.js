@@ -322,12 +322,17 @@ window.addEventListener('click', function(e) {
   }
 });
 
-function (saveCurrentDoll) { openSaveModal &&
-openSaveModal(); }function (loadCurrentDoll)
-{ openLoadModal && openLoadModal(); }
-function exportForHokanshoText()
-{ exportSON && exportJSON(); }
-onclick （saveC
+function saveCurrentDoll() {
+  if (typeof openSaveModal === 'function') openSaveModal();
+}
+
+function loadCurrentDoll() {
+  if (typeof openLoadModal === 'function') openLoadModal();
+}
+
+function exportForHokanshoText() {
+  if (typeof exportJSON === 'function') exportJSON();
+}
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
