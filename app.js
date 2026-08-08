@@ -861,6 +861,74 @@ function exportCcfolia() {
   alert('ココフォリア出力機能は現在準備中のため、まだご利用いただけません。');
 }
 
+// --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
+
+function afterExternalLoad(data) {
+  alert(`「${data.name || '(無名)'}」を読み込みました`);
+  if (confirm('このブラウザにもキャラクターとして保存しますか？\n（保存すると「保存済みキャラクター」からいつでも呼び出せます）')) {
+    saveData();
+  }
+}
+
+function onJsonFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      applyData(data);
+      afterExternalLoad(data);
+    } catch (err) {
+      alert('JSONファイルの読み込みに失敗しました。ファイルの中身が正しいか確認してください。\n' + err.message);
+    }
+  };
+  reader.onerror = function () {
+    alert('ファイルの読み込みに失敗しました');
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // 同じファイルを連続で選び直せるようにリセット
+}
+
+function exportShareCode() {
+  const data = getFullData();
+  const json = JSON.stringify(data);
+  let encoded;
+  try {
+    encoded = btoa(unescape(encodeURIComponent(json)));
+  } catch (err) {
+    alert('共有コードの作成に失敗しました: ' + err.message);
+    return;
+  }
+
+  const finish = () => {
+    alert(`共有コードをクリップボードにコピーしました。（${encoded.length}文字）\n\nLINEやメモ帳などに貼り付けて他の端末に送り、そちらのページで「共有コードから読み込む」に貼り付けると復元できます。`);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(encoded).then(finish).catch(() => {
+      prompt('自動コピーに失敗しました。以下のコードを手動でコピーしてください：', encoded);
+    });
+  } else {
+    prompt('以下のコードをコピーしてください：', encoded);
+  }
+}
+
+function importShareCode() {
+  const encoded = prompt('共有コードを貼り付けてください');
+  if (!encoded) return;
+
+  try {
+    const json = decodeURIComponent(escape(atob(encoded.trim())));
+    const data = JSON.parse(json);
+    applyData(data);
+    afterExternalLoad(data);
+  } catch (err) {
+    alert('共有コードの読み込みに失敗しました。コードが正しくコピーされているか確認してください。\n' + err.message);
+  }
+}
+
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
