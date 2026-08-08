@@ -77,14 +77,26 @@ body {
   border-color: #8d6e63;
 }
 
-/* モーダル背景 */
-.modal-overlay {
+/* モーダル全体（初期状態は非表示にする） */
+.modal {
+  display: none; /* ← これがないと最初から画面上に白い枠が出続けてしまいます */
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* 背景を暗い半透明に */
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 1000;
+}
+
+/* モーダルの中身（ダークテーマに合わせる） */
+.modal-content {
+  background-color: #18181c; /* ダーク系の背景色 */
+  color: #e0e0e0;            /* 文字色 */
+  border: 1px solid #3a3a42;  /* 枠線 */
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
 }
