@@ -257,19 +257,24 @@
     <button type="button" class="action-btn c-blue" onclick="loadData()">
       <span class="icon">📂</span><span>データを<br>読み込む</span>
     </button>
-    <button type="button" class="action-btn c-red" onclick="deleteSelectedSave()">
-      <span class="icon">🗑</span><span>選択中を<br>削除</span>
-    </button>
   </div>
-  <div class="action-btn-row">
-    <button type="button" class="action-btn c-pink" onclick="duplicateSelectedSave()">
-      <span class="icon">📋</span><span>選択中を<br>複製</span>
-    </button>
-    <button type="button" class="action-btn c-pink" onclick="document.getElementById('thumb-file-input').click()">
-      <span class="icon">🖼</span><span>画像を<br>設定</span>
-    </button>
+
+  <div id="selected-actions" style="display:none;">
+    <div style="font-size:0.72rem; color:#f0a0a0; margin: 6px 0 2px 2px;">▼ 選択中のキャラクターの操作</div>
+    <div class="action-btn-row">
+      <button type="button" class="action-btn c-red" onclick="deleteSelectedSave()">
+        <span class="icon">🗑</span><span>削除</span>
+      </button>
+      <button type="button" class="action-btn c-pink" onclick="duplicateSelectedSave()">
+        <span class="icon">📋</span><span>複製</span>
+      </button>
+      <button type="button" class="action-btn c-pink" onclick="document.getElementById('thumb-file-input').click()">
+        <span class="icon">🖼</span><span>画像を設定</span>
+      </button>
+    </div>
   </div>
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="onThumbFileSelected(event)">
+
   <div class="action-btn-row">
     <button type="button" class="action-btn c-orange" onclick="exportJSON()">
       <span class="icon">📄</span><span>JSON<br>出力</span>
@@ -291,7 +296,7 @@
     </button>
   </div>
   <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-    ※カードをタップしてキャラクターを選択してから、保存/読込/削除/複製/画像設定ができます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
+    ※カードをタップしてキャラクターを選択すると、削除・複製・画像設定のボタンが出てきます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
     ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有コードを作成」してコピーした文字列をLINE等に貼り、別端末の「共有コードから読み込む」に貼り付けてください。<br>
     ※未保存の変更がある場合、一定時間ごとに自動でブラウザに保存されます（画面上部に保存時刻が表示されます）。
   </div>
