@@ -14,6 +14,10 @@
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
+      <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
+      <span id="autosave-status"></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#ff6b6b; font-weight:bold;">武装</span>
       <span>
         Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> | 
@@ -239,12 +243,13 @@
 
 <div class="card">
   <div class="title">キャラクター管理（複数保存）</div>
-  <div class="slot-select-row">
-    <label>保存済みキャラクター</label>
-    <select id="save-slot">
-      <option value="">-- 新規保存 --</option>
-    </select>
-  </div>
+
+  <label style="margin-bottom:4px;">保存済みキャラクター（タップで選択）</label>
+  <div class="save-cards-row" id="save-cards"></div>
+  <select id="save-slot" style="display:none">
+    <option value="">-- 新規保存 --</option>
+  </select>
+
   <div class="action-btn-row">
     <button type="button" class="action-btn c-green" onclick="saveData()">
       <span class="icon">💾</span><span>ブラウザに<br>保存</span>
@@ -256,6 +261,15 @@
       <span class="icon">🗑</span><span>選択中を<br>削除</span>
     </button>
   </div>
+  <div class="action-btn-row">
+    <button type="button" class="action-btn c-pink" onclick="duplicateSelectedSave()">
+      <span class="icon">📋</span><span>選択中を<br>複製</span>
+    </button>
+    <button type="button" class="action-btn c-pink" onclick="document.getElementById('thumb-file-input').click()">
+      <span class="icon">🖼</span><span>画像を<br>設定</span>
+    </button>
+  </div>
+  <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="onThumbFileSelected(event)">
   <div class="action-btn-row">
     <button type="button" class="action-btn c-orange" onclick="exportJSON()">
       <span class="icon">📄</span><span>JSON<br>出力</span>
@@ -277,8 +291,9 @@
     </button>
   </div>
   <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-    ※「保存済みキャラクター」で既存の名前を選んでから保存すると上書き保存、「新規保存」のままだと名前を聞かれて新しいキャラとして保存されます。<br>
-    ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有コードを作成」してコピーした文字列をLINE等に貼り、別端末の「共有コードから読み込む」に貼り付けてください。
+    ※カードをタップしてキャラクターを選択してから、保存/読込/削除/複製/画像設定ができます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
+    ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有コードを作成」してコピーした文字列をLINE等に貼り、別端末の「共有コードから読み込む」に貼り付けてください。<br>
+    ※未保存の変更がある場合、一定時間ごとに自動でブラウザに保存されます（画面上部に保存時刻が表示されます）。
   </div>
 </div>
 
