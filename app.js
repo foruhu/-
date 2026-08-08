@@ -326,7 +326,12 @@ function exportForHokanshoText() {
   if (typeof exportJSON === 'function') exportJSON();
 }
 
-function openSaveModal() {const m = document.getElementById(‘save-modal’);if (!m) return console.warn(‘save-modal not found’);m.style.display = ‘flex’;}function openLoadModal() {const m = document.getElementById(‘load-modal’);if (!m) return console.warn(‘load-modal not found’);m.style.display = ‘flex’;}function closeModals() {const s = document.getElementById(‘save-modal’);const l = document.getElementById(‘load-modal’);if (s) s.style.display = ‘none’;if (l) l.style.display = ‘none’;}
+function closeModals() {
+  const saveModal = document.getElementById('save-modal');
+  const loadModal = document.getElementById('load-modal');
+  if (saveModal) saveModal.style.display = 'none';
+  if (loadModal) loadModal.style.display = 'none';
+}
 
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
