@@ -373,7 +373,7 @@ function renderPartsContainer() {
         </table>
       </div>
       <div style="margin-top:6px;">
-        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)">
+        <select class="add-part-select edit-only" onchange="onExtraPartSelect('${sec.id}', this)">
           <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
         </select>
       </div>
@@ -667,7 +667,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
       <input type="text" class="h-memo" value="${memo}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+      <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
     </td>
   `;
 
@@ -690,7 +690,7 @@ function addChouaiUseRow(used = 0, memo = '') {
       <input type="text" class="use-memo" value="${memo}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444; text-align: center;">
-      <button type="button" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
+      <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
     </td>
   `;
 
@@ -1206,6 +1206,27 @@ function importShareCode() {
   }
 }
 
+// ==========================================================
+// 表示モード（編集画面／表示画面の切り替え）
+// ==========================================================
+function applyViewModeUI(isView) {
+  document.body.classList.toggle('view-mode', isView);
+  const btn = document.getElementById('view-mode-toggle');
+  if (btn) {
+    btn.textContent = isView ? '✏️ 編集モードに戻る' : '🔒 表示モードにする（セッション中の参照用）';
+  }
+}
+
+function toggleViewMode() {
+  const isView = !document.body.classList.contains('view-mode');
+  applyViewModeUI(isView);
+  try {
+    localStorage.setItem('necro_view_mode', isView ? '1' : '0');
+  } catch (e) {
+    // 保存に失敗しても致命的ではない
+  }
+}
+
 window.onload = function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
@@ -1215,4 +1236,8 @@ window.onload = function() {
   if (typeof startAutosaveTimer === 'function') startAutosaveTimer();
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
   isDirty = false; // ページを開いた直後はまだ何も編集していない状態にする
+
+  let savedViewMode = '0';
+  try { savedViewMode = localStorage.getItem('necro_view_mode') || '0'; } catch (e) {}
+  applyViewModeUI(savedViewMode === '1');
 };
