@@ -76,6 +76,12 @@ body.view-mode .edit-only { display: none !important; }
 body:not(.view-mode) #view-mode-image-container { display: none !important; }
 #view-mode-image-container img { max-width: 100%; max-height: 280px; display: block; margin: 0 auto 10px auto; border-radius: 8px; border: 1.5px solid #8b0000; object-fit: cover; }
 body.view-mode .del { display: none !important; }
+body.view-mode .col-op { display: none !important; }
+
+/* --- マニューバ表をコンパクトに（縦幅を詰めて1画面でより多く見えるように） --- */
+.maneuver-table th, .maneuver-table td { padding: 2px 2px; font-size: .72rem; }
+.maneuver-table input, .maneuver-table select { font-size: .72rem; padding: 2px; }
+.maneuver-table textarea { font-size: .72rem; padding: 2px; min-height: 30px; line-height: 1.25; }
 
 body.view-mode input:not([type="checkbox"]),
 body.view-mode select,
