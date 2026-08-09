@@ -41,7 +41,7 @@ function undoLastAction() {
 // パーツ／スキル／未練／履歴などの行削除ボタン共通処理（削除前にUndo用スナップショットを保存する）
 function removeRowWithUndo(button, afterFn) {
   pushUndoSnapshot();
-  const el = button.closest('tr, .treasure-entry');
+  const el = button.closest('tr, .treasure-entry, .memory-entry');
   if (el) el.remove();
   markDirty();
   if (typeof afterFn === 'function') afterFn();
@@ -449,6 +449,22 @@ function renderPartsContainer() {
 function isPartAlreadyExists(partName) {
   if (!partName || partName === '新規パーツ') return false;
   return Array.from(document.querySelectorAll('#parts-container .p-name')).some(input => input.value.trim() === partName.trim());
+}
+
+// 「記憶のカケラ」の1枠（テキスト入力＋削除）を作成する
+function addMemoryEntry(value = '') {
+  const container = document.getElementById('memory-list');
+  if (!container) return;
+
+  const row = document.createElement('div');
+  row.className = 'memory-entry';
+  row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center;';
+  row.innerHTML = `
+    <input type="text" class="memory-value" value="${value}" style="flex:1;">
+    <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
+  `;
+  container.appendChild(row);
+  markDirty();
 }
 
 // 「たからもの」の1エントリ（名前・内容・配置部位・操作）を作成する
@@ -937,7 +953,6 @@ function getFullData() {
     age: getVal('age'),
     ps: getVal('ps'),
     hint: getVal('hint'),
-    mem: getVal('mem'),
     act: getVal('act'),
     actBase: getVal('act-base'),
     fav: getVal('fav'),
@@ -948,6 +963,7 @@ function getFullData() {
     skills: [],
     parts: [],
     treasures: [],
+    memories: [],
     list: [],
     history: [],
     chouaiUses: []
@@ -989,6 +1005,11 @@ function getFullData() {
       content: entry.querySelector('.treasure-content')?.value || '',
       location: entry.querySelector('.treasure-location')?.value || '頭部'
     });
+  });
+
+  // 記憶のカケラ（複数）
+  document.querySelectorAll('#memory-list .memory-value').forEach(input => {
+    data.memories.push(input.value || '');
   });
 
   // 未練
@@ -1160,7 +1181,7 @@ function applyData(data) {
   setVal('pl', data.pl); setVal('name', data.name);
   setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
   setVal('age', data.age); setVal('ps', data.ps || '煉獄');
-  setVal('hint', data.hint); setVal('mem', data.mem);
+  setVal('hint', data.hint);
   setVal('act', data.act || '9'); setVal('fav', data.fav || '0');
   setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
 
@@ -1201,6 +1222,17 @@ function applyData(data) {
       data.treasures.forEach(t => addTreasureEntry(t.name, t.content, t.location));
     } else if (data.tr) {
       addTreasureEntry(data.tr, '', '頭部');
+    }
+  }
+
+  // 記憶のカケラ（複数）の復元。旧バージョン（単一のmem文字列のみ）のデータは自動的に1件目として引き継ぐ
+  const memoryListEl = document.getElementById('memory-list');
+  if (memoryListEl) {
+    memoryListEl.innerHTML = '';
+    if (Array.isArray(data.memories) && data.memories.length > 0) {
+      data.memories.forEach(m => addMemoryEntry(m));
+    } else if (data.mem) {
+      addMemoryEntry(data.mem);
     }
   }
 
@@ -1392,7 +1424,7 @@ function exportCcfolia() {
     { label: '享年/外見', value: data.age || '' },
     { label: '初期配置', value: data.ps || '' },
     { label: '暗示', value: data.hint || '' },
-    { label: '記憶のカケラ', value: data.mem || '' }
+    { label: '記憶のカケラ', value: (data.memories || []).filter(Boolean).join('、') }
   ].filter(p => p.value);
 
   const commandLines = [];
@@ -1546,6 +1578,14 @@ window.onload = function() {
   if (typeof setupDirtyTracking === 'function') setupDirtyTracking();
   if (typeof startAutosaveTimer === 'function') startAutosaveTimer();
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
+
+  // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく
+  const memoryListEl = document.getElementById('memory-list');
+  if (memoryListEl && memoryListEl.children.length === 0) {
+    addMemoryEntry();
+    addMemoryEntry();
+  }
+
   isDirty = false; // ページを開いた直後はまだ何も編集していない状態にする
 
   let savedViewMode = '0';
