@@ -132,6 +132,16 @@ function updateSelectedActionsVisibility(selectedId) {
   if (el) el.style.display = selectedId ? '' : 'none';
 }
 
+// 「出力・共有オプション」の折りたたみ表示を切り替える
+function toggleExportShareSection() {
+  const section = document.getElementById('export-share-section');
+  const toggleBtn = document.getElementById('export-share-toggle');
+  if (!section || !toggleBtn) return;
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? '' : 'none';
+  toggleBtn.textContent = isHidden ? '▲ 出力・共有オプションを隠す' : '▼ 出力・共有オプションを表示';
+}
+
 function renderSaveCards(selectedId = '') {
   const container = document.getElementById('save-cards');
   if (!container) return;
