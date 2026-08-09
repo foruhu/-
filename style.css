@@ -73,6 +73,8 @@ tr.used input:not([type="checkbox"]), tr.used textarea, tr.used select { opacity
 
 /* --- 表示モード（編集画面と分離） --- */
 body.view-mode .edit-only { display: none !important; }
+body:not(.view-mode) #view-mode-image-container { display: none !important; }
+#view-mode-image-container img { max-width: 100%; max-height: 280px; display: block; margin: 0 auto 10px auto; border-radius: 8px; border: 1.5px solid #8b0000; object-fit: cover; }
 body.view-mode .del { display: none !important; }
 
 body.view-mode input:not([type="checkbox"]),
