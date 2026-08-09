@@ -264,6 +264,31 @@ function onThumbFileSelected(event) {
   });
 }
 
+// 選択中のキャラクターのサムネイル画像を削除し、ノーイメージ（プレースホルダー）に戻す
+function clearSelectedThumbnail() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください');
+    return;
+  }
+
+  const sheets = getSavedSheets();
+  if (!sheets[id]) return;
+
+  if (!sheets[id].image) {
+    alert('このキャラクターには画像が設定されていません');
+    return;
+  }
+
+  if (!confirm('サムネイル画像を削除して、ノーイメージに戻します。よろしいですか？')) return;
+
+  sheets[id].image = null;
+  setSavedSheets(sheets);
+  renderSaveCards(id);
+  alert('画像を削除しました');
+}
+
 function getLimitByVal(val) {
   if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
   return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
