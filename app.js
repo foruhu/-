@@ -1468,15 +1468,19 @@ function exportCcfolia() {
     }
   };
 
-  const blob = new Blob([JSON.stringify(ccfoliaData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = (data.name || 'necro_character') + '_ccfolia.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  const jsonText = JSON.stringify(ccfoliaData);
 
-  alert('ココフォリア用のJSONファイルを書き出しました。\nダウンロードしたファイルをココフォリアの画面にドラッグ＆ドロップすると読み込めます。');
+  const finishCopy = () => {
+    alert('ココフォリア用のデータをクリップボードにコピーしました。\nココフォリアのルーム画面（盤面）に直接貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。\n\n※ファイルのドラッグ＆ドロップではなく「貼り付け」で読み込む形式です。');
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(jsonText).then(finishCopy).catch(() => {
+      prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
+    });
+  } else {
+    prompt('以下のデータをコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
+  }
 }
 
 // --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
