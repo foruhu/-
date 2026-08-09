@@ -142,11 +142,29 @@ function toggleExportShareSection() {
   toggleBtn.textContent = isHidden ? '▲ 出力・共有オプションを隠す' : '▼ 出力・共有オプションを表示';
 }
 
+// 選択中キャラクターの画像を、表示モード時にページ最上部へ表示する
+function updateViewModeImage(selectedId) {
+  const container = document.getElementById('view-mode-image-container');
+  if (!container) return;
+
+  const sheets = getSavedSheets();
+  const entry = selectedId ? sheets[selectedId] : null;
+
+  if (entry && entry.image) {
+    container.innerHTML = `<img src="${entry.image}" alt="">`;
+    container.style.display = '';
+  } else {
+    container.innerHTML = '';
+    container.style.display = 'none';
+  }
+}
+
 function renderSaveCards(selectedId = '') {
   const container = document.getElementById('save-cards');
   if (!container) return;
 
   updateSelectedActionsVisibility(selectedId);
+  updateViewModeImage(selectedId);
 
   const sheets = getSavedSheets();
   const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
