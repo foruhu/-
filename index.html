@@ -203,19 +203,10 @@
 <div class="card">
   <div class="title">たからもの・未練（姉妹への感情）</div>
   <div style="margin-bottom:6px">
-    <label>たからもの</label>
-    <input type="text" id="tr">
-    <div class="edit-only" style="display:flex; gap:6px; margin-top:4px; align-items:center;">
-      <select id="treasure-location" style="flex:1;">
-        <option value="頭部">頭部</option>
-        <option value="腕部">腕部</option>
-        <option value="胴部">胴部</option>
-        <option value="脚部">脚部</option>
-        <option value="任意・その他">任意・その他</option>
-      </select>
-      <button type="button" class="sec" onclick="placeTreasureAsPart()" style="white-space:nowrap;padding:6px 10px;">パーツとして配置</button>
-    </div>
-    <div style="font-size:0.68rem;color:#888;margin-top:2px;">
+    <label>たからもの（入手した数だけ追加できます）</label>
+    <div id="treasure-list"></div>
+    <button type="button" class="sec edit-only" onclick="addTreasureEntry()" style="width:100%;margin-top:2px;padding:4px;">+ たからもの枠を追加</button>
+    <div style="font-size:0.68rem;color:#888;margin-top:4px;">
       オート／バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除かれます。
     </div>
   </div>
