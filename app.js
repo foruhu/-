@@ -403,7 +403,7 @@ function addTreasureEntry(name = '', content = '', location = '頭部') {
   const container = document.getElementById('treasure-list');
   if (!container) return;
 
-  const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
+  const locations = ['頭部', '腕部', '胴部', '脚部'];
   const locOptions = locations.map(loc => `<option value="${loc}" ${loc === location ? 'selected' : ''}>${loc}</option>`).join('');
 
   const div = document.createElement('div');
@@ -443,7 +443,7 @@ function placeTreasureEntry(button) {
     return;
   }
 
-  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg', '任意・その他': 'body' };
+  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
   const secId = locToSection[location] || 'body';
   const tbody = document.getElementById(`parts-tbody-${secId}`);
   if (!tbody) return;
@@ -492,7 +492,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
 
-  const locations = ['頭部', '腕部', '胴部', '脚部', '任意・その他'];
+  const locations = ['頭部', '腕部', '胴部', '脚部'];
   const locOptions = locations.map(loc => `<option value="${loc}" ${loc === defaultLoc ? 'selected' : ''}>${loc}</option>`).join('');
 
   tr.innerHTML = `
