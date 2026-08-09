@@ -11,14 +11,14 @@
 
 <h1>永い後日談のネクロニカ</h1>
 
-<div id="view-mode-image-container" style="display:none;"></div>
-
 <button type="button" id="view-mode-toggle" onclick="toggleViewMode()" style="
   display:block; width:100%; margin-bottom:10px; padding:10px;
   background:#1a1a20; color:#f0a0a0; border:1.5px solid #8b0000;
   border-radius:8px; font-weight:bold; font-size:0.9rem; cursor:pointer;
   font-family:sans-serif;
 ">🔒 表示モードにする（セッション中の参照用）</button>
+
+<div id="view-mode-image-container" style="display:none;"></div>
 
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
@@ -151,7 +151,12 @@
   </div>
   <div class="g2">
     <div><label>暗示</label><input type="text" id="hint"></div>
-    <div><label>記憶のカケラ</label><input type="text" id="mem"></div>
+    <div></div>
+  </div>
+  <div style="margin-bottom:6px;">
+    <label>記憶のカケラ（入手した数だけ追加できます）</label>
+    <div id="memory-list"></div>
+    <button type="button" class="sec edit-only" onclick="addMemoryEntry()" style="width:100%;margin-top:2px;padding:4px;">+ 記憶のカケラ枠を追加</button>
   </div>
   <div class="g2">
     <div>
