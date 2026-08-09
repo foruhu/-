@@ -809,14 +809,27 @@ function updateSkillOptions() {
   });
 }
 
-function addSkillRow(category, skillName = '', memo = '') {
+// スキルDBのメモ文字列「【名前】 タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
+function parseSkillMemo(memoText) {
+  const text = memoText || '';
+  const match = text.match(/^【[^】]*】\s*([^\/\n]+)\/([^\/\n]+)\/([^\/\n]+)\n?([\s\S]*)$/);
+  if (match) {
+    return { timing: match[1].trim(), cost: match[2].trim(), range: match[3].trim(), effect: match[4] };
+  }
+  return { timing: '', cost: '', range: '', effect: text };
+}
+
+function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
-    <td><textarea style="height:38px;">${memo}</textarea></td>
+    <td><input type="text" class="skill-timing" value="${timing}"></td>
+    <td><input type="text" class="skill-cost" value="${cost}"></td>
+    <td><input type="text" class="skill-range" value="${range}"></td>
+    <td><textarea class="skill-memo">${memo}</textarea></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -836,13 +849,25 @@ function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
   const tr = selectElem.closest('tr');
   const category = tr.querySelector('input').value;
-  const textarea = tr.querySelector('textarea');
+  const timingInput = tr.querySelector('.skill-timing');
+  const costInput = tr.querySelector('.skill-cost');
+  const rangeInput = tr.querySelector('.skill-range');
+  const textarea = tr.querySelector('.skill-memo');
 
   if (!skillName) {
-    textarea.value = '';
+    if (timingInput) timingInput.value = '';
+    if (costInput) costInput.value = '';
+    if (rangeInput) rangeInput.value = '';
+    if (textarea) textarea.value = '';
   } else if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
     const found = SKILL_DATABASE[category].find(s => s.name === skillName);
-    if (found) textarea.value = found.memo || '';
+    if (found) {
+      const parsed = parseSkillMemo(found.memo);
+      if (timingInput) timingInput.value = parsed.timing;
+      if (costInput) costInput.value = parsed.cost;
+      if (rangeInput) rangeInput.value = parsed.range;
+      if (textarea) textarea.value = parsed.effect;
+    }
   }
 
   updateSkillOptions();
@@ -974,7 +999,10 @@ function getFullData() {
     data.skills.push({
       category: tr.querySelector('input')?.value || '',
       name: tr.querySelector('select')?.value || '',
-      memo: tr.querySelector('textarea')?.value || ''
+      timing: tr.querySelector('.skill-timing')?.value || '',
+      cost: tr.querySelector('.skill-cost')?.value || '',
+      range: tr.querySelector('.skill-range')?.value || '',
+      memo: tr.querySelector('.skill-memo')?.value || ''
     });
   });
 
@@ -1202,12 +1230,28 @@ function applyData(data) {
 
   onClassChange();
 
-  // スキルの復元
+  // スキルの復元。旧バージョン（タイミング/コスト/射程が別欄に分かれていない）のデータは、
+  // メモ本文から「タイミング/コスト/射程」形式を検出できれば自動的に分解して引き継ぐ
   const skillTbody = document.getElementById('skill-tbody');
   if (skillTbody) {
     skillTbody.innerHTML = '';
     if (data.skills) {
-      data.skills.forEach(s => addSkillRow(s.category, s.name, s.memo));
+      data.skills.forEach(s => {
+        let timing = s.timing;
+        let cost = s.cost;
+        let range = s.range;
+        let memo = s.memo || '';
+
+        if (timing === undefined && cost === undefined && range === undefined) {
+          const parsed = parseSkillMemo(memo);
+          timing = parsed.timing;
+          cost = parsed.cost;
+          range = parsed.range;
+          memo = parsed.timing || parsed.cost || parsed.range ? parsed.effect : memo;
+        }
+
+        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '');
+      });
     }
   }
 
@@ -1371,9 +1415,13 @@ function exportForHokanshoText() {
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const category = tr.querySelector('input')?.value || '';
     const skillName = tr.querySelector('select')?.value || '';
-    const memo = tr.querySelector('textarea')?.value || '';
+    const timing = tr.querySelector('.skill-timing')?.value || '';
+    const cost = tr.querySelector('.skill-cost')?.value || '';
+    const range = tr.querySelector('.skill-range')?.value || '';
+    const memo = tr.querySelector('.skill-memo')?.value || '';
+    const spec = [timing, cost, range].filter(Boolean).join('/');
     if (skillName) {
-      text += `・[${category}] ${skillName} : ${memo}\n`;
+      text += `・[${category}] ${skillName}${spec ? ' (' + spec + ')' : ''} : ${memo}\n`;
     }
   });
 
@@ -1431,8 +1479,9 @@ function exportCcfolia() {
   commandLines.push('■スキル');
   (data.skills || []).forEach(s => {
     if (!s.name) return;
+    const spec = [s.timing, s.cost && `コスト${s.cost}`, s.range && `射程${s.range}`].filter(Boolean).join('/');
     const memo = (s.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${s.name}】${memo}`);
+    commandLines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`);
   });
 
   commandLines.push('');
