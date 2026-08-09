@@ -169,9 +169,6 @@
       <input type="number" id="act-base" value="5" oninput="calcActionValue()">
     </div>
   </div>
-  <div class="g2">
-    <div><label>獲得寵愛点</label><input type="number" id="fav" value="0"></div>
-  </div>
 </div>
 
 <div class="card">
@@ -183,7 +180,7 @@
           <th style="width:20%;">区分</th>
           <th style="width:30%;">スキル名</th>
           <th>効果メモ</th>
-          <th style="width:10%;">操作</th>
+          <th style="width:10%;" class="col-op">操作</th>
         </tr>
       </thead>
       <tbody id="skill-tbody"></tbody>
@@ -224,7 +221,7 @@
           <th style="width:25%">対象（姉妹）</th>
           <th style="width:25%">未練（感情）</th>
           <th style="width:35%">狂気点</th>
-          <th style="width:15%">操作</th>
+          <th style="width:15%" class="col-op">操作</th>
         </tr>
       </thead>
       <tbody id="list"></tbody>
@@ -254,7 +251,7 @@
       <th style="padding: 6px; border: 1px solid #444; width: 80px;">戦闘寵愛</th>
       <th style="padding: 6px; border: 1px solid #444; width: 80px;">個人寵愛</th>
       <th style="padding: 6px; border: 1px solid #444;">メモ（参加日など）</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;" class="col-op">削除</th>
     </tr>
   </thead>
   <tbody id="session-history-tbody"></tbody>
@@ -268,7 +265,7 @@
     <tr style="background: #1e1e24; color: #aaa; text-align: center;">
       <th style="padding: 6px; border: 1px solid #444; width: 110px;">使用点数</th>
       <th style="padding: 6px; border: 1px solid #444;">使い道・備考（例: 武装基本値+1、基本パーツ修復など）</th>
-      <th style="padding: 6px; border: 1px solid #444; width: 40px;">削除</th>
+      <th style="padding: 6px; border: 1px solid #444; width: 40px;" class="col-op">削除</th>
     </tr>
   </thead>
   <tbody id="chouai-use-tbody"></tbody>
