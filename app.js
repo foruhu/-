@@ -692,11 +692,17 @@ function calcActionValue() {
   const base = parseInt(baseInput && baseInput.value, 10) || 0;
 
   let bonus = 0;
+  const contributions = [];
   document.querySelectorAll('#parts-container tr').forEach(tr => {
     const isBroken = tr.querySelector('.p-broken')?.checked;
     if (isBroken) return; // 損傷しているパーツの効果は反映しない
     const memo = tr.querySelector('.p-memo')?.value || '';
-    bonus += extractActionBonus(memo);
+    const partBonus = extractActionBonus(memo);
+    if (partBonus !== 0) {
+      const name = tr.querySelector('.p-name')?.value || '';
+      contributions.push({ name, amount: partBonus });
+      bonus += partBonus;
+    }
   });
 
   const total = base + bonus;
@@ -705,9 +711,10 @@ function calcActionValue() {
 
   const breakdownEl = document.getElementById('act-breakdown');
   if (breakdownEl) {
-    breakdownEl.textContent = bonus !== 0
-      ? `（基本${base} ＋ パーツ${bonus >= 0 ? '+' : ''}${bonus}）`
-      : `（基本${base}）`;
+    const partsText = contributions
+      .map(c => `+${c.name}${c.amount}`)
+      .join('');
+    breakdownEl.textContent = `（基本${base}${partsText}）`;
   }
 
   return total;
@@ -1655,6 +1662,64 @@ function exportShareCode() {
   }
 }
 
+// キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
+function exportShareURL() {
+  const data = getFullData();
+  const json = JSON.stringify(data);
+  let encoded;
+  try {
+    encoded = btoa(unescape(encodeURIComponent(json)));
+  } catch (err) {
+    alert('共有URLの作成に失敗しました: ' + err.message);
+    return;
+  }
+
+  const url = location.origin + location.pathname + '#share=' + encoded;
+  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート';
+
+  const copyFallback = () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert('共有URLをクリップボードにコピーしました。\n\nLINEなどに貼り付けて送ると、相手がそのURLを開くだけで自動的にこのキャラクターが読み込まれます。');
+      }).catch(() => {
+        prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
+      });
+    } else {
+      prompt('以下のURLをコピーしてください：', url);
+    }
+  };
+
+  if (navigator.share) {
+    navigator.share({ title: shareTitle, url: url }).catch(() => {
+      // 共有シートをキャンセルした場合などはクリップボードコピーにフォールバック
+      copyFallback();
+    });
+  } else {
+    copyFallback();
+  }
+}
+
+// ページを開いた時にURLに共有データ（#share=...）が含まれていれば自動で読み込む
+function checkForSharedURLOnLoad() {
+  const hash = location.hash || '';
+  const match = hash.match(/^#share=(.+)$/);
+  if (!match) return;
+
+  // 再読み込み時に誤ってもう一度取り込まれないよう、先にURLから消しておく
+  history.replaceState(null, '', location.pathname + location.search);
+
+  try {
+    const encoded = decodeURIComponent(match[1]);
+    const json = decodeURIComponent(escape(atob(encoded)));
+    const data = JSON.parse(json);
+    pushUndoSnapshot();
+    applyData(data);
+    afterExternalLoad(data);
+  } catch (err) {
+    alert('共有URLの読み込みに失敗しました。URLが正しいか確認してください。\n' + err.message);
+  }
+}
+
 function importShareCode() {
   const encoded = prompt('共有コードを貼り付けてください');
   if (!encoded) return;
@@ -1699,6 +1764,9 @@ window.onload = function() {
   if (typeof setupDirtyTracking === 'function') setupDirtyTracking();
   if (typeof startAutosaveTimer === 'function') startAutosaveTimer();
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
+
+  // URLに共有データ（#share=...）が含まれていれば自動で読み込む
+  if (typeof checkForSharedURLOnLoad === 'function') checkForSharedURLOnLoad();
 
   // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく
   const memoryListEl = document.getElementById('memory-list');
