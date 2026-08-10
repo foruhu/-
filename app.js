@@ -198,6 +198,69 @@ function selectSaveCard(id) {
 }
 
 // ==========================================================
+// キャラクター切替オーバーレイ（画面上部のボタンからいつでも呼び出せる）
+// ==========================================================
+function openCharSwitcher() {
+  renderCharSwitcherCards();
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'block';
+}
+
+function closeCharSwitcher() {
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderCharSwitcherCards() {
+  const container = document.getElementById('char-switch-cards');
+  if (!container) return;
+
+  const sheets = getSavedSheets();
+  const select = document.getElementById('save-slot');
+  const currentId = select ? select.value : '';
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.85rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isCurrent = id === currentId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isCurrent ? 'selected' : ''}" onclick="quickSwitchToCharacter('${id}')">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// カードをタップした瞬間に、選択だけでなく読み込みまで一気に行う（下までスクロールせずに切替できるようにする）
+function quickSwitchToCharacter(id) {
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return;
+
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
+
+  pushUndoSnapshot(); // 切り替え前の編集内容を退避
+  applyData(entry.data);
+  isDirty = false;
+
+  closeCharSwitcher();
+  renderSaveCards(id);
+  alert(`「${entry.name}」に切り替えました`);
+}
+
+// ==========================================================
 // キャラクターの複製
 // ==========================================================
 function duplicateSelectedSave() {
