@@ -23,6 +23,7 @@
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
     <button type="button" class="char-switch-btn" onclick="openCharSwitcher()">🔄 キャラクター切替</button>
+    <button type="button" class="view-only char-switch-btn" onclick="exportShareCode()" style="border-color:#8a7a2e; color:#f0d878;">📤 このキャラクターの共有コードを作成</button>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
@@ -162,12 +163,12 @@
   <div class="g2">
     <div>
       <label>最大行動値（自動計算）</label>
-      <input type="number" id="act" value="9" readonly style="font-weight:bold;color:#f0a0a0;">
+      <input type="number" id="act" value="10" readonly style="font-weight:bold;color:#f0a0a0;">
       <div id="act-breakdown" style="font-size:0.68rem;color:#888;margin-top:2px;"></div>
     </div>
     <div>
       <label>基本行動値</label>
-      <input type="number" id="act-base" value="5" oninput="calcActionValue()">
+      <input type="number" id="act-base" value="6" oninput="calcActionValue()">
     </div>
   </div>
 </div>
