@@ -22,6 +22,7 @@
 
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
+    <button type="button" class="char-switch-btn" onclick="openCharSwitcher()">🔄 キャラクター切替</button>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
@@ -388,6 +389,20 @@
 ">
   📜 使い方を見る
 </a>
+
+<!-- キャラクター切替オーバーレイ -->
+<div id="char-switch-overlay" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
+  z-index:10000; padding:16px; overflow-y:auto;
+" onclick="if(event.target===this) closeCharSwitcher()">
+  <div style="max-width:480px; margin:30px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.7);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="color:#f0a0a0; font-weight:bold; font-size:1rem;">キャラクターを切り替え</span>
+      <button type="button" onclick="closeCharSwitcher()" style="background:none;border:none;color:#aaa;font-size:1.3rem;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="char-switch-cards" class="char-switch-grid"></div>
+  </div>
+</div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
