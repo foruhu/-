@@ -23,7 +23,7 @@
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
     <button type="button" class="char-switch-btn" onclick="openCharSwitcher()">🔄 キャラクター切替</button>
-    <button type="button" class="view-only char-switch-btn" onclick="exportShareCode()" style="border-color:#8a7a2e; color:#f0d878;">📤 このキャラクターの共有コードを作成</button>
+    <button type="button" class="view-only char-switch-btn" onclick="exportShareURL()" style="border-color:#8a7a2e; color:#f0d878;">📤 このキャラクターをURLで共有</button>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
@@ -333,15 +333,18 @@
     </div>
     <input type="file" id="json-file-input" accept=".json,application/json" style="display:none" onchange="onJsonFileSelected(event)">
     <div class="action-btn-row">
-      <button type="button" class="action-btn c-yellow" onclick="exportShareCode()">
+      <button type="button" class="action-btn c-yellow" onclick="exportShareURL()">
+        <span class="icon">🔗</span><span>共有URLを<br>作成</span>
+      </button>
+      <button type="button" class="action-btn c-cyan" onclick="exportShareCode()">
         <span class="icon">📤</span><span>共有コードを<br>作成</span>
       </button>
-      <button type="button" class="action-btn c-cyan" onclick="importShareCode()">
+      <button type="button" class="action-btn c-purple" onclick="importShareCode()">
         <span class="icon">📥</span><span>共有コードから<br>読み込む</span>
       </button>
     </div>
     <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有コードを作成」してコピーした文字列をLINE等に貼り、別端末の「共有コードから読み込む」に貼り付けてください。
+      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。「共有コード」は文字列をコピー&貼り付けする方式です。
     </div>
   </div>
 
