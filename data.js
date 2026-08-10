@@ -80,7 +80,7 @@ const CLASS_PARTS = {
 const DEFAULT_PARTS = {
   head: [
     { name: 'あたま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
-    { name: 'めだま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
+    { name: 'めだま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: 'あご', type: '基本', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾1' }
   ],
   arm: [
