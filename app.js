@@ -810,9 +810,14 @@ function updateSkillOptions() {
 }
 
 // スキルDBのメモ文字列「【名前】 タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
+// スキルDBのメモ文字列「タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
+// （表記ゆれ対策として、先頭に「【名前】」や単独の「【」が残っている場合は取り除いてから解析する）
 function parseSkillMemo(memoText) {
-  const text = memoText || '';
-  const match = text.match(/^【[^】]*】\s*([^\/\n]+)\/([^\/\n]+)\/([^\/\n]+)\n?([\s\S]*)$/);
+  let text = memoText || '';
+  text = text.replace(/^【[^】]*】\s*/, ''); // 「【名前】」がまだ付いている旧形式
+  text = text.replace(/^【\s*/, '');          // 「【」だけが残ってしまっている表記ゆれ
+
+  const match = text.match(/^([^\/\n]+)\/([^\/\n]+)\/([^\/\n]+)\n?([\s\S]*)$/);
   if (match) {
     return { timing: match[1].trim(), cost: match[2].trim(), range: match[3].trim(), effect: match[4] };
   }
