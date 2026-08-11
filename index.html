@@ -11,18 +11,10 @@
 
 <h1>永い後日談のネクロニカ</h1>
 
-<button type="button" id="view-mode-toggle" onclick="toggleViewMode()" style="
-  display:block; width:100%; margin-bottom:10px; padding:10px;
-  background:#1a1a20; color:#f0a0a0; border:1.5px solid #8b0000;
-  border-radius:8px; font-weight:bold; font-size:0.9rem; cursor:pointer;
-  font-family:sans-serif;
-">🔒 表示モードにする（セッション中の参照用）</button>
-
 <div id="view-mode-image-container" style="display:none;"></div>
 
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
-    <button type="button" class="char-switch-btn" onclick="openCharSwitcher()">🔄 キャラクター切替</button>
     <button type="button" class="view-only char-switch-btn" onclick="exportShareURL()" style="border-color:#8a7a2e; color:#f0d878;">📤 このキャラクターをURLで共有</button>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
@@ -174,7 +166,7 @@
 </div>
 
 <div class="card">
-  <div class="title">スキル</div>
+  <div class="title">習得スキル</div>
   <div class="table-scroll">
     <table class="sheet-table maneuver-table">
       <thead>
@@ -372,6 +364,22 @@
   z-index: 9999;
   cursor: pointer;
 ">💾 保存</button>
+
+<!-- 左下固定：キャラクター切替（小さく、スクロールしても常に見える） -->
+<button type="button" class="corner-btn" onclick="openCharSwitcher()" style="
+  bottom: 66px;
+  background: #17182c;
+  color: #9aa4ff;
+  border: 1.5px solid #2e6a8a;
+">🔄 切替</button>
+
+<!-- 左下固定：表示モード／編集モードの切替（小さく、スクロールしても常に見える） -->
+<button type="button" id="view-mode-toggle" class="corner-btn" onclick="toggleViewMode()" style="
+  bottom: 112px;
+  background: #1a1a20;
+  color: #f0a0a0;
+  border: 1.5px solid #8b0000;
+">🔒 表示</button>
 
 <!-- 右下固定：README.mdへ移動するボタン -->
 <a href="./README.md" target="_blank" rel="noopener noreferrer" style="
