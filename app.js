@@ -387,18 +387,19 @@ const MANEUVER_CATEGORY_COLORS = {
 
 // 効果メモの文言から、カテゴリを自動判定するためのキーワード対応表（上から順に判定）
 const CATEGORY_AUTO_KEYWORDS = [
-  { keyword: '最大行動値', category: '行動値増加' },
-  { keyword: '妨害', category: '妨害' },
-  { keyword: '支援', category: '支援' },
-  { keyword: '移動', category: '移動' },
-  { keyword: '防御', category: '防御' },
-  { keyword: '必殺', category: '必殺技' }
+  { keywords: ['最大行動値'], category: '行動値増加' },
+  { keywords: ['妨害'], category: '妨害' },
+  { keywords: ['支援'], category: '支援' },
+  { keywords: ['移動'], category: '移動' },
+  { keywords: ['防御'], category: '防御' },
+  { keywords: ['必殺'], category: '必殺技' },
+  { keywords: ['肉弾', '白兵', '射撃', '砲撃'], category: '攻撃' }
 ];
 
 function detectCategoryFromMemo(memoText) {
   const text = memoText || '';
   for (const rule of CATEGORY_AUTO_KEYWORDS) {
-    if (text.includes(rule.keyword)) return rule.category;
+    if (rule.keywords.some(k => text.includes(k))) return rule.category;
   }
   return '';
 }
@@ -1804,7 +1805,7 @@ function applyViewModeUI(isView) {
   document.body.classList.toggle('view-mode', isView);
   const btn = document.getElementById('view-mode-toggle');
   if (btn) {
-    btn.textContent = isView ? '✏️ 編集モードに戻る' : '🔒 表示モードにする（セッション中の参照用）';
+    btn.textContent = isView ? '✏️ 編集' : '🔒 表示';
   }
 }
 
