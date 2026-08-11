@@ -1717,12 +1717,64 @@ function onJsonFileSelected(event) {
   event.target.value = ''; // 同じファイルを連続で選び直せるようにリセット
 }
 
-function exportShareCode() {
+// ==========================================================
+// 共有データの圧縮・展開（gzip対応ブラウザなら大幅に短縮する）
+// ==========================================================
+
+// 文字列をgzip圧縮してURLセーフなbase64文字列にする
+async function compressToBase64(str) {
+  const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
+  const buffer = await new Response(stream).arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  bytes.forEach(b => { binary += String.fromCharCode(b); });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// compressToBase64で作った文字列を元の文字列に戻す
+async function decompressFromBase64(b64) {
+  let normalized = b64.replace(/-/g, '+').replace(/_/g, '/');
+  while (normalized.length % 4) normalized += '=';
+  const binary = atob(normalized);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const buffer = await new Response(stream).arrayBuffer();
+  return new TextDecoder().decode(buffer);
+}
+
+// JSON文字列を共有用の符号化文字列にする。gzip圧縮に対応していればgz:、
+// 非対応環境ではraw:を先頭に付けて（圧縮なしの）従来方式にフォールバックする
+async function encodeShareString(json) {
+  if (typeof CompressionStream !== 'undefined') {
+    try {
+      return 'gz:' + await compressToBase64(json);
+    } catch (e) {
+      // 圧縮に失敗した場合は無圧縮方式にフォールバック
+    }
+  }
+  return 'raw:' + btoa(unescape(encodeURIComponent(json)));
+}
+
+// encodeShareStringで作った文字列をJSON文字列に戻す。
+// 先頭に印が無い場合は、以前のバージョン（無圧縮のbase64のみ）とみなす
+async function decodeShareString(encoded) {
+  if (encoded.startsWith('gz:')) {
+    return await decompressFromBase64(encoded.slice(3));
+  }
+  if (encoded.startsWith('raw:')) {
+    return decodeURIComponent(escape(atob(encoded.slice(4))));
+  }
+  // 旧バージョン（印の無い無圧縮base64）との互換
+  return decodeURIComponent(escape(atob(encoded)));
+}
+
+async function exportShareCode() {
   const data = getFullData();
   const json = JSON.stringify(data);
   let encoded;
   try {
-    encoded = btoa(unescape(encodeURIComponent(json)));
+    encoded = await encodeShareString(json);
   } catch (err) {
     alert('共有コードの作成に失敗しました: ' + err.message);
     return;
@@ -1742,12 +1794,12 @@ function exportShareCode() {
 }
 
 // キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
-function exportShareURL() {
+async function exportShareURL() {
   const data = getFullData();
   const json = JSON.stringify(data);
   let encoded;
   try {
-    encoded = btoa(unescape(encodeURIComponent(json)));
+    encoded = await encodeShareString(json);
   } catch (err) {
     alert('共有URLの作成に失敗しました: ' + err.message);
     return;
@@ -1759,7 +1811,7 @@ function exportShareURL() {
   const copyFallback = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
-        alert('共有URLをクリップボードにコピーしました。\n\nLINEなどに貼り付けて送ると、相手がそのURLを開くだけで自動的にこのキャラクターが読み込まれます。');
+        alert(`共有URLをクリップボードにコピーしました。（${url.length}文字）\n\nLINEなどに貼り付けて送ると、相手がそのURLを開くだけで自動的にこのキャラクターが読み込まれます。`);
       }).catch(() => {
         prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
       });
@@ -1779,7 +1831,7 @@ function exportShareURL() {
 }
 
 // ページを開いた時にURLに共有データ（#share=...）が含まれていれば自動で読み込む
-function checkForSharedURLOnLoad() {
+async function checkForSharedURLOnLoad() {
   const hash = location.hash || '';
   const match = hash.match(/^#share=(.+)$/);
   if (!match) return;
@@ -1789,7 +1841,7 @@ function checkForSharedURLOnLoad() {
 
   try {
     const encoded = decodeURIComponent(match[1]);
-    const json = decodeURIComponent(escape(atob(encoded)));
+    const json = await decodeShareString(encoded);
     const data = JSON.parse(json);
     pushUndoSnapshot();
     applyData(data);
@@ -1799,12 +1851,12 @@ function checkForSharedURLOnLoad() {
   }
 }
 
-function importShareCode() {
+async function importShareCode() {
   const encoded = prompt('共有コードを貼り付けてください');
   if (!encoded) return;
 
   try {
-    const json = decodeURIComponent(escape(atob(encoded.trim())));
+    const json = await decodeShareString(encoded.trim());
     const data = JSON.parse(json);
     pushUndoSnapshot(); // 読み込み前の状態を退避
     applyData(data);
@@ -1835,7 +1887,7 @@ function toggleViewMode() {
   }
 }
 
-window.onload = function() {
+window.onload = async function() {
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
   if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();
@@ -1844,8 +1896,8 @@ window.onload = function() {
   if (typeof startAutosaveTimer === 'function') startAutosaveTimer();
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
 
-  // URLに共有データ（#share=...）が含まれていれば自動で読み込む
-  if (typeof checkForSharedURLOnLoad === 'function') checkForSharedURLOnLoad();
+  // URLに共有データ（#share=...）が含まれていれば自動で読み込む（完了を待ってから続ける）
+  if (typeof checkForSharedURLOnLoad === 'function') await checkForSharedURLOnLoad();
 
   // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく
   const memoryListEl = document.getElementById('memory-list');
