@@ -423,6 +423,22 @@ function onManeuverCategoryChange(selectElem) {
   markDirty();
 }
 
+// メモ欄を入力/編集した時、カテゴリが未選択（空欄）なら文言から自動再判定して色を付ける
+// （すでに手動でカテゴリを選んでいる行は上書きしない）
+function onManeuverMemoInput(textarea, tagSelectorClass) {
+  calcActionValue();
+  const tr = textarea.closest('tr');
+  if (!tr) return;
+  const tagSelect = tr.querySelector(tagSelectorClass);
+  if (tagSelect && !tagSelect.value) {
+    const detected = detectCategoryFromMemo(textarea.value);
+    if (detected) {
+      tagSelect.value = detected;
+      applyCategoryColorToRow(tr, detected);
+    }
+  }
+}
+
 function getLimitByVal(val) {
   if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
   return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
@@ -695,7 +711,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
     <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
-    <td><textarea class="p-memo" ${readOnlyAttr} oninput="calcActionValue()">${memo}</textarea></td>
+    <td><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')">${memo}</textarea></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -960,7 +976,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td><input type="text" class="skill-timing" value="${timing}"></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
     <td><input type="text" class="skill-range" value="${range}"></td>
-    <td><textarea class="skill-memo">${memo}</textarea></td>
+    <td><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')">${memo}</textarea></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
