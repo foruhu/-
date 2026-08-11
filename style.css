@@ -110,3 +110,15 @@ body.view-mode th { color: #ddd; }
   border: 1.5px solid #2e6a8a; border-radius: 8px; font-weight: bold; font-size: 0.85rem;
   cursor: pointer; font-family: sans-serif;
 }
+
+/* --- カテゴリ選択（色だけのコンパクトな枠。押すと選択肢名が見える） --- */
+.p-tag, .skill-tag {
+  width: 100%;
+  min-width: 22px;
+  padding: 3px 0;
+  color: transparent;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  text-align: center;
+  text-align-last: center;
+}
