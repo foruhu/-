@@ -122,3 +122,18 @@ body.view-mode th { color: #ddd; }
   text-align: center;
   text-align-last: center;
 }
+
+/* --- 左下固定：小さいアイコンボタン群（キャラ切替・表示/編集モード切替） --- */
+.corner-btn {
+  position: fixed;
+  left: 20px;
+  z-index: 9999;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: bold;
+  font-family: sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
