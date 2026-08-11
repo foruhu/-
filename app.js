@@ -370,6 +370,39 @@ function clearSelectedThumbnail() {
   alert('画像を削除しました');
 }
 
+// ==========================================================
+// マニューバ／スキルの「カテゴリ」による行の色分け
+// ==========================================================
+const MANEUVER_CATEGORIES = ['', '必殺技', '補助', '妨害', '行動値増加', '通常技', '移動', '防御/生贄'];
+const MANEUVER_CATEGORY_COLORS = {
+  '必殺技': '#5a1414',
+  '補助': '#242a5a',
+  '妨害': '#5a2440',
+  '行動値増加': '#5a4014',
+  '通常技': '#155230',
+  '移動': '#4a4a14',
+  '防御/生贄': '#3a2450'
+};
+
+function buildCategoryOptions(selected) {
+  return MANEUVER_CATEGORIES.map(c =>
+    `<option value="${c}" ${c === selected ? 'selected' : ''}>${c || '（未選択）'}</option>`
+  ).join('');
+}
+
+// 行(tr)にカテゴリ色を反映する。selectElemを渡した場合はその場で選択値から、
+// tag文字列を渡した場合は復元時などにその値で色付けする
+function applyCategoryColorToRow(tr, tag) {
+  if (!tr) return;
+  tr.style.backgroundColor = MANEUVER_CATEGORY_COLORS[tag] || '';
+}
+
+function onManeuverCategoryChange(selectElem) {
+  const tr = selectElem.closest('tr');
+  applyCategoryColorToRow(tr, selectElem.value);
+  markDirty();
+}
+
 function getLimitByVal(val) {
   if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
   return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
@@ -478,8 +511,8 @@ function renderPartsContainer() {
         <table class="maneuver-table">
           <thead>
             <tr>
-              <th style="width:4%;">損</th><th style="width:4%;">使</th><th style="width:9%;">配置部位</th>
-              <th style="width:13%;">パーツ名</th><th style="width:7%;">分類</th>
+              <th style="width:4%;">損</th><th style="width:4%;">使</th><th style="width:5%;">色</th><th style="width:9%;">配置部位</th>
+              <th style="width:14%;">パーツ名</th><th style="width:7%;">分類</th>
               <th style="width:5%;">Lv</th><th style="width:8%;">タイミング</th>
               <th style="width:6%;">コスト</th><th style="width:6%;">射程</th>
               <th>効果メモ</th><th style="width:6%;" class="col-op">操作</th>
@@ -619,7 +652,7 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
-function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部') {
+function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
   const tr = document.createElement('tr');
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
@@ -630,6 +663,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   tr.innerHTML = `
     <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
     <td><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
+    <td><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
@@ -645,6 +679,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
+  applyCategoryColorToRow(tr, tag);
   markDirty();
   calcTotals();
 }
@@ -858,10 +893,10 @@ function addRow(target = '', emotion = '', madness = 0) {
 }
 
 function updateSkillOptions() {
-  const selectedSkills = new Set(Array.from(document.querySelectorAll('#skill-tbody select')).map(s => s.value).filter(Boolean));
+  const selectedSkills = new Set(Array.from(document.querySelectorAll('#skill-tbody .skill-name-select')).map(s => s.value).filter(Boolean));
 
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
-    const select = tr.querySelector('select');
+    const select = tr.querySelector('.skill-name-select');
     if (!select) return;
     const category = tr.querySelector('input')?.value || '';
     const currentValue = select.value;
@@ -894,13 +929,14 @@ function parseSkillMemo(memoText) {
   return { timing: '', cost: '', range: '', effect: text };
 }
 
-function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '') {
+function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '', tag = '') {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
-    <td><select onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
+    <td><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
+    <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><input type="text" class="skill-timing" value="${timing}"></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
     <td><input type="text" class="skill-range" value="${range}"></td>
@@ -908,10 +944,11 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
+  applyCategoryColorToRow(tr, tag);
 
   // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
-  if (skillName) tr.querySelector('select').value = skillName;
+  if (skillName) tr.querySelector('.skill-name-select').value = skillName;
   markDirty();
   calcTotals();
 }
@@ -1073,11 +1110,12 @@ function getFullData() {
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     data.skills.push({
       category: tr.querySelector('input')?.value || '',
-      name: tr.querySelector('select')?.value || '',
+      name: tr.querySelector('.skill-name-select')?.value || '',
       timing: tr.querySelector('.skill-timing')?.value || '',
       cost: tr.querySelector('.skill-cost')?.value || '',
       range: tr.querySelector('.skill-range')?.value || '',
-      memo: tr.querySelector('.skill-memo')?.value || ''
+      memo: tr.querySelector('.skill-memo')?.value || '',
+      tag: tr.querySelector('.skill-tag')?.value || ''
     });
   });
 
@@ -1096,7 +1134,8 @@ function getFullData() {
         cost: tr.querySelector('.p-cost')?.value || '',
         range: tr.querySelector('.p-range')?.value || '',
         memo: tr.querySelector('.p-memo')?.value || '',
-        isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly')
+        isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly'),
+        tag: tr.querySelector('.p-tag')?.value || ''
       });
     }
   });
@@ -1325,7 +1364,7 @@ function applyData(data) {
           memo = parsed.timing || parsed.cost || parsed.range ? parsed.effect : memo;
         }
 
-        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '');
+        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '');
       });
     }
   }
@@ -1404,8 +1443,8 @@ function restorePartsFromData(parts) {
 
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[secId]) {
       DEFAULT_PARTS[secId].forEach((p, idx) => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId]);
         const saved = savedBaseStates[idx];
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
         if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed);
       });
     }
@@ -1424,7 +1463,7 @@ function restorePartsFromData(parts) {
     const tbody = document.getElementById(`parts-tbody-${secId}`);
     if (!tbody) return;
 
-    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId]);
+    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId], p.tag || '');
     applyRowFlags(tbody, p.isBroken, p.isUsed);
   });
 
@@ -1489,7 +1528,7 @@ function exportForHokanshoText() {
   text += `■ スキル\n`;
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const category = tr.querySelector('input')?.value || '';
-    const skillName = tr.querySelector('select')?.value || '';
+    const skillName = tr.querySelector('.skill-name-select')?.value || '';
     const timing = tr.querySelector('.skill-timing')?.value || '';
     const cost = tr.querySelector('.skill-cost')?.value || '';
     const range = tr.querySelector('.skill-range')?.value || '';
