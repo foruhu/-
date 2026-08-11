@@ -373,16 +373,35 @@ function clearSelectedThumbnail() {
 // ==========================================================
 // マニューバ／スキルの「カテゴリ」による行の色分け
 // ==========================================================
-const MANEUVER_CATEGORIES = ['', '必殺技', '補助', '妨害', '行動値増加', '通常技', '移動', '防御/生贄'];
+const MANEUVER_CATEGORIES = ['', '必殺技', '補助', '妨害', '行動値増加', '攻撃', '移動', '防御', '支援'];
 const MANEUVER_CATEGORY_COLORS = {
   '必殺技': '#5a1414',
   '補助': '#242a5a',
   '妨害': '#5a2440',
   '行動値増加': '#5a4014',
-  '通常技': '#155230',
+  '攻撃': '#155230',
   '移動': '#4a4a14',
-  '防御/生贄': '#3a2450'
+  '防御': '#3a2450',
+  '支援': '#155a5a'
 };
+
+// 効果メモの文言から、カテゴリを自動判定するためのキーワード対応表（上から順に判定）
+const CATEGORY_AUTO_KEYWORDS = [
+  { keyword: '最大行動値', category: '行動値増加' },
+  { keyword: '妨害', category: '妨害' },
+  { keyword: '支援', category: '支援' },
+  { keyword: '移動', category: '移動' },
+  { keyword: '防御', category: '防御' },
+  { keyword: '必殺', category: '必殺技' }
+];
+
+function detectCategoryFromMemo(memoText) {
+  const text = memoText || '';
+  for (const rule of CATEGORY_AUTO_KEYWORDS) {
+    if (text.includes(rule.keyword)) return rule.category;
+  }
+  return '';
+}
 
 function buildCategoryOptions(selected) {
   return MANEUVER_CATEGORIES.map(c =>
@@ -534,7 +553,7 @@ function renderPartsContainer() {
 
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
       DEFAULT_PARTS[sec.id].forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, currentLocName);
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, currentLocName, detectCategoryFromMemo(p.memo));
       });
     }
   });
@@ -616,7 +635,7 @@ function placeTreasureEntry(button) {
   const baseMemo = 'バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除く';
   const memo = content ? `${content}\n${baseMemo}` : baseMemo;
 
-  addPartRow(tbody, name, 'たからもの', '', 'オート', '無し', '自身', memo, false, location);
+  addPartRow(tbody, name, 'たからもの', '', 'オート', '無し', '自身', memo, false, location, detectCategoryFromMemo(memo));
 
   alert(`「${name}」を${location}のパーツとして配置しました`);
 }
@@ -647,7 +666,7 @@ function onExtraPartSelect(secId, selectElem) {
       selectElem.value = '';
       return;
     }
-    addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName);
+    addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName, detectCategoryFromMemo(partData.memo));
   }
   selectElem.value = '';
 }
@@ -965,12 +984,14 @@ function onSkillSelect(selectElem) {
   const costInput = tr.querySelector('.skill-cost');
   const rangeInput = tr.querySelector('.skill-range');
   const textarea = tr.querySelector('.skill-memo');
+  const tagSelect = tr.querySelector('.skill-tag');
 
   if (!skillName) {
     if (timingInput) timingInput.value = '';
     if (costInput) costInput.value = '';
     if (rangeInput) rangeInput.value = '';
     if (textarea) textarea.value = '';
+    if (tagSelect) { tagSelect.value = ''; applyCategoryColorToRow(tr, ''); }
   } else if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
     const found = SKILL_DATABASE[category].find(s => s.name === skillName);
     if (found) {
@@ -979,6 +1000,8 @@ function onSkillSelect(selectElem) {
       if (costInput) costInput.value = parsed.cost;
       if (rangeInput) rangeInput.value = parsed.range;
       if (textarea) textarea.value = parsed.effect;
+      const detected = detectCategoryFromMemo(parsed.effect);
+      if (tagSelect) { tagSelect.value = detected; applyCategoryColorToRow(tr, detected); }
     }
   }
 
