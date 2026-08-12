@@ -303,22 +303,70 @@ async function exportShareURL() {
   }
 }
 
-// ページを開いた時にURLに共有データ（#share=...）が含まれていれば自動で読み込む
+// キャラクターデータを「閲覧専用」で開けるURLを作成する。
+// 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
+async function exportViewURL() {
+  const data = getFullData();
+  const json = JSON.stringify(data);
+  let encoded;
+  try {
+    encoded = await encodeShareString(json);
+  } catch (err) {
+    alert('閲覧用URLの作成に失敗しました: ' + err.message);
+    return;
+  }
+
+  const url = location.origin + location.pathname + '#view=' + encoded;
+  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート（閲覧用）';
+
+  const copyFallback = () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、相手の画面には自動的に表示モード（編集不可）でこのキャラクターが表示されます。相手のブラウザには保存されません。`);
+      }).catch(() => {
+        prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
+      });
+    } else {
+      prompt('以下のURLをコピーしてください：', url);
+    }
+  };
+
+  if (navigator.share) {
+    navigator.share({ title: shareTitle, url: url }).catch(() => {
+      copyFallback();
+    });
+  } else {
+    copyFallback();
+  }
+}
+
+// ページを開いた時にURLに共有データ（#share=... または #view=...）が含まれていれば自動で読み込む
 async function checkForSharedURLOnLoad() {
   const hash = location.hash || '';
-  const match = hash.match(/^#share=(.+)$/);
+  const match = hash.match(/^#(share|view)=(.+)$/);
   if (!match) return;
+
+  const isViewOnly = match[1] === 'view';
 
   // 再読み込み時に誤ってもう一度取り込まれないよう、先にURLから消しておく
   history.replaceState(null, '', location.pathname + location.search);
 
   try {
-    const encoded = decodeURIComponent(match[1]);
+    const encoded = decodeURIComponent(match[2]);
     const json = await decodeShareString(encoded);
     const data = JSON.parse(json);
     pushUndoSnapshot();
     applyData(data);
-    afterExternalLoad(data);
+
+    if (isViewOnly) {
+      // 閲覧専用URL：保存確認は出さず、自動的に表示モードにする
+      applyViewModeUI(true);
+      try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
+      isDirty = false;
+      alert(`「${data.name || '(無名)'}」を閲覧モードで表示しています。\n編集したい場合は左下の「✏️ 編集」から切り替えられます。`);
+    } else {
+      afterExternalLoad(data);
+    }
   } catch (err) {
     alert('共有URLの読み込みに失敗しました。URLが正しいか確認してください。\n' + err.message);
   }
