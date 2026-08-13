@@ -322,7 +322,7 @@ async function exportViewURL() {
   const copyFallback = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
-        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、相手の画面には自動的に表示モード（編集不可）でこのキャラクターが表示されます。相手のブラウザには保存されません。`);
+        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、相手が今開いているシートには一切触れず、ポップアップでキャラクター内容だけが表示されます。`);
       }).catch(() => {
         prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
       });
@@ -341,6 +341,104 @@ async function exportViewURL() {
 }
 
 // ページを開いた時にURLに共有データ（#share=... または #view=...）が含まれていれば自動で読み込む
+// 「閲覧専用URL」用：今開いている編集中のシートには一切触れず、
+// 別ポップアップだけでキャラクター内容を表示する
+function escapeHtmlSafe(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function buildViewOnlyHtml(data) {
+  const e = escapeHtmlSafe;
+  const line = (label, value) => value ? `<div style="margin-bottom:4px;"><span style="color:#f0a0a0;font-weight:bold;">${e(label)}：</span>${e(value)}</div>` : '';
+
+  let html = '';
+  html += `<h2 style="color:#f0a0a0;margin:0 0 10px 0;font-size:1.2rem;border-bottom:1px solid #8b0000;padding-bottom:6px;">${e(data.name || '(無名)')}</h2>`;
+  html += `<div style="font-size:0.85rem;margin-bottom:12px;">`;
+  html += line('PL名', data.pl);
+  html += line('ポジション / メイン / サブ', [data.pos, data.mc, data.sc].filter(Boolean).join(' / '));
+  html += line('享年/外見', data.age);
+  html += line('初期配置', data.ps);
+  html += line('暗示', data.hint);
+  html += line('最大行動値', data.act);
+  const memories = (data.memories || []).filter(Boolean);
+  if (memories.length) html += line('記憶のカケラ', memories.join('、'));
+  html += `</div>`;
+
+  const skills = (data.skills || []).filter(s => s.name);
+  if (skills.length) {
+    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ スキル</h3>`;
+    skills.forEach(s => {
+      const spec = [s.timing, s.cost, s.range].filter(Boolean).join('/');
+      html += `<div style="font-size:0.8rem;margin-bottom:6px;padding:6px;background:#15151a;border-radius:4px;">
+        <b>${e(s.name)}</b> <span style="color:#888;">[${e(s.category || '')}]${spec ? ' ' + e(spec) : ''}</span><br>
+        <span style="color:#ccc;">${e(s.memo || '')}</span>
+      </div>`;
+    });
+  }
+
+  const parts = (data.parts || []).filter(p => p.name);
+  if (parts.length) {
+    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ マニューバ</h3>`;
+    parts.forEach(p => {
+      const spec = [p.timing, p.cost, p.range].filter(Boolean).join('/');
+      const brokenTag = p.isBroken ? ' <span style="color:#ff8888;">[破損]</span>' : '';
+      html += `<div style="font-size:0.8rem;margin-bottom:6px;padding:6px;background:#15151a;border-radius:4px;">
+        <b>${e(p.name)}</b> <span style="color:#888;">[${e(p.location || '')} / ${e(p.type || '')}Lv${e(p.level || '')}]${spec ? ' ' + e(spec) : ''}</span>${brokenTag}<br>
+        <span style="color:#ccc;">${e(p.memo || '')}</span>
+      </div>`;
+    });
+  }
+
+  const treasures = (data.treasures || []).filter(t => t.name);
+  if (treasures.length) {
+    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ たからもの</h3>`;
+    treasures.forEach(t => {
+      html += `<div style="font-size:0.8rem;margin-bottom:6px;">・<b>${e(t.name)}</b>${t.content ? '（' + e(t.content) + '）' : ''}</div>`;
+    });
+  }
+
+  const list = (data.list || []).filter(l => l.target || l.emotion);
+  if (list.length) {
+    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ 未練</h3>`;
+    list.forEach(l => {
+      html += `<div style="font-size:0.8rem;margin-bottom:4px;">・[${e(l.target || '?')}] ${e(l.emotion || '')}（狂気点${e(l.madness || 0)}）</div>`;
+    });
+  }
+
+  return html;
+}
+
+function openViewOnlyOverlay(data) {
+  let overlay = document.getElementById('view-only-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'view-only-overlay';
+    overlay.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10001; padding:16px; overflow-y:auto;';
+    overlay.onclick = (ev) => { if (ev.target === overlay) closeViewOnlyOverlay(); };
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+    <div style="max-width:520px; margin:20px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.7);">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
+        <button type="button" onclick="closeViewOnlyOverlay()" style="background:none;border:none;color:#aaa;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
+      </div>
+      ${buildViewOnlyHtml(data)}
+      <div style="font-size:0.7rem;color:#888;margin-top:12px;border-top:1px solid #333;padding-top:8px;">
+        ※これは閲覧専用のプレビューです。今あなたが開いているシートの内容には影響していません。
+      </div>
+    </div>
+  `;
+  overlay.style.display = 'block';
+}
+
+function closeViewOnlyOverlay() {
+  const overlay = document.getElementById('view-only-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
 async function checkForSharedURLOnLoad() {
   const hash = location.hash || '';
   const match = hash.match(/^#(share|view)=(.+)$/);
@@ -355,16 +453,13 @@ async function checkForSharedURLOnLoad() {
     const encoded = decodeURIComponent(match[2]);
     const json = await decodeShareString(encoded);
     const data = JSON.parse(json);
-    pushUndoSnapshot();
-    applyData(data);
 
     if (isViewOnly) {
-      // 閲覧専用URL：保存確認は出さず、自動的に表示モードにする
-      applyViewModeUI(true);
-      try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
-      isDirty = false;
-      alert(`「${data.name || '(無名)'}」を閲覧モードで表示しています。\n編集したい場合は左下の「✏️ 編集」から切り替えられます。`);
+      // 閲覧専用URL：今開いているシートには一切触れず、ポップアップだけで内容を見せる
+      openViewOnlyOverlay(data);
     } else {
+      pushUndoSnapshot();
+      applyData(data);
       afterExternalLoad(data);
     }
   } catch (err) {
