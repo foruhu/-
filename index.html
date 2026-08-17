@@ -15,6 +15,7 @@
 
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
+    <button type="button" class="view-only char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URLを作成</button>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
