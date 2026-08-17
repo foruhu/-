@@ -266,7 +266,46 @@ async function exportShareCode() {
   }
 }
 
+// ==========================================================
+// Supabase連携（短いID付きURLで共有するための保存先）
+// ==========================================================
+const SUPABASE_URL = 'https://mdasgxjuwrweoxndgdbm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kYXNneGp1d3J3ZW94bmRnZGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTczNzksImV4cCI6MjEwMjI5MzM3OX0.gqOrziRFncLXP8YwUEGmOxmtCChJ1sPYQhGSvRdXkl8';
+
+// 圧縮済みの共有文字列をSupabaseに保存し、発行された連番ID（数値）を返す
+async function saveCharacterToSupabase(encodedPayload, viewOnly) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/characters`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ payload: encodedPayload, view_only: !!viewOnly })
+  });
+  if (!res.ok) throw new Error('Supabaseへの保存に失敗しました（HTTP ' + res.status + '）');
+  const rows = await res.json();
+  if (!rows || !rows[0] || rows[0].id === undefined) throw new Error('Supabaseからの応答が不正です');
+  return rows[0].id;
+}
+
+// 連番IDから、保存されていた共有文字列と閲覧専用フラグを取得する
+async function loadCharacterFromSupabase(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/characters?id=eq.${encodeURIComponent(id)}&select=payload,view_only`, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    }
+  });
+  if (!res.ok) throw new Error('Supabaseからの読み込みに失敗しました（HTTP ' + res.status + '）');
+  const rows = await res.json();
+  if (!rows || rows.length === 0) throw new Error('該当するデータが見つかりませんでした（削除されたか、IDが間違っている可能性があります）');
+  return rows[0];
+}
+
 // キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
+// まずSupabaseに保存して短いID付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
 async function exportShareURL() {
   const data = getFullData();
   const json = JSON.stringify(data);
@@ -278,7 +317,14 @@ async function exportShareURL() {
     return;
   }
 
-  const url = location.origin + location.pathname + '#share=' + encoded;
+  let url;
+  try {
+    const id = await saveCharacterToSupabase(encoded, false);
+    url = location.origin + location.pathname + '#cid=' + id;
+  } catch (err) {
+    url = location.origin + location.pathname + '#share=' + encoded;
+  }
+
   const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート';
 
   const copyFallback = () => {
@@ -304,7 +350,7 @@ async function exportShareURL() {
 }
 
 // キャラクターデータを「閲覧専用」で開けるURLを作成する。
-// 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
+// 開いた相手の画面では今開いているシートに一切触れず、ポップアップだけで内容を見せる
 async function exportViewURL() {
   const data = getFullData();
   const json = JSON.stringify(data);
@@ -316,7 +362,14 @@ async function exportViewURL() {
     return;
   }
 
-  const url = location.origin + location.pathname + '#view=' + encoded;
+  let url;
+  try {
+    const id = await saveCharacterToSupabase(encoded, true);
+    url = location.origin + location.pathname + '#cid=' + id;
+  } catch (err) {
+    url = location.origin + location.pathname + '#view=' + encoded;
+  }
+
   const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート（閲覧用）';
 
   const copyFallback = () => {
@@ -340,7 +393,7 @@ async function exportViewURL() {
   }
 }
 
-// ページを開いた時にURLに共有データ（#share=... または #view=...）が含まれていれば自動で読み込む
+// ページを開いた時にURLに共有データ（#cid=... または 従来形式の #share=.../#view=...）が含まれていれば自動で読み込む
 // 「閲覧専用URL」用：今開いている編集中のシートには一切触れず、
 // 別ポップアップだけでキャラクター内容を表示する
 function escapeHtmlSafe(str) {
@@ -441,6 +494,30 @@ function closeViewOnlyOverlay() {
 
 async function checkForSharedURLOnLoad() {
   const hash = location.hash || '';
+
+  // 新形式：Supabase上の連番IDを参照する短いURL（#cid=数字）
+  const cidMatch = hash.match(/^#cid=(\d+)$/);
+  if (cidMatch) {
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const row = await loadCharacterFromSupabase(cidMatch[1]);
+      const json = await decodeShareString(row.payload);
+      const data = JSON.parse(json);
+
+      if (row.view_only) {
+        openViewOnlyOverlay(data);
+      } else {
+        pushUndoSnapshot();
+        applyData(data);
+        afterExternalLoad(data);
+      }
+    } catch (err) {
+      alert('共有データの読み込みに失敗しました。\n' + err.message);
+    }
+    return;
+  }
+
+  // 旧形式：URLにデータそのものを埋め込む方式（#share=... / #view=...）との互換
   const match = hash.match(/^#(share|view)=(.+)$/);
   if (!match) return;
 
