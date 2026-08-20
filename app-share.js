@@ -375,7 +375,7 @@ async function exportViewURL() {
   const copyFallback = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
-        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、相手が今開いているシートには一切触れず、ポップアップでキャラクター内容だけが表示されます。`);
+        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、自動的に表示モード（編集不可）でこのキャラクターが表示されます。相手のブラウザには保存されません。`);
       }).catch(() => {
         prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
       });
@@ -503,14 +503,7 @@ async function checkForSharedURLOnLoad() {
       const row = await loadCharacterFromSupabase(cidMatch[1]);
       const json = await decodeShareString(row.payload);
       const data = JSON.parse(json);
-
-      if (row.view_only) {
-        openViewOnlyOverlay(data);
-      } else {
-        pushUndoSnapshot();
-        applyData(data);
-        afterExternalLoad(data);
-      }
+      applyLoadedShareData(data, row.view_only);
     } catch (err) {
       alert('共有データの読み込みに失敗しました。\n' + err.message);
     }
@@ -530,17 +523,24 @@ async function checkForSharedURLOnLoad() {
     const encoded = decodeURIComponent(match[2]);
     const json = await decodeShareString(encoded);
     const data = JSON.parse(json);
-
-    if (isViewOnly) {
-      // 閲覧専用URL：今開いているシートには一切触れず、ポップアップだけで内容を見せる
-      openViewOnlyOverlay(data);
-    } else {
-      pushUndoSnapshot();
-      applyData(data);
-      afterExternalLoad(data);
-    }
+    applyLoadedShareData(data, isViewOnly);
   } catch (err) {
     alert('共有URLの読み込みに失敗しました。URLが正しいか確認してください。\n' + err.message);
+  }
+}
+
+// 共有データを実際にシートへ反映する。閲覧用の場合はページ全体を使って表示し、
+// 自動的に表示モード（編集不可）にする。保存するか聞くこともしない
+function applyLoadedShareData(data, isViewOnly) {
+  pushUndoSnapshot();
+  applyData(data);
+
+  if (isViewOnly) {
+    applyViewModeUI(true);
+    try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
+    isDirty = false;
+  } else {
+    afterExternalLoad(data);
   }
 }
 
