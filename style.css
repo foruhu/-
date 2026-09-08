@@ -142,6 +142,10 @@ body.view-mode th { color: #ddd; }
 }
 
 /* --- パーツ表：1段目（本体）と2段目（効果メモ）を1つのまとまりに見せる --- */
-.maneuver-table tr.part-row td { border-bottom: none; }
-.maneuver-table tr.part-memo-row td { border-top: none; text-align: left; padding: 2px 4px 4px 4px; }
-.maneuver-table tr.part-memo-row textarea { min-height: 26px; }
+.maneuver-table tr.part-row td,
+.maneuver-table tr.skill-row td { border-bottom: none; }
+.maneuver-table tr.part-memo-row td,
+.maneuver-table tr.skill-memo-row td { border-top: none; text-align: left; padding: 2px 4px 4px 4px; }
+/* 効果メモは内容に合わせて高さを自動調整するので、余分な余白や手動リサイズは不要にする */
+.maneuver-table tr.part-memo-row textarea,
+.maneuver-table tr.skill-memo-row textarea { min-height: 22px; resize: none; overflow-y: hidden; }
