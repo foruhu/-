@@ -1,485 +1,379 @@
 // ==========================================================
-// マニューバ／スキルの「カテゴリ」による行の色分け
+// 元に戻す（Undo）・未保存の変更検知・自動保存
 // ==========================================================
-const MANEUVER_CATEGORIES = ['', '必殺技', '補助', '妨害', '行動値増加', '攻撃', '移動', '防御', '支援'];
-const MANEUVER_CATEGORY_COLORS = {
-  '必殺技': '#5a1414',
-  '補助': '#242a5a',
-  '妨害': '#5a2440',
-  '行動値増加': '#5a4014',
-  '攻撃': '#155230',
-  '移動': '#4a4a14',
-  '防御': '#3a2450',
-  '支援': '#155a5a'
-};
+let undoStack = [];
+const UNDO_LIMIT = 15;
+let isDirty = false;
+let autosaveTimer = null;
+const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
 
-// 効果メモの文言から、カテゴリを自動判定するためのキーワード対応表（上から順に判定）
-const CATEGORY_AUTO_KEYWORDS = [
-  { keywords: ['最大行動値'], category: '行動値増加' },
-  { keywords: ['妨害'], category: '妨害' },
-  { keywords: ['支援'], category: '支援' },
-  { keywords: ['移動'], category: '移動' },
-  { keywords: ['防御'], category: '防御' },
-  { keywords: ['必殺'], category: '必殺技' },
-  { keywords: ['肉弾', '白兵', '射撃', '砲撃'], category: '攻撃' }
-];
-
-function detectCategoryFromMemo(memoText) {
-  const text = memoText || '';
-  for (const rule of CATEGORY_AUTO_KEYWORDS) {
-    if (rule.keywords.some(k => text.includes(k))) return rule.category;
+function pushUndoSnapshot() {
+  try {
+    undoStack.push(JSON.stringify(getFullData()));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    updateUndoButtonState();
+  } catch (e) {
+    // 取得に失敗しても致命的ではないので握りつぶす
   }
-  return '';
 }
 
-function buildCategoryOptions(selected) {
-  return MANEUVER_CATEGORIES.map(c =>
-    `<option value="${c}" ${c === selected ? 'selected' : ''}>${c || '（未選択）'}</option>`
-  ).join('');
+function updateUndoButtonState() {
+  const btn = document.getElementById('undo-btn');
+  if (btn) btn.disabled = undoStack.length === 0;
 }
 
-// 行(tr)にカテゴリ色を反映する。selectElemを渡した場合はその場で選択値から、
-// tag文字列を渡した場合は復元時などにその値で色付けする
-function applyCategoryColorToRow(tr, tag) {
-  if (!tr) return;
-  tr.style.backgroundColor = MANEUVER_CATEGORY_COLORS[tag] || '';
+function undoLastAction() {
+  if (undoStack.length === 0) {
+    alert('これ以上元に戻せません');
+    return;
+  }
+  const prevJson = undoStack.pop();
+  updateUndoButtonState();
+  try {
+    const data = JSON.parse(prevJson);
+    applyData(data);
+    markDirty();
+  } catch (e) {
+    alert('元に戻す処理に失敗しました');
+  }
 }
 
-function onManeuverCategoryChange(selectElem) {
-  const tr = selectElem.closest('tr');
-  applyCategoryColorToRow(tr, selectElem.value);
-  // パーツ・スキルとも2段構成（1段目にカテゴリ選択、2段目に効果メモ）なので、2段目にも同じ色を反映する
-  const nextTr = tr.nextElementSibling;
-  if (nextTr && (nextTr.classList.contains('part-memo-row') || nextTr.classList.contains('skill-memo-row'))) {
-    applyCategoryColorToRow(nextTr, selectElem.value);
+// パーツ／スキル／未練／履歴などの行削除ボタン共通処理（削除前にUndo用スナップショットを保存する）
+function removeRowWithUndo(button, afterFn) {
+  pushUndoSnapshot();
+  const el = button.closest('tr, .treasure-entry, .memory-entry');
+  if (el) {
+    // パーツ／スキルの本体行を消す場合は、直後の効果メモ行も一緒に消す
+    const nextEl = el.nextElementSibling;
+    if (nextEl && (nextEl.classList.contains('part-memo-row') || nextEl.classList.contains('skill-memo-row'))) {
+      nextEl.remove();
+    }
+    el.remove();
   }
   markDirty();
+  if (typeof afterFn === 'function') afterFn();
 }
 
-// メモ欄を入力/編集した時、カテゴリが未選択（空欄）なら文言から自動再判定して色を付ける
-// （すでに手動でカテゴリを選んでいる行は上書きしない）
-// メモ欄の高さを内容に合わせて自動調整する（余分な空白を残さず、行が増えたら伸ばす）
-function autoResizeTextarea(el) {
-  if (!el) return;
-  el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
+function markDirty() {
+  isDirty = true;
 }
 
-function onManeuverMemoInput(textarea, tagSelectorClass) {
-  calcActionValue();
-  autoResizeTextarea(textarea);
-  const tr = textarea.closest('tr');
-  if (!tr) return;
-  // 効果メモは2段目にあるため、カテゴリ選択がある1段目（直前の行）を別途探す
-  const tagRow = tr.querySelector(tagSelectorClass) ? tr : tr.previousElementSibling;
-  if (!tagRow) return;
-  const tagSelect = tagRow.querySelector(tagSelectorClass);
-  if (tagSelect && !tagSelect.value) {
-    const detected = detectCategoryFromMemo(textarea.value);
-    if (detected) {
-      tagSelect.value = detected;
-      applyCategoryColorToRow(tagRow, detected);
-      if (tagRow !== tr) applyCategoryColorToRow(tr, detected);
+function setupDirtyTracking() {
+  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input']);
+  document.addEventListener('input', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
+  });
+}
+
+window.addEventListener('beforeunload', function (e) {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+function formatTimeHM(d) {
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function updateAutosaveStatusText(text) {
+  const el = document.getElementById('autosave-status');
+  if (el) el.textContent = text;
+}
+
+function startAutosaveTimer() {
+  if (autosaveTimer) clearInterval(autosaveTimer);
+  autosaveTimer = setInterval(() => {
+    if (!isDirty) return;
+    performAutosave();
+  }, AUTOSAVE_INTERVAL_MS);
+}
+
+// 未保存の変更を静かに自動保存する（選択中のキャラがあればそこへ上書き、無ければ専用の下書き枠へ）
+function performAutosave() {
+  try {
+    const data = getFullData();
+    const select = document.getElementById('save-slot');
+    const sheets = getSavedSheets();
+    let id = select ? select.value : '';
+
+    if (id && sheets[id]) {
+      sheets[id] = { ...sheets[id], pl: data.pl || '', savedAt: new Date().toISOString(), data };
+    } else {
+      id = 'autosave_draft';
+      const existingImage = sheets[id] ? sheets[id].image : null;
+      sheets[id] = {
+        name: '（自動保存）' + (data.name || '下書き'),
+        pl: data.pl || '',
+        savedAt: new Date().toISOString(),
+        image: existingImage,
+        data: data
+      };
     }
+
+    setSavedSheets(sheets);
+    isDirty = false;
+    updateAutosaveStatusText('自動保存 ' + formatTimeHM(new Date()));
+    renderSaveCards(select ? select.value : '');
+  } catch (e) {
+    // 自動保存の失敗はアラートを出さず静かに諦める（次のタイミングで再試行される）
   }
 }
 
-function getLimitByVal(val) {
-  if (val < 1) return { lv1: 0, lv2: 0, lv3: 0 };
-  return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
+// ==========================================================
+// 保存済みキャラクターのカード表示
+// ==========================================================
+function escapeHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
 }
 
-// オプションのHTML生成用ヘルパー関数（重複防止・共通化）
-function generateOptionGroup(list, remainingMap, prefix, label) {
-  let groupHtml = '';
-  list.forEach((p, idx) => {
-    const remaining = remainingMap[p.type]?.[p.level] ?? 0;
-    const isExists = isPartAlreadyExists(p.name);
-
-    // 種別・レベルの上限に達している（かつ未配置の）パーツは一覧に出さない
-    if (remaining <= 0 && !isExists) return;
-
-    const disabledAttr = isExists ? 'disabled' : '';
-    const nameText = isExists ? `${p.name} (選択済み)` : p.name;
-    groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
-  });
-  return groupHtml ? `<optgroup label="${label}">${groupHtml}</optgroup>` : '';
+function updateSelectedActionsVisibility(selectedId) {
+  const el = document.getElementById('selected-actions');
+  if (el) el.style.display = selectedId ? '' : 'none';
 }
 
-function updateExtraPartOptions() {
-  const totalWep = parseInt(document.getElementById('total-wep').textContent, 10) || 0;
-  const totalMut = parseInt(document.getElementById('total-mut').textContent, 10) || 0;
-  const totalCyb = parseInt(document.getElementById('total-cyb').textContent, 10) || 0;
-
-  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
-  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
-
-  const limitWep = getLimitByVal(totalWep);
-  const limitMut = getLimitByVal(totalMut);
-  const limitCyb = getLimitByVal(totalCyb);
-
-  const maxAllowedMap = {
-    '武装': { 1: limitWep.lv1, 2: limitWep.lv2, 3: limitWep.lv3 },
-    '変異': { 1: limitMut.lv1, 2: limitMut.lv2, 3: limitMut.lv3 },
-    '改造': { 1: limitCyb.lv1, 2: limitCyb.lv2, 3: limitCyb.lv3 }
-  };
-
-  if (hasClockwork) maxAllowedMap['改造'][3] += 1;
-  if (hasGouku) maxAllowedMap['変異'][3] += 1;
-
-  // 種別・レベルごとの現在の配置数を集計
-  const currentCounts = { '武装': {1:0,2:0,3:0}, '変異': {1:0,2:0,3:0}, '改造': {1:0,2:0,3:0} };
-  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
-    const type = tr.querySelector('.p-type')?.value;
-    const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
-    if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
-      currentCounts[type][lv]++;
-    }
-  });
-
-  // 残り枠数（＝実際に選択できる数）を算出
-  const remainingMap = { '武装': {}, '変異': {}, '改造': {} };
-  ['武装', '変異', '改造'].forEach(type => {
-    [1, 2, 3].forEach(lv => {
-      remainingMap[type][lv] = (maxAllowedMap[type][lv] || 0) - (currentCounts[type][lv] || 0);
-    });
-  });
-
-  const sections = [
-    { id: 'head', title: '頭部' }, { id: 'arm', title: '腕部' },
-    { id: 'body', title: '胴部' }, { id: 'leg', title: '脚部' }
-  ];
-
-  sections.forEach(sec => {
-    const secDiv = document.getElementById(`parts-tbody-${sec.id}`)?.closest('div.table-scroll')?.nextElementSibling;
-    const selectElem = secDiv ? secDiv.querySelector('.add-part-select') : null;
-    if (!selectElem) return;
-
-    let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
-
-    if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], remainingMap, sec.id, `【${sec.title}専用パーツ】`);
-    }
-    if (COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, remainingMap, 'common', '【共通・汎用パーツ】');
-    }
-
-    optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
-    selectElem.innerHTML = optionsHtml;
-  });
+// 「出力・共有オプション」の折りたたみ表示を切り替える
+function toggleExportShareSection() {
+  const section = document.getElementById('export-share-section');
+  const toggleBtn = document.getElementById('export-share-toggle');
+  if (!section || !toggleBtn) return;
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? '' : 'none';
+  toggleBtn.textContent = isHidden ? '▲ 出力・共有オプションを隠す' : '▼ 出力・共有オプションを表示';
 }
 
-// --- パーツエリアの動的生成 ---
-function renderPartsContainer() {
-  const container = document.getElementById('parts-container');
+// 選択中キャラクターの画像を、表示モード時にページ最上部へ表示する
+function updateViewModeImage(selectedId) {
+  const container = document.getElementById('view-mode-image-container');
   if (!container) return;
-  container.innerHTML = '';
 
-  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-  const sections = [
-    { id: 'head', title: '頭部' }, { id: 'arm', title: '腕部' },
-    { id: 'body', title: '胴部' }, { id: 'leg', title: '脚部' }
-  ];
+  const sheets = getSavedSheets();
+  const entry = selectedId ? sheets[selectedId] : null;
 
-  sections.forEach(sec => {
-    const secDiv = document.createElement('div');
-    secDiv.innerHTML = `
-      <div class="part-header">
-        <span>【${sec.title}】</span>
-        <span class="val">基本パーツ / 追加パーツ</span>
-      </div>
-      <div class="table-scroll">
-        <table class="maneuver-table">
-          <thead>
-            <tr>
-              <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:6%;" class="color-col">色</th><th style="width:11%;">配置部位</th>
-              <th style="width:18%;">パーツ名</th><th style="width:13%;">分類</th>
-              <th style="width:7%;">Lv</th><th style="width:10%;">タイミング</th>
-              <th style="width:8%;">コスト</th><th style="width:8%;">射程</th>
-              <th style="width:9%;" class="col-op">操作</th>
-            </tr>
-          </thead>
-          <tbody id="parts-tbody-${sec.id}"></tbody>
-        </table>
-      </div>
-      <div style="margin-top:6px;">
-        <select class="add-part-select edit-only" onchange="onExtraPartSelect('${sec.id}', this)">
-          <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
-        </select>
+  if (entry && entry.image) {
+    container.innerHTML = `<img src="${entry.image}" alt="">`;
+    container.style.display = '';
+  } else {
+    container.innerHTML = '';
+    container.style.display = 'none';
+  }
+}
+
+function renderSaveCards(selectedId = '') {
+  const container = document.getElementById('save-cards');
+  if (!container) return;
+
+  updateSelectedActionsVisibility(selectedId);
+  updateViewModeImage(selectedId);
+
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.78rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isSelected = id === selectedId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard('${id}')" data-id="${id}">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
       </div>
     `;
-    container.appendChild(secDiv);
-
-    const tbody = secDiv.querySelector(`#parts-tbody-${sec.id}`);
-    const currentLocName = locMap[sec.id] || '頭部';
-
-    if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[sec.id]) {
-      DEFAULT_PARTS[sec.id].forEach(p => {
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, currentLocName, detectCategoryFromMemo(p.memo));
-      });
-    }
-  });
-
-  updateExtraPartOptions();
+  }).join('');
 }
 
-function isPartAlreadyExists(partName) {
-  if (!partName || partName === '新規パーツ') return false;
-  return Array.from(document.querySelectorAll('#parts-container .p-name')).some(input => input.value.trim() === partName.trim());
+function selectSaveCard(id) {
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
+  renderSaveCards(id);
 }
 
-// 「記憶のカケラ」の1枠（テキスト入力＋削除）を作成する
-function addMemoryEntry(value = '') {
-  const container = document.getElementById('memory-list');
+// ==========================================================
+// キャラクター切替オーバーレイ（画面上部のボタンからいつでも呼び出せる）
+// ==========================================================
+function openCharSwitcher() {
+  renderCharSwitcherCards();
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'block';
+}
+
+function closeCharSwitcher() {
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderCharSwitcherCards() {
+  const container = document.getElementById('char-switch-cards');
   if (!container) return;
 
-  const row = document.createElement('div');
-  row.className = 'memory-entry';
-  row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center;';
-  row.innerHTML = `
-    <input type="text" class="memory-value" value="${value}" style="flex:1;">
-    <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
-  `;
-  container.appendChild(row);
-  markDirty();
+  const sheets = getSavedSheets();
+  const select = document.getElementById('save-slot');
+  const currentId = select ? select.value : '';
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.85rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isCurrent = id === currentId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isCurrent ? 'selected' : ''}" onclick="quickSwitchToCharacter('${id}')">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }).join('');
 }
 
-// 「たからもの」の1エントリ（名前・内容・配置部位・操作）を作成する
-function addTreasureEntry(name = '', content = '', location = '頭部') {
-  const container = document.getElementById('treasure-list');
-  if (!container) return;
-
-  const locations = ['頭部', '腕部', '胴部', '脚部'];
-  const locOptions = locations.map(loc => `<option value="${loc}" ${loc === location ? 'selected' : ''}>${loc}</option>`).join('');
-
-  const div = document.createElement('div');
-  div.className = 'treasure-entry';
-  div.innerHTML = `
-    <div class="g2">
-      <div><label>たからもの名</label><input type="text" class="treasure-name" value="${name}"></div>
-      <div><label>配置部位</label><select class="treasure-location">${locOptions}</select></div>
-    </div>
-    <label>内容（どんなものか）</label>
-    <textarea class="treasure-content" rows="2">${content}</textarea>
-    <div class="edit-only" style="display:flex; gap:6px; margin-top:6px;">
-      <button type="button" class="sec" onclick="placeTreasureEntry(this)" style="flex:1;padding:6px;">パーツとして配置</button>
-      <button type="button" class="del" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">削除</button>
-    </div>
-  `;
-  container.appendChild(div);
-  markDirty();
-}
-
-// 指定した「たからもの」エントリを、選んだ部位にマニューバとして配置する（複数個配置可）
-function placeTreasureEntry(button) {
-  const entry = button.closest('.treasure-entry');
+// カードをタップした瞬間に、選択だけでなく読み込みまで一気に行う（下までスクロールせずに切替できるようにする）
+function quickSwitchToCharacter(id) {
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
   if (!entry) return;
 
-  const name = (entry.querySelector('.treasure-name')?.value || '').trim();
-  const content = (entry.querySelector('.treasure-content')?.value || '').trim();
-  const location = entry.querySelector('.treasure-location')?.value || '頭部';
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
 
-  if (!name) {
-    alert('先に「たからもの名」を入力してください');
+  pushUndoSnapshot(); // 切り替え前の編集内容を退避
+  applyData(entry.data);
+  isDirty = false;
+
+  closeCharSwitcher();
+  renderSaveCards(id);
+  alert(`「${entry.name}」に切り替えました`);
+}
+
+// ==========================================================
+// キャラクターの複製
+// ==========================================================
+function duplicateSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('複製するキャラクターをカードから選択してください');
+
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした');
+
+  const defaultName = (entry.name || '(無名)') + 'のコピー';
+  const newName = prompt('複製後の名前を入力してください', defaultName);
+  if (newName === null) return;
+
+  const newId = 'char_' + Date.now();
+  sheets[newId] = {
+    name: newName || defaultName,
+    pl: entry.pl || '',
+    savedAt: new Date().toISOString(),
+    image: entry.image || null,
+    data: JSON.parse(JSON.stringify(entry.data))
+  };
+
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions(newId);
+  alert(`「${newName || defaultName}」として複製しました`);
+}
+
+// ==========================================================
+// サムネイル画像の設定
+// ==========================================================
+function resizeImageToDataURL(file, maxDim = 160, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+        } else {
+          if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function onThumbFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください（未保存の場合は先にブラウザに保存してください）');
     return;
   }
 
-  if (isPartAlreadyExists(name)) {
-    alert(`「${name}」は既に同じ名前のパーツとして配置されています。`);
+  resizeImageToDataURL(file).then(dataUrl => {
+    const sheets = getSavedSheets();
+    if (!sheets[id]) return;
+    sheets[id].image = dataUrl;
+    setSavedSheets(sheets);
+    renderSaveCards(id);
+    alert('サムネイル画像を設定しました');
+  }).catch(err => {
+    alert('画像の設定に失敗しました: ' + (err && err.message ? err.message : err));
+  });
+}
+
+// 選択中のキャラクターのサムネイル画像を削除し、ノーイメージ（プレースホルダー）に戻す
+function clearSelectedThumbnail() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください');
     return;
   }
 
-  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
-  const secId = locToSection[location] || 'body';
-  const tbody = document.getElementById(`parts-tbody-${secId}`);
-  if (!tbody) return;
+  const sheets = getSavedSheets();
+  if (!sheets[id]) return;
 
-  const baseMemo = 'バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除く';
-  const memo = content ? `${content}\n${baseMemo}` : baseMemo;
-
-  addPartRow(tbody, name, 'たからもの', '', 'オート', '無し', '自身', memo, false, location, detectCategoryFromMemo(memo));
-
-  alert(`「${name}」を${location}のパーツとして配置しました`);
-}
-
-function onExtraPartSelect(secId, selectElem) {
-  const val = selectElem.value;
-  if (!val) return;
-
-  const tbody = document.getElementById(`parts-tbody-${secId}`);
-  const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
-  const currentLocName = locMap[secId] || '頭部';
-
-  let partData = null;
-
-  if (val === 'custom') {
-    partData = { name: '新規パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '', isEditable: true };
-  } else if (val.startsWith('common_')) {
-    const p = COMMON_EXTRA_PARTS[parseInt(val.split('_')[1], 10)];
-    if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
-  } else if (val.startsWith(secId + '_')) {
-    const p = EXTRA_PARTS_DB[secId][parseInt(val.split('_')[1], 10)];
-    if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
-  }
-
-  if (partData) {
-    if (partData.name !== '新規パーツ' && isPartAlreadyExists(partData.name)) {
-      alert(`「${partData.name}」はすでに配置されています。重複して取得することはできません。`);
-      selectElem.value = '';
-      return;
-    }
-    addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName, detectCategoryFromMemo(partData.memo));
-  }
-  selectElem.value = '';
-}
-
-function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
-  const tr = document.createElement('tr');
-  tr.className = 'part-row';
-  const readOnlyAttr = isEditable ? '' : 'readonly';
-  const disabledAttr = isEditable ? '' : 'disabled';
-
-  const locations = ['頭部', '腕部', '胴部', '脚部'];
-  const locOptions = locations.map(loc => `<option value="${loc}" ${loc === defaultLoc ? 'selected' : ''}>${loc}</option>`).join('');
-
-  tr.innerHTML = `
-    <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
-    <td><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
-    <td class="color-col"><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
-    <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
-    <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
-    <td>
-      <select class="p-type" ${disabledAttr} onchange="calcTotals()">
-        ${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
-      </select>
-    </td>
-    <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
-    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
-    <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
-    <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
-    <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
-  `;
-  tbody.appendChild(tr);
-
-  const memoTr = document.createElement('tr');
-  memoTr.className = 'part-memo-row';
-  memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
-  tbody.appendChild(memoTr);
-
-  applyCategoryColorToRow(tr, tag);
-  applyCategoryColorToRow(memoTr, tag);
-  autoResizeTextarea(memoTr.querySelector('.p-memo'));
-  markDirty();
-  calcTotals();
-}
-
-function togglePartBreak(checkbox) {
-  const tr = checkbox.closest('tr');
-  const memoTr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row') ? tr.nextElementSibling : null;
-  const typeSelect = tr.querySelector('.p-type');
-  const isTreasure = typeSelect && typeSelect.value === 'たからもの';
-
-  if (checkbox.checked && isTreasure) {
-    // Undoで壊れる前の状態に戻せるよう、一時的にチェックを外した状態でスナップショットを取ってから取り除く
-    checkbox.checked = false;
-    pushUndoSnapshot();
-    checkbox.checked = true;
-
-    const name = tr.querySelector('.p-name')?.value || 'たからもの';
-    if (memoTr) memoTr.remove();
-    tr.remove();
-    markDirty();
-    calcTotals();
-    calcActionValue();
-    alert(`「${name}」は損傷したため、所持パーツから取り除かれました。`);
+  if (!sheets[id].image) {
+    alert('このキャラクターには画像が設定されていません');
     return;
   }
 
-  tr.classList.toggle('broken', checkbox.checked);
-  if (memoTr) memoTr.classList.toggle('broken', checkbox.checked);
-  calcActionValue();
-}
+  if (!confirm('サムネイル画像を削除して、ノーイメージに戻します。よろしいですか？')) return;
 
-// メモ欄のテキストから「最大行動値+N」の合計を抽出する
-function extractActionBonus(memoText) {
-  let sum = 0;
-  const matches = (memoText || '').match(/最大行動値\+(\d+)/g);
-  if (matches) {
-    matches.forEach(m => {
-      const n = parseInt(m.replace('最大行動値+', ''), 10);
-      if (!isNaN(n)) sum += n;
-    });
-  }
-  return sum;
-}
-
-// 基本行動値 ＋ 損傷していないパーツの「最大行動値+N」の合計を自動計算して反映する
-function calcActionValue() {
-  const baseInput = document.getElementById('act-base');
-  const base = parseInt(baseInput && baseInput.value, 10) || 0;
-
-  let bonus = 0;
-  const contributions = [];
-  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
-    const isBroken = tr.querySelector('.p-broken')?.checked;
-    if (isBroken) return; // 損傷しているパーツの効果は反映しない
-    const memoTr = tr.nextElementSibling;
-    const memo = (memoTr && memoTr.classList.contains('part-memo-row')) ? (memoTr.querySelector('.p-memo')?.value || '') : '';
-    const partBonus = extractActionBonus(memo);
-    if (partBonus !== 0) {
-      const name = tr.querySelector('.p-name')?.value || '';
-      contributions.push({ name, amount: partBonus });
-      bonus += partBonus;
-    }
-  });
-
-  const total = base + bonus;
-  const actInput = document.getElementById('act');
-  if (actInput) actInput.value = total;
-
-  const breakdownEl = document.getElementById('act-breakdown');
-  if (breakdownEl) {
-    const partsText = contributions
-      .map(c => `+${c.name}${c.amount}`)
-      .join('');
-    breakdownEl.textContent = `（基本${base}${partsText}）`;
-  }
-
-  return total;
-}
-
-function togglePartUsed(checkbox) {
-  const tr = checkbox.closest('tr');
-  tr.classList.toggle('used', checkbox.checked);
-  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
-    tr.nextElementSibling.classList.toggle('used', checkbox.checked);
-  }
-}
-
-function resetUsed() {
-  pushUndoSnapshot();
-  document.querySelectorAll('#parts-container tr input.p-broken').forEach(cb => {
-    cb.checked = false;
-    const tr = cb.closest('tr');
-    tr.classList.remove('broken');
-    if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
-      tr.nextElementSibling.classList.remove('broken');
-    }
-  });
-  markDirty();
-  calcActionValue();
-}
-
-function resetPartUsedFlags() {
-  pushUndoSnapshot();
-  document.querySelectorAll('#parts-container tr input.p-used').forEach(cb => {
-    cb.checked = false;
-    const tr = cb.closest('tr');
-    tr.classList.remove('used');
-    if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
-      tr.nextElementSibling.classList.remove('used');
-    }
-  });
-  markDirty();
+  sheets[id].image = null;
+  setSavedSheets(sheets);
+  renderSaveCards(id);
+  alert('画像を削除しました');
 }
 
