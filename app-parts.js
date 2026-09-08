@@ -175,9 +175,9 @@ function renderPartsContainer() {
         <table class="maneuver-table">
           <thead>
             <tr>
-              <th style="width:4%;">損</th><th style="width:4%;">使</th><th style="width:5%;">色</th><th style="width:9%;">配置部位</th>
-              <th style="width:14%;">パーツ名</th><th style="width:7%;">分類</th>
-              <th style="width:5%;">Lv</th><th style="width:8%;">タイミング</th>
+              <th style="width:4%;">損</th><th style="width:4%;">使</th><th style="width:5%;" class="color-col">色</th><th style="width:8%;">配置部位</th>
+              <th style="width:12%;">パーツ名</th><th style="width:9%;">分類</th>
+              <th style="width:5%;">Lv</th><th style="width:7%;">タイミング</th>
               <th style="width:6%;">コスト</th><th style="width:6%;">射程</th>
               <th>効果メモ</th><th style="width:6%;" class="col-op">操作</th>
             </tr>
@@ -327,7 +327,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   tr.innerHTML = `
     <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
     <td><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
-    <td><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
+    <td class="color-col"><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
     <td>
