@@ -26,15 +26,17 @@ function getFullData() {
     chouaiUses: []
   };
 
-  // スキル
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+  // スキル（1つにつき「本体行(skill-row)」＋「効果メモ行(skill-memo-row)」の2段構成）
+  document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+    const memoTr = tr.nextElementSibling;
+    const memo = (memoTr && memoTr.classList.contains('skill-memo-row')) ? (memoTr.querySelector('.skill-memo')?.value || '') : '';
     data.skills.push({
       category: tr.querySelector('input')?.value || '',
       name: tr.querySelector('.skill-name-select')?.value || '',
       timing: tr.querySelector('.skill-timing')?.value || '',
       cost: tr.querySelector('.skill-cost')?.value || '',
       range: tr.querySelector('.skill-range')?.value || '',
-      memo: tr.querySelector('.skill-memo')?.value || '',
+      memo: memo,
       tag: tr.querySelector('.skill-tag')?.value || ''
     });
   });
