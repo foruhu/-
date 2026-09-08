@@ -48,20 +48,29 @@ function applyCategoryColorToRow(tr, tag) {
 function onManeuverCategoryChange(selectElem) {
   const tr = selectElem.closest('tr');
   applyCategoryColorToRow(tr, selectElem.value);
-  // パーツは2段構成（1段目にカテゴリ選択、2段目に効果メモ）なので、2段目にも同じ色を反映する
-  if (tr.classList.contains('part-row') && tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
-    applyCategoryColorToRow(tr.nextElementSibling, selectElem.value);
+  // パーツ・スキルとも2段構成（1段目にカテゴリ選択、2段目に効果メモ）なので、2段目にも同じ色を反映する
+  const nextTr = tr.nextElementSibling;
+  if (nextTr && (nextTr.classList.contains('part-memo-row') || nextTr.classList.contains('skill-memo-row'))) {
+    applyCategoryColorToRow(nextTr, selectElem.value);
   }
   markDirty();
 }
 
 // メモ欄を入力/編集した時、カテゴリが未選択（空欄）なら文言から自動再判定して色を付ける
 // （すでに手動でカテゴリを選んでいる行は上書きしない）
+// メモ欄の高さを内容に合わせて自動調整する（余分な空白を残さず、行が増えたら伸ばす）
+function autoResizeTextarea(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function onManeuverMemoInput(textarea, tagSelectorClass) {
   calcActionValue();
+  autoResizeTextarea(textarea);
   const tr = textarea.closest('tr');
   if (!tr) return;
-  // パーツの効果メモは2段目にあるため、カテゴリ選択がある1段目を別途探す（スキルは同じ行にある）
+  // 効果メモは2段目にあるため、カテゴリ選択がある1段目（直前の行）を別途探す
   const tagRow = tr.querySelector(tagSelectorClass) ? tr : tr.previousElementSibling;
   if (!tagRow) return;
   const tagSelect = tagRow.querySelector(tagSelectorClass);
@@ -359,6 +368,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
   applyCategoryColorToRow(tr, tag);
   applyCategoryColorToRow(memoTr, tag);
+  autoResizeTextarea(memoTr.querySelector('.p-memo'));
   markDirty();
   calcTotals();
 }
