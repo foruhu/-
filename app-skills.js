@@ -28,7 +28,7 @@ function calcTotals() {
 
   const currentCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
 
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
+  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const type = tr.querySelector('.p-type')?.value;
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
     if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
