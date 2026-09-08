@@ -39,13 +39,14 @@ function exportForHokanshoText() {
   text += `----------------------------------------\n`;
 
   text += `■ スキル\n`;
-  document.querySelectorAll('#skill-tbody tr').forEach(tr => {
+  document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
     const category = tr.querySelector('input')?.value || '';
     const skillName = tr.querySelector('.skill-name-select')?.value || '';
     const timing = tr.querySelector('.skill-timing')?.value || '';
     const cost = tr.querySelector('.skill-cost')?.value || '';
     const range = tr.querySelector('.skill-range')?.value || '';
-    const memo = tr.querySelector('.skill-memo')?.value || '';
+    const memoTr = tr.nextElementSibling;
+    const memo = (memoTr && memoTr.classList.contains('skill-memo-row')) ? (memoTr.querySelector('.skill-memo')?.value || '') : '';
     const spec = [timing, cost, range].filter(Boolean).join('/');
     if (skillName) {
       text += `・[${category}] ${skillName}${spec ? ' (' + spec + ')' : ''} : ${memo}\n`;
