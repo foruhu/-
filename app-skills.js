@@ -154,6 +154,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
+  tr.className = 'skill-row';
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
@@ -161,11 +162,18 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td><input type="text" class="skill-timing" value="${timing}"></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
     <td><input type="text" class="skill-range" value="${range}"></td>
-    <td><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')">${memo}</textarea></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
+
+  const memoTr = document.createElement('tr');
+  memoTr.className = 'skill-memo-row';
+  memoTr.innerHTML = `<td colspan="7"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  tbody.appendChild(memoTr);
+
   applyCategoryColorToRow(tr, tag);
+  applyCategoryColorToRow(memoTr, tag);
+  autoResizeTextarea(memoTr.querySelector('.skill-memo'));
 
   // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
@@ -181,19 +189,24 @@ function addScSkillRow() { addSkillRow(document.getElementById('sc').value); }
 function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
   const tr = selectElem.closest('tr');
+  const memoTr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('skill-memo-row') ? tr.nextElementSibling : null;
   const category = tr.querySelector('input').value;
   const timingInput = tr.querySelector('.skill-timing');
   const costInput = tr.querySelector('.skill-cost');
   const rangeInput = tr.querySelector('.skill-range');
-  const textarea = tr.querySelector('.skill-memo');
+  const textarea = memoTr ? memoTr.querySelector('.skill-memo') : null;
   const tagSelect = tr.querySelector('.skill-tag');
 
   if (!skillName) {
     if (timingInput) timingInput.value = '';
     if (costInput) costInput.value = '';
     if (rangeInput) rangeInput.value = '';
-    if (textarea) textarea.value = '';
-    if (tagSelect) { tagSelect.value = ''; applyCategoryColorToRow(tr, ''); }
+    if (textarea) { textarea.value = ''; autoResizeTextarea(textarea); }
+    if (tagSelect) {
+      tagSelect.value = '';
+      applyCategoryColorToRow(tr, '');
+      if (memoTr) applyCategoryColorToRow(memoTr, '');
+    }
   } else if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
     const found = SKILL_DATABASE[category].find(s => s.name === skillName);
     if (found) {
@@ -201,9 +214,13 @@ function onSkillSelect(selectElem) {
       if (timingInput) timingInput.value = parsed.timing;
       if (costInput) costInput.value = parsed.cost;
       if (rangeInput) rangeInput.value = parsed.range;
-      if (textarea) textarea.value = parsed.effect;
+      if (textarea) { textarea.value = parsed.effect; autoResizeTextarea(textarea); }
       const detected = detectCategoryFromMemo(parsed.effect);
-      if (tagSelect) { tagSelect.value = detected; applyCategoryColorToRow(tr, detected); }
+      if (tagSelect) {
+        tagSelect.value = detected;
+        applyCategoryColorToRow(tr, detected);
+        if (memoTr) applyCategoryColorToRow(memoTr, detected);
+      }
     }
   }
 
