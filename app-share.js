@@ -267,12 +267,12 @@ async function exportShareCode() {
 }
 
 // ==========================================================
-// Supabase連携（短いID付きURLで共有するための保存先）
+// Supabase連携（短いトークン付きURLで共有するための保存先）
 // ==========================================================
 const SUPABASE_URL = 'https://mdasgxjuwrweoxndgdbm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kYXNneGp1d3J3ZW94bmRnZGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTczNzksImV4cCI6MjEwMjI5MzM3OX0.gqOrziRFncLXP8YwUEGmOxmtCChJ1sPYQhGSvRdXkl8';
 
-// 圧縮済みの共有文字列をSupabaseに保存し、発行された連番ID（数値）を返す
+// 圧縮済みの共有文字列をSupabaseに保存し、発行されたランダムトークン（推測されにくい文字列）を返す
 async function saveCharacterToSupabase(encodedPayload, viewOnly) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/characters`, {
     method: 'POST',
@@ -286,26 +286,30 @@ async function saveCharacterToSupabase(encodedPayload, viewOnly) {
   });
   if (!res.ok) throw new Error('Supabaseへの保存に失敗しました（HTTP ' + res.status + '）');
   const rows = await res.json();
-  if (!rows || !rows[0] || rows[0].id === undefined) throw new Error('Supabaseからの応答が不正です');
-  return rows[0].id;
+  if (!rows || !rows[0] || !rows[0].token) throw new Error('Supabaseからの応答が不正です');
+  return rows[0].token;
 }
 
-// 連番IDから、保存されていた共有文字列と閲覧専用フラグを取得する
-async function loadCharacterFromSupabase(id) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/characters?id=eq.${encodeURIComponent(id)}&select=payload,view_only`, {
+// トークンから、保存されていた共有文字列と閲覧専用フラグを取得する
+// （直接テーブルを読み取るのではなく、トークンが一致した場合のみ1件返す専用関数を経由する）
+async function loadCharacterFromSupabase(token) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_character_by_token`, {
+    method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-    }
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ p_token: token })
   });
   if (!res.ok) throw new Error('Supabaseからの読み込みに失敗しました（HTTP ' + res.status + '）');
   const rows = await res.json();
-  if (!rows || rows.length === 0) throw new Error('該当するデータが見つかりませんでした（削除されたか、IDが間違っている可能性があります）');
+  if (!rows || rows.length === 0) throw new Error('該当するデータが見つかりませんでした（削除されたか、URLが間違っている可能性があります）');
   return rows[0];
 }
 
 // キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
-// まずSupabaseに保存して短いID付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
+// まずSupabaseに保存して短いトークン付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
 async function exportShareURL() {
   const data = getFullData();
   const json = JSON.stringify(data);
@@ -319,8 +323,8 @@ async function exportShareURL() {
 
   let url;
   try {
-    const id = await saveCharacterToSupabase(encoded, false);
-    url = location.origin + location.pathname + '#cid=' + id;
+    const token = await saveCharacterToSupabase(encoded, false);
+    url = location.origin + location.pathname + '#tok=' + token;
   } catch (err) {
     url = location.origin + location.pathname + '#share=' + encoded;
   }
@@ -350,7 +354,7 @@ async function exportShareURL() {
 }
 
 // キャラクターデータを「閲覧専用」で開けるURLを作成する。
-// 開いた相手の画面では今開いているシートに一切触れず、ポップアップだけで内容を見せる
+// 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
 async function exportViewURL() {
   const data = getFullData();
   const json = JSON.stringify(data);
@@ -364,8 +368,8 @@ async function exportViewURL() {
 
   let url;
   try {
-    const id = await saveCharacterToSupabase(encoded, true);
-    url = location.origin + location.pathname + '#cid=' + id;
+    const token = await saveCharacterToSupabase(encoded, true);
+    url = location.origin + location.pathname + '#tok=' + token;
   } catch (err) {
     url = location.origin + location.pathname + '#view=' + encoded;
   }
@@ -393,114 +397,16 @@ async function exportViewURL() {
   }
 }
 
-// ページを開いた時にURLに共有データ（#cid=... または 従来形式の #share=.../#view=...）が含まれていれば自動で読み込む
-// 「閲覧専用URL」用：今開いている編集中のシートには一切触れず、
-// 別ポップアップだけでキャラクター内容を表示する
-function escapeHtmlSafe(str) {
-  return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[ch]));
-}
-
-function buildViewOnlyHtml(data) {
-  const e = escapeHtmlSafe;
-  const line = (label, value) => value ? `<div style="margin-bottom:4px;"><span style="color:#f0a0a0;font-weight:bold;">${e(label)}：</span>${e(value)}</div>` : '';
-
-  let html = '';
-  html += `<h2 style="color:#f0a0a0;margin:0 0 10px 0;font-size:1.2rem;border-bottom:1px solid #8b0000;padding-bottom:6px;">${e(data.name || '(無名)')}</h2>`;
-  html += `<div style="font-size:0.85rem;margin-bottom:12px;">`;
-  html += line('PL名', data.pl);
-  html += line('ポジション / メイン / サブ', [data.pos, data.mc, data.sc].filter(Boolean).join(' / '));
-  html += line('享年/外見', data.age);
-  html += line('初期配置', data.ps);
-  html += line('暗示', data.hint);
-  html += line('最大行動値', data.act);
-  const memories = (data.memories || []).filter(Boolean);
-  if (memories.length) html += line('記憶のカケラ', memories.join('、'));
-  html += `</div>`;
-
-  const skills = (data.skills || []).filter(s => s.name);
-  if (skills.length) {
-    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ スキル</h3>`;
-    skills.forEach(s => {
-      const spec = [s.timing, s.cost, s.range].filter(Boolean).join('/');
-      html += `<div style="font-size:0.8rem;margin-bottom:6px;padding:6px;background:#15151a;border-radius:4px;">
-        <b>${e(s.name)}</b> <span style="color:#888;">[${e(s.category || '')}]${spec ? ' ' + e(spec) : ''}</span><br>
-        <span style="color:#ccc;">${e(s.memo || '')}</span>
-      </div>`;
-    });
-  }
-
-  const parts = (data.parts || []).filter(p => p.name);
-  if (parts.length) {
-    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ マニューバ</h3>`;
-    parts.forEach(p => {
-      const spec = [p.timing, p.cost, p.range].filter(Boolean).join('/');
-      const brokenTag = p.isBroken ? ' <span style="color:#ff8888;">[破損]</span>' : '';
-      html += `<div style="font-size:0.8rem;margin-bottom:6px;padding:6px;background:#15151a;border-radius:4px;">
-        <b>${e(p.name)}</b> <span style="color:#888;">[${e(p.location || '')} / ${e(p.type || '')}Lv${e(p.level || '')}]${spec ? ' ' + e(spec) : ''}</span>${brokenTag}<br>
-        <span style="color:#ccc;">${e(p.memo || '')}</span>
-      </div>`;
-    });
-  }
-
-  const treasures = (data.treasures || []).filter(t => t.name);
-  if (treasures.length) {
-    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ たからもの</h3>`;
-    treasures.forEach(t => {
-      html += `<div style="font-size:0.8rem;margin-bottom:6px;">・<b>${e(t.name)}</b>${t.content ? '（' + e(t.content) + '）' : ''}</div>`;
-    });
-  }
-
-  const list = (data.list || []).filter(l => l.target || l.emotion);
-  if (list.length) {
-    html += `<h3 style="color:#8ff;font-size:0.95rem;margin:10px 0 6px 0;">■ 未練</h3>`;
-    list.forEach(l => {
-      html += `<div style="font-size:0.8rem;margin-bottom:4px;">・[${e(l.target || '?')}] ${e(l.emotion || '')}（狂気点${e(l.madness || 0)}）</div>`;
-    });
-  }
-
-  return html;
-}
-
-function openViewOnlyOverlay(data) {
-  let overlay = document.getElementById('view-only-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'view-only-overlay';
-    overlay.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10001; padding:16px; overflow-y:auto;';
-    overlay.onclick = (ev) => { if (ev.target === overlay) closeViewOnlyOverlay(); };
-    document.body.appendChild(overlay);
-  }
-
-  overlay.innerHTML = `
-    <div style="max-width:520px; margin:20px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.7);">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
-        <button type="button" onclick="closeViewOnlyOverlay()" style="background:none;border:none;color:#aaa;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
-      </div>
-      ${buildViewOnlyHtml(data)}
-      <div style="font-size:0.7rem;color:#888;margin-top:12px;border-top:1px solid #333;padding-top:8px;">
-        ※これは閲覧専用のプレビューです。今あなたが開いているシートの内容には影響していません。
-      </div>
-    </div>
-  `;
-  overlay.style.display = 'block';
-}
-
-function closeViewOnlyOverlay() {
-  const overlay = document.getElementById('view-only-overlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
+// ページを開いた時にURLに共有データ（#tok=... または 従来形式の #share=.../#view=...）が含まれていれば自動で読み込む
 async function checkForSharedURLOnLoad() {
   const hash = location.hash || '';
 
-  // 新形式：Supabase上の連番IDを参照する短いURL（#cid=数字）
-  const cidMatch = hash.match(/^#cid=(\d+)$/);
-  if (cidMatch) {
+  // 新形式：Supabase上のトークンを参照する短いURL（#tok=ランダム文字列）
+  const tokMatch = hash.match(/^#tok=([A-Za-z0-9]+)$/);
+  if (tokMatch) {
     history.replaceState(null, '', location.pathname + location.search);
     try {
-      const row = await loadCharacterFromSupabase(cidMatch[1]);
+      const row = await loadCharacterFromSupabase(tokMatch[1]);
       const json = await decodeShareString(row.payload);
       const data = JSON.parse(json);
       applyLoadedShareData(data, row.view_only);
@@ -558,4 +464,3 @@ async function importShareCode() {
     alert('共有コードの読み込みに失敗しました。コードが正しくコピーされているか確認してください。\n' + err.message);
   }
 }
-
