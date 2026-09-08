@@ -274,20 +274,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // 圧縮済みの共有文字列をSupabaseに保存し、発行されたランダムトークン（推測されにくい文字列）を返す
 async function saveCharacterToSupabase(encodedPayload, viewOnly) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/characters`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_character`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ payload: encodedPayload, view_only: !!viewOnly })
+    body: JSON.stringify({ p_payload: encodedPayload, p_view_only: !!viewOnly })
   });
   if (!res.ok) throw new Error('Supabaseへの保存に失敗しました（HTTP ' + res.status + '）');
-  const rows = await res.json();
-  if (!rows || !rows[0] || !rows[0].token) throw new Error('Supabaseからの応答が不正です');
-  return rows[0].token;
+  const token = await res.json();
+  if (!token || typeof token !== 'string') throw new Error('Supabaseからの応答が不正です');
+  return token;
 }
 
 // トークンから、保存されていた共有文字列と閲覧専用フラグを取得する
