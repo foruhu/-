@@ -48,6 +48,10 @@ function applyCategoryColorToRow(tr, tag) {
 function onManeuverCategoryChange(selectElem) {
   const tr = selectElem.closest('tr');
   applyCategoryColorToRow(tr, selectElem.value);
+  // パーツは2段構成（1段目にカテゴリ選択、2段目に効果メモ）なので、2段目にも同じ色を反映する
+  if (tr.classList.contains('part-row') && tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
+    applyCategoryColorToRow(tr.nextElementSibling, selectElem.value);
+  }
   markDirty();
 }
 
@@ -57,12 +61,16 @@ function onManeuverMemoInput(textarea, tagSelectorClass) {
   calcActionValue();
   const tr = textarea.closest('tr');
   if (!tr) return;
-  const tagSelect = tr.querySelector(tagSelectorClass);
+  // パーツの効果メモは2段目にあるため、カテゴリ選択がある1段目を別途探す（スキルは同じ行にある）
+  const tagRow = tr.querySelector(tagSelectorClass) ? tr : tr.previousElementSibling;
+  if (!tagRow) return;
+  const tagSelect = tagRow.querySelector(tagSelectorClass);
   if (tagSelect && !tagSelect.value) {
     const detected = detectCategoryFromMemo(textarea.value);
     if (detected) {
       tagSelect.value = detected;
-      applyCategoryColorToRow(tr, detected);
+      applyCategoryColorToRow(tagRow, detected);
+      if (tagRow !== tr) applyCategoryColorToRow(tr, detected);
     }
   }
 }
@@ -112,7 +120,7 @@ function updateExtraPartOptions() {
 
   // 種別・レベルごとの現在の配置数を集計
   const currentCounts = { '武装': {1:0,2:0,3:0}, '変異': {1:0,2:0,3:0}, '改造': {1:0,2:0,3:0} };
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
+  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const type = tr.querySelector('.p-type')?.value;
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
     if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
@@ -175,11 +183,11 @@ function renderPartsContainer() {
         <table class="maneuver-table">
           <thead>
             <tr>
-              <th style="width:4%;">損</th><th style="width:4%;">使</th><th style="width:5%;" class="color-col">色</th><th style="width:8%;">配置部位</th>
-              <th style="width:12%;">パーツ名</th><th style="width:9%;">分類</th>
-              <th style="width:5%;">Lv</th><th style="width:7%;">タイミング</th>
-              <th style="width:6%;">コスト</th><th style="width:6%;">射程</th>
-              <th>効果メモ</th><th style="width:6%;" class="col-op">操作</th>
+              <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:6%;" class="color-col">色</th><th style="width:11%;">配置部位</th>
+              <th style="width:18%;">パーツ名</th><th style="width:13%;">分類</th>
+              <th style="width:7%;">Lv</th><th style="width:10%;">タイミング</th>
+              <th style="width:8%;">コスト</th><th style="width:8%;">射程</th>
+              <th style="width:9%;" class="col-op">操作</th>
             </tr>
           </thead>
           <tbody id="parts-tbody-${sec.id}"></tbody>
@@ -318,6 +326,7 @@ function onExtraPartSelect(secId, selectElem) {
 
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
   const tr = document.createElement('tr');
+  tr.className = 'part-row';
   const readOnlyAttr = isEditable ? '' : 'readonly';
   const disabledAttr = isEditable ? '' : 'disabled';
 
@@ -339,17 +348,24 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
     <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
-    <td><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')">${memo}</textarea></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
+
+  const memoTr = document.createElement('tr');
+  memoTr.className = 'part-memo-row';
+  memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  tbody.appendChild(memoTr);
+
   applyCategoryColorToRow(tr, tag);
+  applyCategoryColorToRow(memoTr, tag);
   markDirty();
   calcTotals();
 }
 
 function togglePartBreak(checkbox) {
   const tr = checkbox.closest('tr');
+  const memoTr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row') ? tr.nextElementSibling : null;
   const typeSelect = tr.querySelector('.p-type');
   const isTreasure = typeSelect && typeSelect.value === 'たからもの';
 
@@ -360,6 +376,7 @@ function togglePartBreak(checkbox) {
     checkbox.checked = true;
 
     const name = tr.querySelector('.p-name')?.value || 'たからもの';
+    if (memoTr) memoTr.remove();
     tr.remove();
     markDirty();
     calcTotals();
@@ -369,6 +386,7 @@ function togglePartBreak(checkbox) {
   }
 
   tr.classList.toggle('broken', checkbox.checked);
+  if (memoTr) memoTr.classList.toggle('broken', checkbox.checked);
   calcActionValue();
 }
 
@@ -392,10 +410,11 @@ function calcActionValue() {
 
   let bonus = 0;
   const contributions = [];
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
+  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const isBroken = tr.querySelector('.p-broken')?.checked;
     if (isBroken) return; // 損傷しているパーツの効果は反映しない
-    const memo = tr.querySelector('.p-memo')?.value || '';
+    const memoTr = tr.nextElementSibling;
+    const memo = (memoTr && memoTr.classList.contains('part-memo-row')) ? (memoTr.querySelector('.p-memo')?.value || '') : '';
     const partBonus = extractActionBonus(memo);
     if (partBonus !== 0) {
       const name = tr.querySelector('.p-name')?.value || '';
@@ -420,23 +439,36 @@ function calcActionValue() {
 }
 
 function togglePartUsed(checkbox) {
-  checkbox.closest('tr').classList.toggle('used', checkbox.checked);
+  const tr = checkbox.closest('tr');
+  tr.classList.toggle('used', checkbox.checked);
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
+    tr.nextElementSibling.classList.toggle('used', checkbox.checked);
+  }
 }
 
 function resetUsed() {
   pushUndoSnapshot();
   document.querySelectorAll('#parts-container tr input.p-broken').forEach(cb => {
     cb.checked = false;
-    cb.closest('tr').classList.remove('broken');
+    const tr = cb.closest('tr');
+    tr.classList.remove('broken');
+    if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
+      tr.nextElementSibling.classList.remove('broken');
+    }
   });
   markDirty();
+  calcActionValue();
 }
 
 function resetPartUsedFlags() {
   pushUndoSnapshot();
   document.querySelectorAll('#parts-container tr input.p-used').forEach(cb => {
     cb.checked = false;
-    cb.closest('tr').classList.remove('used');
+    const tr = cb.closest('tr');
+    tr.classList.remove('used');
+    if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
+      tr.nextElementSibling.classList.remove('used');
+    }
   });
   markDirty();
 }
