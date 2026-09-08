@@ -156,7 +156,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
-    <td><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
+    <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><input type="text" class="skill-timing" value="${timing}"></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
