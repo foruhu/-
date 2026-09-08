@@ -39,10 +39,12 @@ function getFullData() {
     });
   });
 
-  // パーツ
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
+  // パーツ（1つにつき「本体行(part-row)」＋「効果メモ行(part-memo-row)」の2段構成）
+  document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const name = tr.querySelector('.p-name')?.value;
     if (name) {
+      const memoTr = tr.nextElementSibling;
+      const memo = (memoTr && memoTr.classList.contains('part-memo-row')) ? (memoTr.querySelector('.p-memo')?.value || '') : '';
       data.parts.push({
         isBroken: tr.querySelector('.p-broken')?.checked || false,
         isUsed: tr.querySelector('.p-used')?.checked || false,
@@ -53,7 +55,7 @@ function getFullData() {
         timing: tr.querySelector('.p-timing')?.value || '',
         cost: tr.querySelector('.p-cost')?.value || '',
         range: tr.querySelector('.p-range')?.value || '',
-        memo: tr.querySelector('.p-memo')?.value || '',
+        memo: memo,
         isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly'),
         tag: tr.querySelector('.p-tag')?.value || ''
       });
@@ -392,7 +394,7 @@ function restorePartsFromData(parts) {
 
 // 追加したばかりの行（tbodyの最後の行）に損傷・使用チェックの状態を反映する
 function applyRowFlags(tbody, isBroken, isUsed) {
-  const rows = tbody.querySelectorAll('tr');
+  const rows = tbody.querySelectorAll('tr.part-row');
   const lastRow = rows[rows.length - 1];
   if (!lastRow) return;
   if (isBroken) {
