@@ -42,7 +42,13 @@ function undoLastAction() {
 function removeRowWithUndo(button, afterFn) {
   pushUndoSnapshot();
   const el = button.closest('tr, .treasure-entry, .memory-entry');
-  if (el) el.remove();
+  if (el) {
+    // パーツの本体行(part-row)を消す場合は、直後の効果メモ行(part-memo-row)も一緒に消す
+    if (el.classList.contains('part-row') && el.nextElementSibling && el.nextElementSibling.classList.contains('part-memo-row')) {
+      el.nextElementSibling.remove();
+    }
+    el.remove();
+  }
   markDirty();
   if (typeof afterFn === 'function') afterFn();
 }
