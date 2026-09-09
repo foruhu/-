@@ -40,7 +40,7 @@ function exportForHokanshoText() {
 
   text += `■ スキル\n`;
   document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
-    const category = tr.querySelector('input')?.value || '';
+    const category = tr.querySelector('.skill-category')?.value || '';
     const skillName = tr.querySelector('.skill-name-select')?.value || '';
     const timing = tr.querySelector('.skill-timing')?.value || '';
     const cost = tr.querySelector('.skill-cost')?.value || '';
@@ -357,6 +357,16 @@ async function exportShareURL() {
 // 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
 async function exportViewURL() {
   const data = getFullData();
+
+  // 選択中キャラクターにサムネイル画像が設定されていれば、閲覧用データに含めて相手にも見せる
+  const selectedId = document.getElementById('save-slot')?.value;
+  if (selectedId) {
+    const sheets = getSavedSheets();
+    if (sheets[selectedId] && sheets[selectedId].image) {
+      data.shareImage = sheets[selectedId].image;
+    }
+  }
+
   const json = JSON.stringify(data);
   let encoded;
   try {
@@ -445,6 +455,18 @@ function applyLoadedShareData(data, isViewOnly) {
     applyViewModeUI(true);
     try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
     isDirty = false;
+
+    // 送信側で設定されていたサムネイル画像があれば、閲覧画面の上部に表示する
+    const imageContainer = document.getElementById('view-mode-image-container');
+    if (imageContainer) {
+      if (data.shareImage) {
+        imageContainer.innerHTML = `<img src="${data.shareImage}" alt="">`;
+        imageContainer.style.display = '';
+      } else {
+        imageContainer.innerHTML = '';
+        imageContainer.style.display = 'none';
+      }
+    }
   } else {
     afterExternalLoad(data);
   }
