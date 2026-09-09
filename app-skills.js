@@ -119,7 +119,7 @@ function updateSkillOptions() {
   document.querySelectorAll('#skill-tbody tr').forEach(tr => {
     const select = tr.querySelector('.skill-name-select');
     if (!select) return;
-    const category = tr.querySelector('input')?.value || '';
+    const category = tr.querySelector('.skill-category')?.value || '';
     const currentValue = select.value;
 
     let optionsHtml = '<option value="">-- スキルを選択 --</option>';
@@ -150,16 +150,45 @@ function parseSkillMemo(memoText) {
   return { timing: '', cost: '', range: '', effect: text };
 }
 
-function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '', tag = '') {
+// スキルの「使用」チェックは、都度発生するタイミング（ジャッジ/ダメージ/ラピッド）の時だけ表示する
+// （オートなど常時効果のスキルは、損傷と違って使う/使わないの管理が不要なため）
+const SKILL_USED_CHECK_TIMINGS = ['ジャッジ', 'ダメージ', 'ラピッド'];
+
+function updateSkillUsedCheckboxVisibility(tr) {
+  if (!tr) return;
+  const timingInput = tr.querySelector('.skill-timing');
+  const usedCell = tr.querySelector('.skill-used-cell');
+  const usedCb = tr.querySelector('.skill-used');
+  if (!timingInput || !usedCell || !usedCb) return;
+
+  const shouldShow = SKILL_USED_CHECK_TIMINGS.includes((timingInput.value || '').trim());
+  usedCell.style.visibility = shouldShow ? 'visible' : 'hidden';
+  if (!shouldShow && usedCb.checked) {
+    usedCb.checked = false;
+    toggleSkillUsed(usedCb);
+  }
+}
+
+function toggleSkillUsed(checkbox) {
+  const tr = checkbox.closest('tr');
+  tr.classList.toggle('used', checkbox.checked);
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('skill-memo-row')) {
+    tr.nextElementSibling.classList.toggle('used', checkbox.checked);
+  }
+  markDirty();
+}
+
+function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '', tag = '', isUsed = false) {
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.className = 'skill-row';
   tr.innerHTML = `
-    <td><input type="text" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
+    <td class="skill-used-cell"><input type="checkbox" class="skill-used" onchange="toggleSkillUsed(this)"></td>
+    <td><input type="text" class="skill-category" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
-    <td><input type="text" class="skill-timing" value="${timing}"></td>
+    <td><input type="text" class="skill-timing" value="${timing}" oninput="updateSkillUsedCheckboxVisibility(this.closest('tr'))"></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
     <td><input type="text" class="skill-range" value="${range}"></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
@@ -168,12 +197,18 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'skill-memo-row';
-  memoTr.innerHTML = `<td colspan="7"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
   tbody.appendChild(memoTr);
 
   applyCategoryColorToRow(tr, tag);
   applyCategoryColorToRow(memoTr, tag);
   autoResizeTextarea(memoTr.querySelector('.skill-memo'));
+  updateSkillUsedCheckboxVisibility(tr);
+  if (isUsed) {
+    const cb = tr.querySelector('.skill-used');
+    cb.checked = true;
+    toggleSkillUsed(cb);
+  }
 
   // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
@@ -190,7 +225,7 @@ function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
   const tr = selectElem.closest('tr');
   const memoTr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('skill-memo-row') ? tr.nextElementSibling : null;
-  const category = tr.querySelector('input').value;
+  const category = tr.querySelector('.skill-category').value;
   const timingInput = tr.querySelector('.skill-timing');
   const costInput = tr.querySelector('.skill-cost');
   const rangeInput = tr.querySelector('.skill-range');
@@ -224,6 +259,7 @@ function onSkillSelect(selectElem) {
     }
   }
 
+  updateSkillUsedCheckboxVisibility(tr);
   updateSkillOptions();
   calcTotals();
 }
