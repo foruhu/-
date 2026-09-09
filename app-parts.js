@@ -193,8 +193,8 @@ function renderPartsContainer() {
           <thead>
             <tr>
               <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:6%;" class="color-col">色</th><th style="width:11%;">配置部位</th>
-              <th style="width:18%;">パーツ名</th><th style="width:13%;">分類</th>
-              <th style="width:7%;">Lv</th><th style="width:10%;">タイミング</th>
+              <th style="width:18%;">パーツ名</th><th style="width:9%;">分類</th>
+              <th style="width:6%;">Lv</th><th style="width:14%;">タイミング</th>
               <th style="width:8%;">コスト</th><th style="width:8%;">射程</th>
               <th style="width:9%;" class="col-op">操作</th>
             </tr>
@@ -364,6 +364,11 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   const memoTr = document.createElement('tr');
   memoTr.className = 'part-memo-row';
   memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  // 読み取り専用（カタログ由来）で効果メモが空のものは、書き込む予定も無いので2段目自体を隠して1段にする
+  if (!isEditable && !(memo || '').trim()) {
+    memoTr.style.display = 'none';
+    tr.classList.add('standalone-row'); // 2段目が無い分、1段目の下線を通常通り出す
+  }
   tbody.appendChild(memoTr);
 
   applyCategoryColorToRow(tr, tag);
@@ -477,6 +482,15 @@ function resetPartUsedFlags() {
     const tr = cb.closest('tr');
     tr.classList.remove('used');
     if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) {
+      tr.nextElementSibling.classList.remove('used');
+    }
+  });
+  // スキル側の使用チェックも一緒に解除する
+  document.querySelectorAll('#skill-tbody tr input.skill-used').forEach(cb => {
+    cb.checked = false;
+    const tr = cb.closest('tr');
+    tr.classList.remove('used');
+    if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('skill-memo-row')) {
       tr.nextElementSibling.classList.remove('used');
     }
   });
