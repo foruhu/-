@@ -17,6 +17,9 @@ function toggleViewMode() {
   } catch (e) {
     // 保存に失敗しても致命的ではない
   }
+  if (typeof autoResizeAllMemoTextareas === 'function') {
+    setTimeout(autoResizeAllMemoTextareas, 50);
+  }
 }
 
 window.onload = async function() {
@@ -39,6 +42,11 @@ window.onload = async function() {
   }
 
   isDirty = false; // ページを開いた直後はまだ何も編集していない状態にする
+
+  // レイアウト確定後にもう一度、効果メモ欄の高さを合わせ直す（初回描画時のズレ防止）
+  if (typeof autoResizeAllMemoTextareas === 'function') {
+    setTimeout(autoResizeAllMemoTextareas, 50);
+  }
 
   let savedViewMode = '0';
   try { savedViewMode = localStorage.getItem('necro_view_mode') || '0'; } catch (e) {}
