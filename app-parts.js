@@ -62,8 +62,21 @@ function onManeuverCategoryChange(selectElem) {
 function autoResizeTextarea(el) {
   if (!el) return;
   el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
+  // box-sizing:border-box のため、scrollHeight（内容+パディング分）にボーダー分を足さないと
+  // 実際の枠がわずかに足りず、文字が枠からはみ出したり下端が切れたりする
+  const cs = getComputedStyle(el);
+  const borderExtra = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+  el.style.height = (el.scrollHeight + borderExtra) + 'px';
 }
+
+// 画面の回転や横幅変更で列幅が変わると、必要な高さも変わるため全てのメモ欄を再計算する
+function autoResizeAllMemoTextareas() {
+  document.querySelectorAll('#parts-container .p-memo, #skill-tbody .skill-memo').forEach(autoResizeTextarea);
+}
+window.addEventListener('resize', () => {
+  clearTimeout(window.__memoResizeTimer);
+  window.__memoResizeTimer = setTimeout(autoResizeAllMemoTextareas, 150);
+});
 
 function onManeuverMemoInput(textarea, tagSelectorClass) {
   calcActionValue();
