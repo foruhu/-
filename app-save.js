@@ -31,13 +31,14 @@ function getFullData() {
     const memoTr = tr.nextElementSibling;
     const memo = (memoTr && memoTr.classList.contains('skill-memo-row')) ? (memoTr.querySelector('.skill-memo')?.value || '') : '';
     data.skills.push({
-      category: tr.querySelector('input')?.value || '',
+      category: tr.querySelector('.skill-category')?.value || '',
       name: tr.querySelector('.skill-name-select')?.value || '',
       timing: tr.querySelector('.skill-timing')?.value || '',
       cost: tr.querySelector('.skill-cost')?.value || '',
       range: tr.querySelector('.skill-range')?.value || '',
       memo: memo,
-      tag: tr.querySelector('.skill-tag')?.value || ''
+      tag: tr.querySelector('.skill-tag')?.value || '',
+      isUsed: tr.querySelector('.skill-used')?.checked || false
     });
   });
 
@@ -288,7 +289,7 @@ function applyData(data) {
           memo = parsed.timing || parsed.cost || parsed.range ? parsed.effect : memo;
         }
 
-        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '');
+        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed);
       });
     }
   }
