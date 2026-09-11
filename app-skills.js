@@ -197,7 +197,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'skill-memo-row';
-  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
   tbody.appendChild(memoTr);
 
   applyCategoryColorToRow(tr, tag);
