@@ -376,7 +376,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'part-memo-row';
-  memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" placeholder="効果メモ">${memo}</textarea></td>`;
+  memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
   // 読み取り専用（カタログ由来）で効果メモが空のものは、書き込む予定も無いので2段目自体を隠して1段にする
   if (!isEditable && !(memo || '').trim()) {
     memoTr.style.display = 'none';
