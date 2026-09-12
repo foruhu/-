@@ -150,4 +150,10 @@ body.view-mode th { color: #ddd; }
 .maneuver-table tr.part-row.standalone-row td { border-bottom: 1px solid var(--border); }
 /* 効果メモは内容に合わせて高さを自動調整するので、最低高さの指定を外し、余分な余白や手動リサイズも不要にする */
 .maneuver-table tr.part-memo-row textarea,
-.maneuver-table tr.skill-memo-row textarea { min-height: 0; resize: none; overflow-y: hidden; }
+.maneuver-table tr.skill-memo-row textarea {
+  min-height: 0;
+  resize: none;
+  overflow-y: hidden;
+  /* 対応ブラウザでは、JSの計算タイミングに頼らずブラウザ自身が内容の高さに自動追従してくれる */
+  field-sizing: content;
+}
