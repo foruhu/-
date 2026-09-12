@@ -98,13 +98,7 @@ body.view-mode textarea {
   border-color: transparent !important;
 }
 
-/* 効果メモ欄だけは、表示モードでも編集モードと同じ見た目（暗い背景＋枠線）を保つ */
-body.view-mode .p-memo,
-body.view-mode .skill-memo {
-  background: var(--input) !important;
-  border-color: var(--border) !important;
-}
-
+/* 効果メモ欄も、表示モードではパーツ名・分類などと同じく透明にして、行の色と一体化させる */
 body.view-mode input[type="radio"] { opacity: 0.85; }
 
 /* 損傷チェックだけはセッション中も操作できるよう残す */
