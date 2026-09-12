@@ -142,13 +142,9 @@ body.view-mode th { color: #ddd; }
   white-space: nowrap;
 }
 
-/* --- パーツ表：1段目（本体）と2段目（効果メモ）を1つのまとまりに見せる --- */
-.maneuver-table tr.part-row td,
-.maneuver-table tr.skill-row td { border-bottom: none; }
+/* --- パーツ表：1段目（本体）と2段目（効果メモ）の区切り線は、他の罫線と同じように表示する --- */
 .maneuver-table tr.part-memo-row td,
-.maneuver-table tr.skill-memo-row td { border-top: none; text-align: left; padding: 1px 3px 2px 3px; }
-/* 効果メモが空で2段目自体を隠している場合は、1段目の下線を通常に戻す */
-.maneuver-table tr.part-row.standalone-row td { border-bottom: 1px solid var(--border); }
+.maneuver-table tr.skill-memo-row td { text-align: left; padding: 1px 3px 2px 3px; }
 /* 効果メモは内容に合わせて高さを自動調整するので、最低高さの指定を外し、余分な余白や手動リサイズも不要にする */
 .maneuver-table tr.part-memo-row textarea,
 .maneuver-table tr.skill-memo-row textarea {
