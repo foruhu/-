@@ -154,3 +154,19 @@ body.view-mode th { color: #ddd; }
   /* 対応ブラウザでは、JSの計算タイミングに頼らずブラウザ自身が内容の高さに自動追従してくれる */
   field-sizing: content;
 }
+
+/* --- 効果メモが元々空のパーツ用：追加ボタン --- */
+.add-memo-btn {
+  display: block;
+  width: 100%;
+  padding: 3px 6px;
+  background: transparent;
+  color: #aaa;
+  border: 1px dashed rgba(255,255,255,0.3);
+  border-radius: 3px;
+  font-size: 0.68rem;
+  cursor: pointer;
+  text-align: left;
+}
+/* 表示モードでは、まだメモが追加されていない（ボタンが残ったままの）2段目は場所を取らないようにする */
+body.view-mode tr.part-memo-row:has(.add-memo-btn) { display: none; }
