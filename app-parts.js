@@ -78,6 +78,23 @@ window.addEventListener('resize', () => {
   window.__memoResizeTimer = setTimeout(autoResizeAllMemoTextareas, 150);
 });
 
+// 「+ 効果メモを追加」ボタンを押した時、畳んでいたメモ欄を実際に表示して入力できるようにする
+function revealPartMemo(button) {
+  const td = button.closest('td');
+  const textarea = td.querySelector('.p-memo');
+  const tr = button.closest('tr');
+  const partRow = tr.previousElementSibling;
+
+  button.remove(); // DOMから完全に取り除く（表示モードでの空欄自動非表示の判定に使うため）
+  textarea.style.display = '';
+  if (partRow && partRow.classList.contains('part-row')) {
+    partRow.classList.remove('standalone-row');
+  }
+  autoResizeTextarea(textarea);
+  textarea.focus();
+  markDirty();
+}
+
 function onManeuverMemoInput(textarea, tagSelectorClass) {
   calcActionValue();
   autoResizeTextarea(textarea);
@@ -376,11 +393,17 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'part-memo-row';
-  memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
-  // 読み取り専用（カタログ由来）で効果メモが空のものは、書き込む予定も無いので2段目自体を隠して1段にする
-  if (!isEditable && !(memo || '').trim()) {
-    memoTr.style.display = 'none';
-    tr.classList.add('standalone-row'); // 2段目が無い分、1段目の下線を通常通り出す
+  const memoHasContent = !!(memo || '').trim();
+  // 読み取り専用（カタログ由来）で効果メモが元々空のものは、初期状態では「+ 効果メモを追加」ボタンだけを見せ、
+  // 押した時だけ入力欄を出す（完全に隠すと後から書き足せなくなるため）
+  if (!isEditable && !memoHasContent) {
+    memoTr.innerHTML = `<td colspan="11">
+      <button type="button" class="add-memo-btn edit-only" onclick="revealPartMemo(this)">+ 効果メモを追加</button>
+      <textarea class="p-memo" style="display:none;" oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ"></textarea>
+    </td>`;
+    tr.classList.add('standalone-row'); // 2段目が畳まれている間は、1段目の下線を通常通り出す
+  } else {
+    memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
   }
   tbody.appendChild(memoTr);
 
