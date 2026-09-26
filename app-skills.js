@@ -26,7 +26,7 @@ function calcTotals() {
   if (document.getElementById('total-mut')) document.getElementById('total-mut').textContent = totals.mut;
   if (document.getElementById('total-cyb')) document.getElementById('total-cyb').textContent = totals.cyb;
 
-  const currentCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
+  const currentCounts = { 'æ­¦è£': {1:0, 2:0, 3:0}, 'å¤ç°': {1:0, 2:0, 3:0}, 'æ¹é ': {1:0, 2:0, 3:0} };
 
   document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const type = tr.querySelector('.p-type')?.value;
@@ -36,14 +36,14 @@ function calcTotals() {
     }
   });
 
-  // スキル選択状態を取得（「時計仕掛け」と「業躯」）
-  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '時計仕掛け');
-  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === '業躯');
+  // ã¹ã­ã«é¸æç¶æãåå¾ï¼ãæè¨ä»æããã¨ãæ¥­èº¯ãï¼
+  const hasClockwork = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === 'æè¨ä»æã');
+  const hasGouku = Array.from(document.querySelectorAll('#skill-tbody select')).some(s => s.value === 'æ¥­èº¯');
 
   const categories = [
-    { name: '武装', total: totals.wep, key: 'wep' },
-    { name: '変異', total: totals.mut, key: 'mut' },
-    { name: '改造', total: totals.cyb, key: 'cyb' }
+    { name: 'æ­¦è£', total: totals.wep, key: 'wep' },
+    { name: 'å¤ç°', total: totals.mut, key: 'mut' },
+    { name: 'æ¹é ', total: totals.cyb, key: 'cyb' }
   ];
 
   const limitTbody = document.getElementById('limit-tbody');
@@ -54,11 +54,11 @@ function calcTotals() {
     [1, 2, 3].forEach(lv => {
       const baseLimit = limit[`lv${lv}`] || 0;
 
-      // ボーナス適用判定：改造Lv3(時計仕掛け) または 変異Lv3(業躯)
+      // ãã¼ãã¹é©ç¨å¤å®ï¼æ¹é Lv3(æè¨ä»æã) ã¾ãã¯ å¤ç°Lv3(æ¥­èº¯)
       let autoBonus = 0;
-      if (cat.name === '改造' && lv === 3 && hasClockwork) {
+      if (cat.name === 'æ¹é ' && lv === 3 && hasClockwork) {
         autoBonus = 1;
-      } else if (cat.name === '変異' && lv === 3 && hasGouku) {
+      } else if (cat.name === 'å¤ç°' && lv === 3 && hasGouku) {
         autoBonus = 1;
       }
 
@@ -74,20 +74,24 @@ function calcTotals() {
         maxSpan.style.fontWeight = 'bold';
       }
 
-      let statusHtml = `<span style="color:#aaa;">${current}/${maxAllowed}</span>`;
-      if (current > maxAllowed) {
-        statusHtml = `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${current}/${maxAllowed})</span>`;
+      let statusHtml;
+      if (maxAllowed <= 0) {
+        statusHtml = `<span style="color:#666;">å¯¾è±¡å¤</span>`;
+      } else if (current > maxAllowed) {
+        statusHtml = `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">è¶é (${current}/${maxAllowed})</span>`;
       } else if (current > 0) {
         statusHtml = `<span class="limit-selected" style="color:#88ff88;">OK (${current}/${maxAllowed})</span>`;
+      } else {
+        statusHtml = `<span style="color:#f0c060; font-weight:bold;">æªåå¾ (0/${maxAllowed})</span>`;
       }
 
       if (limitTbody) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><b>${cat.name}</b> (総${cat.total})</td>
+          <td><b>${cat.name}</b> (ç·${cat.total})</td>
           <td>Lv ${lv}</td>
-          <td>${maxAllowed} 個</td>
-          <td><b>${current}</b> 個</td>
+          <td>${maxAllowed} å</td>
+          <td><b>${current}</b> å</td>
           <td>${statusHtml}</td>
         `;
         limitTbody.appendChild(tr);
@@ -122,12 +126,12 @@ function updateSkillOptions() {
     const category = tr.querySelector('.skill-category')?.value || '';
     const currentValue = select.value;
 
-    let optionsHtml = '<option value="">-- スキルを選択 --</option>';
+    let optionsHtml = '<option value="">-- ã¹ã­ã«ãé¸æ --</option>';
     if (typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
       SKILL_DATABASE[category].forEach(s => {
         const isSelectedByOther = selectedSkills.has(s.name) && s.name !== currentValue;
         const disabledAttr = isSelectedByOther ? 'disabled' : '';
-        const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
+        const labelText = isSelectedByOther ? `${s.name} (é¸ææ¸ã¿)` : s.name;
         optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
       });
     }
@@ -135,13 +139,13 @@ function updateSkillOptions() {
   });
 }
 
-// スキルDBのメモ文字列「【名前】 タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
-// スキルDBのメモ文字列「タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
-// （表記ゆれ対策として、先頭に「【名前】」や単独の「【」が残っている場合は取り除いてから解析する）
+// ã¹ã­ã«DBã®ã¡ã¢æå­åããååã ã¿ã¤ãã³ã°/ã³ã¹ã/å°ç¨\nå¹æ...ããã¿ã¤ãã³ã°ã»ã³ã¹ãã»å°ç¨ã»å¹ææ¬æã«åè§£ãã
+// ã¹ã­ã«DBã®ã¡ã¢æå­åãã¿ã¤ãã³ã°/ã³ã¹ã/å°ç¨\nå¹æ...ããã¿ã¤ãã³ã°ã»ã³ã¹ãã»å°ç¨ã»å¹ææ¬æã«åè§£ãã
+// ï¼è¡¨è¨ããå¯¾ç­ã¨ãã¦ãåé ­ã«ããååãããåç¬ã®ããããæ®ã£ã¦ããå ´åã¯åãé¤ãã¦ããè§£æããï¼
 function parseSkillMemo(memoText) {
   let text = memoText || '';
-  text = text.replace(/^【[^】]*】\s*/, ''); // 「【名前】」がまだ付いている旧形式
-  text = text.replace(/^【\s*/, '');          // 「【」だけが残ってしまっている表記ゆれ
+  text = text.replace(/^ã[^ã]*ã\s*/, ''); // ããååãããã¾ã ä»ãã¦ããæ§å½¢å¼
+  text = text.replace(/^ã\s*/, '');          // ãããã ããæ®ã£ã¦ãã¾ã£ã¦ããè¡¨è¨ãã
 
   const match = text.match(/^([^\/\n]+)\/([^\/\n]+)\/([^\/\n]+)\n?([\s\S]*)$/);
   if (match) {
@@ -150,9 +154,32 @@ function parseSkillMemo(memoText) {
   return { timing: '', cost: '', range: '', effect: text };
 }
 
-// スキルの「使用」チェックは、都度発生するタイミング（ジャッジ/ダメージ/ラピッド）の時だけ表示する
-// （オートなど常時効果のスキルは、損傷と違って使う/使わないの管理が不要なため）
-const SKILL_USED_CHECK_TIMINGS = ['ジャッジ', 'ダメージ', 'ラピッド'];
+// ã¹ã­ã«ã®ãä½¿ç¨ããã§ãã¯ã¯ãé½åº¦çºçããã¿ã¤ãã³ã°ï¼ã¸ã£ãã¸/ãã¡ã¼ã¸/ã©ãããï¼ã®æã ãè¡¨ç¤ºãã
+// ï¼ãªã¼ããªã©å¸¸æå¹æã®ã¹ã­ã«ã¯ãæå·ã¨éã£ã¦ä½¿ã/ä½¿ããªãã®ç®¡çãä¸è¦ãªããï¼
+const SKILL_USED_CHECK_TIMINGS = ['ã¸ã£ãã¸', 'ãã¡ã¼ã¸', 'ã©ããã'];
+
+// ã¿ã¤ãã³ã°ã¯åºæ¬çã«ãã®ä¸­ããé¸ã¶ï¼ä¿å­ãã¼ã¿ç­ã«ç¡ãå¤ãæ¥ãå ´åã¯ãé¸æè¢ã¸ãã®å ´ã§è¿½å ãã¦å¤±ãããªãããã«ããï¼
+const SKILL_TIMING_OPTIONS = ['', 'ãªã¼ã', 'ã¢ã¯ã·ã§ã³', 'ã¸ã£ãã¸', 'ãã¡ã¼ã¸', 'ã©ããã', 'åç§'];
+
+function buildTimingOptionsHtml(selected) {
+  const options = SKILL_TIMING_OPTIONS.includes(selected) || !selected
+    ? SKILL_TIMING_OPTIONS
+    : [...SKILL_TIMING_OPTIONS, selected]; // æªç¥ã®å¤ã¯é¸æè¢ã®æå¾ã«è¿½å ãã¦ä¿æãã
+  return options.map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${t || 'ï¼æªé¸æï¼'}</option>`).join('');
+}
+
+// æ¢å­ã®selectã«ç¡ãå¤ãã»ãããããæããã®å ´ã§é¸æè¢ã¸è¿½å ãã¦ããå¤ãåæ ãã
+function setTimingSelectValue(selectEl, value) {
+  if (!selectEl) return;
+  const hasOption = Array.from(selectEl.options).some(o => o.value === value);
+  if (!hasOption && value) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    selectEl.appendChild(opt);
+  }
+  selectEl.value = value;
+}
 
 function updateSkillUsedCheckboxVisibility(tr) {
   if (!tr) return;
@@ -187,8 +214,8 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td class="skill-used-cell"><input type="checkbox" class="skill-used" onchange="toggleSkillUsed(this)"></td>
     <td><input type="text" class="skill-category" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
-    <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
-    <td><input type="text" class="skill-timing" value="${timing}" oninput="updateSkillUsedCheckboxVisibility(this.closest('tr'))"></td>
+    <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- ã¹ã­ã«ãé¸æ --</option></select></td>
+    <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" class="skill-cost" value="${cost}"></td>
     <td><input type="text" class="skill-range" value="${range}"></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
@@ -197,7 +224,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'skill-memo-row';
-  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
+  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="å¹æã¡ã¢">${memo}</textarea></td>`;
   tbody.appendChild(memoTr);
 
   applyCategoryColorToRow(tr, tag);
@@ -210,7 +237,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     toggleSkillUsed(cb);
   }
 
-  // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
+  // é¸æè¢ä¸è¦§ãåã«çæãã¦ããå¤ãã»ããããï¼é åºãéã«ããã¨ä¿å­ãã¼ã¿ã®é¸æç¶æãå¾©åãããªãï¼
   updateSkillOptions();
   if (skillName) tr.querySelector('.skill-name-select').value = skillName;
   markDirty();
@@ -233,7 +260,7 @@ function onSkillSelect(selectElem) {
   const tagSelect = tr.querySelector('.skill-tag');
 
   if (!skillName) {
-    if (timingInput) timingInput.value = '';
+    if (timingInput) setTimingSelectValue(timingInput, '');
     if (costInput) costInput.value = '';
     if (rangeInput) rangeInput.value = '';
     if (textarea) { textarea.value = ''; autoResizeTextarea(textarea); }
@@ -246,7 +273,7 @@ function onSkillSelect(selectElem) {
     const found = SKILL_DATABASE[category].find(s => s.name === skillName);
     if (found) {
       const parsed = parseSkillMemo(found.memo);
-      if (timingInput) timingInput.value = parsed.timing;
+      if (timingInput) setTimingSelectValue(timingInput, parsed.timing);
       if (costInput) costInput.value = parsed.cost;
       if (rangeInput) rangeInput.value = parsed.range;
       if (textarea) { textarea.value = parsed.effect; autoResizeTextarea(textarea); }
@@ -264,7 +291,7 @@ function onSkillSelect(selectElem) {
   calcTotals();
 }
 
-// --- 1. セッション履歴（獲得）の行追加 ---
+// --- 1. ã»ãã·ã§ã³å±¥æ­´ï¼ç²å¾ï¼ã®è¡è¿½å  ---
 function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = '') {
   const tbody = document.getElementById('session-history-tbody');
   if (!tbody) return;
@@ -272,7 +299,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-scenario" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="h-scenario" value="${scenario}" placeholder="ä¾: çãå²ãèè" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
       <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
@@ -281,7 +308,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
       <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-memo" value="${memo}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="h-memo" value="${memo}" placeholder="ä¾: 2026/05/10 éé" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
@@ -293,7 +320,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   calcChouaiTotals();
 }
 
-// --- 2. 寵愛点の使い道（消費）の行追加 ---
+// --- 2. å¯µæç¹ã®ä½¿ãéï¼æ¶è²»ï¼ã®è¡è¿½å  ---
 function addChouaiUseRow(used = 0, memo = '') {
   const tbody = document.getElementById('chouai-use-tbody');
   if (!tbody) return;
@@ -304,7 +331,7 @@ function addChouaiUseRow(used = 0, memo = '') {
       <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="use-memo" value="${memo}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="use-memo" value="${memo}" placeholder="ä¾: æ­¦è£åºæ¬å¤+1ãåºæ¬ãã¼ãä¿®å¾©" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
@@ -316,13 +343,13 @@ function addChouaiUseRow(used = 0, memo = '') {
   calcChouaiTotals();
 }
 
-// --- 3. 寵愛点計算処理 ---
+// --- 3. å¯µæç¹è¨ç®å¦ç ---
 function calcChouaiTotals() {
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
 
-  // 獲得寵愛の計算
+  // ç²å¾å¯µæã®è¨ç®
   document.querySelectorAll('#session-history-tbody .battle-pts').forEach(input => {
     totalBattle += parseInt(input.value, 10) || 0;
   });
@@ -330,7 +357,7 @@ function calcChouaiTotals() {
     totalPersonal += parseInt(input.value, 10) || 0;
   });
 
-  // 使用寵愛の計算
+  // ä½¿ç¨å¯µæã®è¨ç®
   document.querySelectorAll('#chouai-use-tbody .used-pts').forEach(input => {
     totalUsed += parseInt(input.value, 10) || 0;
   });
@@ -355,4 +382,4 @@ function calcChouaiTotals() {
   }
 }
 
-// --- 保存・読込 ---
+// --- ä¿å­ã»èª­è¾¼ ---
