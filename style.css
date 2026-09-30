@@ -168,4 +168,5 @@ body.view-mode th { color: #ddd; }
   cursor: pointer;
   text-align: left;
 }
-/* 表示モードでは、まだメモが追
+/* 表示モードでは、まだメモが追加されていない（ボタンが残ったままの）2段目は場所を取らないようにする */
+body.view-mode tr.part-memo-row:has(.add-memo-btn) { display: none; }
