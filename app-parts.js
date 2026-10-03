@@ -374,7 +374,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
 
   tr.innerHTML = `
     <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
-    <td><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
+    <td class="p-used-cell"><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
     <td class="color-col"><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
     <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
@@ -384,12 +384,13 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
       </select>
     </td>
     <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
-    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr}></td>
+    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr} oninput="updatePartUsedCheckboxVisibility(this.closest('tr'))"></td>
     <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
+  updatePartUsedCheckboxVisibility(tr);
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'part-memo-row';
@@ -487,6 +488,25 @@ function calcActionValue() {
   }
 
   return total;
+}
+
+// マニューバの「使用」チェックは、「オート」「アクション」の時は非表示にする
+// （常時効果や毎ターンの主行動は、損傷と違って使う/使わないの管理が不要なため）
+const PART_USED_HIDE_TIMINGS = ['オート', 'アクション'];
+
+function updatePartUsedCheckboxVisibility(tr) {
+  if (!tr) return;
+  const timingInput = tr.querySelector('.p-timing');
+  const usedCell = tr.querySelector('.p-used-cell');
+  const usedCb = tr.querySelector('.p-used');
+  if (!timingInput || !usedCell || !usedCb) return;
+
+  const shouldHide = PART_USED_HIDE_TIMINGS.includes((timingInput.value || '').trim());
+  usedCell.style.visibility = shouldHide ? 'hidden' : 'visible';
+  if (shouldHide && usedCb.checked) {
+    usedCb.checked = false;
+    togglePartUsed(usedCb);
+  }
 }
 
 function togglePartUsed(checkbox) {
