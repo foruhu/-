@@ -12,9 +12,11 @@ h1 { text-align: center; color: #f0a0a0; font-size: 1.4rem; margin: 0 0 12px 0; 
 .part-header .val { font-size: .75rem; color: #ddd; font-weight: normal; }
 .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
 label { display: block; font-size: .75rem; color: #aaa; margin-bottom: 2px; }
-input, select, textarea { width: 100%; padding: 5px; border: 1px solid var(--border); border-radius: 3px; background: var(--input); color: #fff; font-size: .85rem; font-family: sans-serif; text-align: center; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { width: 100%; padding: 5px; border: 1px solid var(--border); border-radius: 3px; background: var(--input); color: #fff; font-size: .85rem; font-family: sans-serif; text-align: center; }
 input[type="text"] { text-align: left; }
 textarea { text-align: left; resize: vertical; }
+/* チェックボックスは背景色の指定を受けないようにし、見やすい色をはっきり指定する */
+input[type="checkbox"] { width: auto; accent-color: #f0a0a0; background: #fff; }
 .table-scroll { width: 100%; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; margin-top: 4px; min-width: 100%; }
 th, td { border: 1px solid var(--border); padding: 4px 2px; text-align: center; font-size: .8rem; }
