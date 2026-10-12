@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -341,8 +341,17 @@
         <span class="icon">📥</span><span>共有コードから<br>読み込む</span>
       </button>
     </div>
+    <div class="action-btn-row">
+      <button type="button" class="action-btn c-green" onclick="exportAllCharactersBackup()">
+        <span class="icon">📦</span><span>全キャラを<br>バックアップ</span>
+      </button>
+      <button type="button" class="action-btn c-blue" onclick="document.getElementById('backup-file-input').click()">
+        <span class="icon">📂</span><span>バックアップ<br>から復元</span>
+      </button>
+    </div>
+    <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none" onchange="onBackupFileSelected(event)">
     <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。「閲覧用URL」は開くと自動的に表示モード(編集不可)になる専用のリンクです(相手のブラウザには保存されません)。「共有コード」は文字列をコピー&貼り付けする方式です。
+      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。「閲覧用URL」は開くと自動的に表示モード(編集不可)になる専用のリンクです(相手のブラウザには保存されません)。「共有コード」は文字列をコピー&貼り付けする方式です。「全キャラをバックアップ」は、保存済みの全キャラクターをまとめて1つのファイルに書き出します(機種変更やブラウザデータが消えた時の保険用です)。
     </div>
   </div>
 
@@ -422,12 +431,12 @@
   </div>
 </div>
 
-<script src="data.js?v=7"></script>
-<script src="app-core.js?v=7"></script>
-<script src="app-parts.js?v=7"></script>
-<script src="app-skills.js?v=7"></script>
-<script src="app-save.js?v=7"></script>
-<script src="app-share.js?v=7"></script>
-<script src="app-main.js?v=7"></script>
+<script src="data.js?v=8"></script>
+<script src="app-core.js?v=8"></script>
+<script src="app-parts.js?v=8"></script>
+<script src="app-skills.js?v=8"></script>
+<script src="app-save.js?v=8"></script>
+<script src="app-share.js?v=8"></script>
+<script src="app-main.js?v=8"></script>
 </body>
 </html>
