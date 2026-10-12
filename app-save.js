@@ -242,6 +242,93 @@ function deleteSelectedSave() {
   alert('削除しました');
 }
 
+// ==========================================================
+// 全キャラクター一括バックアップ（保存済み全キャラを1ファイルに書き出し/読み込み）
+// ==========================================================
+function exportAllCharactersBackup() {
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets);
+  if (ids.length === 0) {
+    alert('保存済みキャラクターがありません');
+    return;
+  }
+
+  const backup = {
+    type: 'necronica_backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    sheets: sheets
+  };
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.download = `necronica_backup_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  alert(`${ids.length}件のキャラクターをバックアップファイルとして書き出しました`);
+}
+
+function onBackupFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const backup = JSON.parse(e.target.result);
+
+      let entriesToImport = null;
+      if (backup && backup.type === 'necronica_backup' && backup.sheets) {
+        entriesToImport = backup.sheets;
+      } else if (backup && typeof backup === 'object' && !Array.isArray(backup)) {
+        // 念のため、バックアップ形式そのものでなく保存データのオブジェクトが直接渡された場合も許容する
+        entriesToImport = backup;
+      }
+
+      if (!entriesToImport || typeof entriesToImport !== 'object') {
+        alert('バックアップファイルの形式が正しくありません');
+        return;
+      }
+
+      const importIds = Object.keys(entriesToImport).filter(id => entriesToImport[id] && entriesToImport[id].data);
+      if (importIds.length === 0) {
+        alert('バックアップファイルにキャラクターが含まれていませんでした');
+        return;
+      }
+
+      if (!confirm(`${importIds.length}件のキャラクターを読み込みます。\n今ブラウザに保存されているキャラクターはそのまま残り、バックアップの内容が新しいキャラクターとして追加されます（上書きはされません）。\n\nよろしいですか？`)) return;
+
+      const sheets = getSavedSheets();
+      importIds.forEach(oldId => {
+        const entry = entriesToImport[oldId];
+        const newId = 'char_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        sheets[newId] = {
+          name: entry.name || '(無名)',
+          pl: entry.pl || '',
+          savedAt: entry.savedAt || new Date().toISOString(),
+          image: entry.image || null,
+          data: entry.data
+        };
+      });
+
+      setSavedSheets(sheets);
+      refreshSaveSlotOptions();
+      alert(`${importIds.length}件のキャラクターを読み込みました`);
+    } catch (err) {
+      alert('バックアップファイルの読み込みに失敗しました。ファイルの中身が正しいか確認してください。\n' + err.message);
+    }
+  };
+  reader.onerror = function () {
+    alert('ファイルの読み込みに失敗しました');
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
