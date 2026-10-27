@@ -1,4 +1,4 @@
-:root {
+ :root {
   --bg: #0f0f12; --card: #18181c; --red: #8b0000;
   --text: #e0e0e0; --border: #3a3a42; --input: #222228; --header-bg: #1a1a20;
 }
@@ -39,6 +39,7 @@ button:hover { opacity: 0.9; }
 button.sec { background: #4a4a52; }
 button.del { background: #522; color: #f88; padding: 2px 6px; }
 .add-part-select { width: 100%; margin-top: 6px; padding: 6px; background: #25252d; color: #f0a0a0; border: 1px dashed var(--border); border-radius: 3px; font-size: .85rem; cursor: pointer; }
+.part-search-input { width: 100%; padding: 6px; background: #1c1c22; color: #ddd; border: 1px solid var(--border); border-radius: 3px; font-size: .8rem; text-align: left; }
 tr.broken input, tr.broken textarea { text-decoration: line-through; opacity: 0.5; }
 tr.used td { background: rgba(255, 220, 100, 0.07); }
 tr.used input:not([type="checkbox"]), tr.used textarea, tr.used select { opacity: 0.65; }
