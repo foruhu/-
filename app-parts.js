@@ -119,15 +119,27 @@ function getLimitByVal(val) {
   return LIMIT_TABLE_DATA[Math.min(val, 9) - 1];
 }
 
+// 各部位（頭部/腕部/胴部/脚部）の検索欄に今入力されている文字を覚えておく
+const partSearchTerms = { head: '', arm: '', body: '', leg: '' };
+
+// 検索欄に文字が入力されるたびに呼ばれ、絞り込みを再計算する
+function filterPartOptions(secId, term) {
+  partSearchTerms[secId] = term || '';
+  updateExtraPartOptions();
+}
+
 // オプションのHTML生成用ヘルパー関数（重複防止・共通化）
-function generateOptionGroup(list, remainingMap, prefix, label) {
+function generateOptionGroup(list, remainingMap, prefix, label, searchTerm) {
   let groupHtml = '';
+  const term = (searchTerm || '').trim();
   list.forEach((p, idx) => {
     const remaining = remainingMap[p.type]?.[p.level] ?? 0;
     const isExists = isPartAlreadyExists(p.name);
 
     // 種別・レベルの上限に達している（かつ未配置の）パーツは一覧に出さない
     if (remaining <= 0 && !isExists) return;
+    // 検索文字が入力されている場合は、名前に含まれないものを除外する
+    if (term && !p.name.includes(term)) return;
 
     const disabledAttr = isExists ? 'disabled' : '';
     const nameText = isExists ? `${p.name} (選択済み)` : p.name;
@@ -185,15 +197,17 @@ function updateExtraPartOptions() {
     const selectElem = secDiv ? secDiv.querySelector('.add-part-select') : null;
     if (!selectElem) return;
 
+    const term = partSearchTerms[sec.id] || '';
     let optionsHtml = `<option value="">+ 【${sec.title}】にパーツを選択して追加...</option>`;
 
     if (EXTRA_PARTS_DB[sec.id]) {
-      optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], remainingMap, sec.id, `【${sec.title}専用パーツ】`);
+      optionsHtml += generateOptionGroup(EXTRA_PARTS_DB[sec.id], remainingMap, sec.id, `【${sec.title}専用パーツ】`, term);
     }
     if (COMMON_EXTRA_PARTS.length > 0) {
-      optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, remainingMap, 'common', '【共通・汎用パーツ】');
+      optionsHtml += generateOptionGroup(COMMON_EXTRA_PARTS, remainingMap, 'common', '【共通・汎用パーツ】', term);
     }
 
+    // 検索中でも「自由入力枠」は常に選べるようにしておく
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
     selectElem.innerHTML = optionsHtml;
   });
@@ -232,8 +246,9 @@ function renderPartsContainer() {
           <tbody id="parts-tbody-${sec.id}"></tbody>
         </table>
       </div>
-      <div style="margin-top:6px;">
-        <select class="add-part-select edit-only" onchange="onExtraPartSelect('${sec.id}', this)">
+      <div style="margin-top:6px;" class="edit-only">
+        <input type="text" class="part-search-input" placeholder="🔍 パーツ名で検索..." oninput="filterPartOptions('${sec.id}', this.value)">
+        <select class="add-part-select" onchange="onExtraPartSelect('${sec.id}', this)" style="margin-top:4px;">
           <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
         </select>
       </div>
