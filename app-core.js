@@ -218,6 +218,20 @@ function closeCharSwitcher() {
   if (overlay) overlay.style.display = 'none';
 }
 
+// README（使い方）画面の開閉
+function openHelp() {
+  const overlay = document.getElementById('help-overlay');
+  if (overlay) {
+    overlay.style.display = 'block';
+    overlay.scrollTop = 0;
+  }
+}
+
+function closeHelp() {
+  const overlay = document.getElementById('help-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
 function renderCharSwitcherCards() {
   const container = document.getElementById('char-switch-cards');
   if (!container) return;
