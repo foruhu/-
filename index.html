@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -395,8 +395,8 @@
   border: 1.5px solid #8b0000;
 ">🔒 表示</button>
 
-<!-- 右下固定：README.mdへ移動するボタン -->
-<a href="./README.md" target="_blank" rel="noopener noreferrer" style="
+<!-- 右下固定：README（使い方）をアプリ内で開くボタン -->
+<button type="button" onclick="openHelp()" style="
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -405,7 +405,6 @@
   border: 1px solid #555;
   padding: 8px 14px;
   border-radius: 20px;
-  text-decoration: none;
   font-size: 0.85rem;
   box-shadow: 0 4px 10px rgba(0,0,0,0.6);
   z-index: 9999;
@@ -413,9 +412,67 @@
   align-items: center;
   gap: 4px;
   font-weight: bold;
-">
-  📜 使い方を見る
-</a>
+  cursor: pointer;
+  font-family: sans-serif;
+">📜 README</button>
+
+<!-- README（使い方）オーバーレイ -->
+<div id="help-overlay" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
+  z-index:10002; padding:16px; overflow-y:auto;
+" onclick="if(event.target===this) closeHelp()">
+  <div style="max-width:560px; margin:20px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:14px 16px 18px; box-shadow:0 8px 24px rgba(0,0,0,0.7); font-family:sans-serif; font-size:0.82rem; line-height:1.6; color:#ddd;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="color:#f0a0a0; font-weight:bold; font-size:1.05rem;">README（使い方）</span>
+      <button type="button" onclick="closeHelp()" style="background:none;border:none;color:#aaa;font-size:1.3rem;cursor:pointer;line-height:1;">✕</button>
+    </div>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ 基本の入力</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>ポジション・メインクラス・サブクラスを選ぶと、武装・変異・改造のパーツ配置上限が自動計算されます。</li>
+      <li>「ボーナス」は武装・変異・改造のいずれか1つに+1です。寵愛による修正は手入力で加算します。</li>
+      <li>最大行動値は「基本行動値＋損傷していないパーツの『最大行動値+N』」で自動計算されます(内訳も表示)。</li>
+    </ul>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ スキル</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>「+ ポジション / メインクラス / サブクラス」で行を追加し、スキル名を選ぶとタイミング・コスト・射程・効果が入ります。</li>
+      <li>タイミングが「ジャッジ・ダメージ・ラピッド」のスキルだけ、「使」チェックが出ます。</li>
+      <li>「時計仕掛け」「業躯」を選ぶと、Lv3の追加枠が自動で+1されます。</li>
+    </ul>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ マニューバ(パーツ)</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>各部位の「+ パーツを選択して追加」から選びます。上限に達した種別・レベルは候補に出ません。</li>
+      <li>「損」を付けるとそのパーツの『最大行動値+N』が行動値から引かれます。「使」は使用済みの目印です(タイミングが「オート」「アクション」のパーツには出ません)。</li>
+      <li>「色」でカテゴリを選ぶと行が色分けされます。効果メモの内容から自動で判定もします。</li>
+      <li>効果メモが空のパーツは「+ 効果メモを追加」で書き足せます。</li>
+      <li>「たからもの」を損傷にすると、所持パーツから取り除かれます。</li>
+    </ul>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ たからもの・未練・寵愛点</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>「たからもの」は枠を追加し、「パーツとして配置」で好きな部位に置けます。</li>
+      <li>寵愛点は、セッション履歴(獲得)と使い道の記録から、残りを自動集計します。</li>
+    </ul>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ 保存・切り替え</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>データはこのブラウザの中に保存されます。「💾 保存」で保存し、カードを選んで保存すると上書きになります。</li>
+      <li>未保存の変更は一定時間ごとに自動保存されます。「↩️ 元に戻す」で直前の削除などを戻せます。</li>
+      <li>「🔄 切替」で保存済みキャラを一覧から切り替えられます。</li>
+      <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
+    </ul>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ 共有・バックアップ</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>「共有URLを作成」: 相手が開くとキャラが読み込まれます。「閲覧用URLを作成」: 相手の画面に編集不可で表示するだけのリンクです。</li>
+      <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
+      <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
+      <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
+    </ul>
+  </div>
+</div>
 
 <!-- キャラクター切替オーバーレイ -->
 <div id="char-switch-overlay" style="
@@ -431,12 +488,12 @@
   </div>
 </div>
 
-<script src="data.js?v=10"></script>
-<script src="app-core.js?v=10"></script>
-<script src="app-parts.js?v=10"></script>
-<script src="app-skills.js?v=10"></script>
-<script src="app-save.js?v=10"></script>
-<script src="app-share.js?v=10"></script>
-<script src="app-main.js?v=10"></script>
+<script src="data.js?v=11"></script>
+<script src="app-core.js?v=11"></script>
+<script src="app-parts.js?v=11"></script>
+<script src="app-skills.js?v=11"></script>
+<script src="app-save.js?v=11"></script>
+<script src="app-share.js?v=11"></script>
+<script src="app-main.js?v=11"></script>
 </body>
 </html>
