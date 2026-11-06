@@ -1,488 +1,393 @@
-function exportJSON() {
-  const data = getFullData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = (data.name || 'necro_character') + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
+// ==========================================================
+// 元に戻す（Undo）・未保存の変更検知・自動保存
+// ==========================================================
+let undoStack = [];
+const UNDO_LIMIT = 15;
+let isDirty = false;
+let autosaveTimer = null;
+const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
+
+function pushUndoSnapshot() {
+  try {
+    undoStack.push(JSON.stringify(getFullData()));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    updateUndoButtonState();
+  } catch (e) {
+    // 取得に失敗しても致命的ではないので握りつぶす
+  }
 }
 
-// --- キャラクター保管所・メモ貼り付け用テキスト出力 ---
-function exportForHokanshoText() {
-  const getVal = id => document.getElementById(id)?.value || '';
+function updateUndoButtonState() {
+  const btn = document.getElementById('undo-btn');
+  if (btn) btn.disabled = undoStack.length === 0;
+}
 
-  const name = getVal('name') || '無名';
-  const pl = getVal('pl') || '未設定';
-  const pos = getVal('pos');
-  const mc = getVal('mc');
-  const sc = getVal('sc');
-  const age = getVal('age');
-  const ps = getVal('ps');
+function undoLastAction() {
+  if (undoStack.length === 0) {
+    alert('これ以上元に戻せません');
+    return;
+  }
+  const prevJson = undoStack.pop();
+  updateUndoButtonState();
+  try {
+    const data = JSON.parse(prevJson);
+    applyData(data);
+    markDirty();
+  } catch (e) {
+    alert('元に戻す処理に失敗しました');
+  }
+}
 
-  let text = `【ドール名】${name}\n`;
-  text += `【PL名】${pl}\n`;
-  text += `【ポジション】${pos} / 【メイン】${mc} / 【サブ】${sc}\n`;
-  text += `【年齢】${age} / 【暗示】${ps}\n`;
-  text += `----------------------------------------\n`;
-
-  text += `■ たからもの\n`;
-  document.querySelectorAll('#treasure-list .treasure-entry').forEach(entry => {
-    const tName = entry.querySelector('.treasure-name')?.value || '';
-    const tContent = entry.querySelector('.treasure-content')?.value || '';
-    if (tName) {
-      text += `・${tName}${tContent ? '（' + tContent + '）' : ''}\n`;
+// パーツ／スキル／未練／履歴などの行削除ボタン共通処理（削除前にUndo用スナップショットを保存する）
+function removeRowWithUndo(button, afterFn) {
+  pushUndoSnapshot();
+  const el = button.closest('tr, .treasure-entry, .memory-entry');
+  if (el) {
+    // パーツ／スキルの本体行を消す場合は、直後の効果メモ行も一緒に消す
+    const nextEl = el.nextElementSibling;
+    if (nextEl && (nextEl.classList.contains('part-memo-row') || nextEl.classList.contains('skill-memo-row'))) {
+      nextEl.remove();
     }
+    el.remove();
+  }
+  markDirty();
+  if (typeof afterFn === 'function') afterFn();
+}
+
+function markDirty() {
+  isDirty = true;
+}
+
+function setupDirtyTracking() {
+  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input']);
+  document.addEventListener('input', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
   });
-
-  text += `----------------------------------------\n`;
-
-  text += `■ スキル\n`;
-  document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
-    const category = tr.querySelector('.skill-category')?.value || '';
-    const skillName = tr.querySelector('.skill-name-select')?.value || '';
-    const timing = tr.querySelector('.skill-timing')?.value || '';
-    const cost = tr.querySelector('.skill-cost')?.value || '';
-    const range = tr.querySelector('.skill-range')?.value || '';
-    const memoTr = tr.nextElementSibling;
-    const memo = (memoTr && memoTr.classList.contains('skill-memo-row')) ? (memoTr.querySelector('.skill-memo')?.value || '') : '';
-    const spec = [timing, cost, range].filter(Boolean).join('/');
-    if (skillName) {
-      text += `・[${category}] ${skillName}${spec ? ' (' + spec + ')' : ''} : ${memo}\n`;
-    }
-  });
-
-  text += `----------------------------------------\n`;
-
-  text += `■ 配置パーツ\n`;
-  document.querySelectorAll('#parts-container tr').forEach(tr => {
-    const pLoc = tr.querySelector('.p-location')?.value || '';
-    const pName = tr.querySelector('.p-name')?.value || '';
-    const pType = tr.querySelector('.p-type')?.value || '';
-    const pLv = tr.querySelector('.p-level')?.value || '';
-    const pTiming = tr.querySelector('.p-timing')?.value || '';
-    const pCost = tr.querySelector('.p-cost')?.value || '';
-    const pRange = tr.querySelector('.p-range')?.value || '';
-    const isBroken = tr.querySelector('.p-broken')?.checked;
-    const isUsed = tr.querySelector('.p-used')?.checked;
-
-    if (pName) {
-      const status = (isBroken ? '[破損] ' : '') + (isUsed ? '[使用済] ' : '');
-      text += `・${status}[${pLoc}] ${pName} (${pType}Lv${pLv}) / ${pTiming} / コスト:${pCost} / 射程:${pRange}\n`;
-    }
-  });
-
-  navigator.clipboard.writeText(text).then(() => {
-    alert('保管所・メモ貼り付け用のテキストをクリップボードにコピーしました！');
-  }).catch(err => {
-    alert('コピーに失敗しました: ' + err);
+  document.addEventListener('change', (e) => {
+    if (e.target && ignoreIds.has(e.target.id)) return;
+    isDirty = true;
   });
 }
 
-function exportCcfolia() {
-  const data = getFullData();
+window.addEventListener('beforeunload', function (e) {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
-  const actValue = parseInt(data.act, 10) || 0;
-  const currentChouaiEl = document.getElementById('current-chouai');
-  const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
+function formatTimeHM(d) {
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
 
-  const status = [
-    { label: '行動値', value: actValue, max: actValue },
-    { label: '寵愛点', value: currentChouai, max: currentChouai }
-  ];
+function updateAutosaveStatusText(text) {
+  const el = document.getElementById('autosave-status');
+  if (el) el.textContent = text;
+}
 
-  const params = [
-    { label: 'PL名', value: data.pl || '' },
-    { label: 'ポジション', value: data.pos || '' },
-    { label: 'メインクラス', value: data.mc || '' },
-    { label: 'サブクラス', value: data.sc || '' },
-    { label: '享年/外見', value: data.age || '' },
-    { label: '初期配置', value: data.ps || '' },
-    { label: '暗示', value: data.hint || '' },
-    { label: '記憶のカケラ', value: (data.memories || []).filter(Boolean).join('、') }
-  ].filter(p => p.value);
+function startAutosaveTimer() {
+  if (autosaveTimer) clearInterval(autosaveTimer);
+  autosaveTimer = setInterval(() => {
+    if (!isDirty) return;
+    performAutosave();
+  }, AUTOSAVE_INTERVAL_MS);
+}
 
-  const commandLines = [];
-  commandLines.push('■スキル');
-  (data.skills || []).forEach(s => {
-    if (!s.name) return;
-    const spec = [s.timing, s.cost && `コスト${s.cost}`, s.range && `射程${s.range}`].filter(Boolean).join('/');
-    const memo = (s.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`);
-  });
+// 未保存の変更を静かに自動保存する（選択中のキャラがあればそこへ上書き、無ければ専用の下書き枠へ）
+function performAutosave() {
+  try {
+    const data = getFullData();
+    const select = document.getElementById('save-slot');
+    const sheets = getSavedSheets();
+    let id = select ? select.value : '';
 
-  commandLines.push('');
-  commandLines.push('■マニューバ');
-  (data.parts || []).forEach(p => {
-    if (!p.name) return;
-    const spec = [p.timing, p.cost && `コスト${p.cost}`, p.range && `射程${p.range}`].filter(Boolean).join('/');
-    const memo = (p.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${p.name}】(${p.type}Lv${p.level}) ${spec}${memo ? ' ' + memo : ''}`);
-  });
-
-  const memoLines = [];
-  (data.treasures || []).forEach(t => {
-    if (t.name) memoLines.push(`たからもの: ${t.name}${t.content ? '（' + t.content + '）' : ''}`);
-  });
-  (data.list || []).forEach(l => {
-    if (l.target || l.emotion) {
-      memoLines.push(`未練[${l.target || '?'}] ${l.emotion || ''}（狂気点${l.madness || 0}）`);
+    if (id && sheets[id]) {
+      sheets[id] = { ...sheets[id], pl: data.pl || '', savedAt: new Date().toISOString(), data };
+    } else {
+      id = 'autosave_draft';
+      const existingImage = sheets[id] ? sheets[id].image : null;
+      sheets[id] = {
+        name: '（自動保存）' + (data.name || '下書き'),
+        pl: data.pl || '',
+        savedAt: new Date().toISOString(),
+        image: existingImage,
+        data: data
+      };
     }
-  });
 
-  const ccfoliaData = {
-    kind: 'character',
-    data: {
-      name: data.name || '(無名)',
-      initiative: actValue,
-      externalUrl: '',
-      iconUrl: '',
-      memo: memoLines.join('\n'),
-      status: status,
-      params: params,
-      commands: commandLines.join('\n')
-    }
-  };
+    setSavedSheets(sheets);
+    isDirty = false;
+    updateAutosaveStatusText('自動保存 ' + formatTimeHM(new Date()));
+    renderSaveCards(select ? select.value : '');
+  } catch (e) {
+    // 自動保存の失敗はアラートを出さず静かに諦める（次のタイミングで再試行される）
+  }
+}
 
-  const jsonText = JSON.stringify(ccfoliaData);
+// ==========================================================
+// 保存済みキャラクターのカード表示
+// ==========================================================
+function escapeHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
 
-  const finishCopy = () => {
-    alert('ココフォリア用のデータをクリップボードにコピーしました。\nココフォリアのルーム画面（盤面）に直接貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。\n\n※ファイルのドラッグ＆ドロップではなく「貼り付け」で読み込む形式です。');
-  };
+function updateSelectedActionsVisibility(selectedId) {
+  const el = document.getElementById('selected-actions');
+  if (el) el.style.display = selectedId ? '' : 'none';
+}
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(jsonText).then(finishCopy).catch(() => {
-      prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
-    });
+// 「出力・共有オプション」の折りたたみ表示を切り替える
+function toggleExportShareSection() {
+  const section = document.getElementById('export-share-section');
+  const toggleBtn = document.getElementById('export-share-toggle');
+  if (!section || !toggleBtn) return;
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? '' : 'none';
+  toggleBtn.textContent = isHidden ? '▲ 出力・共有オプションを隠す' : '▼ 出力・共有オプションを表示';
+}
+
+// 選択中キャラクターの画像を、表示モード時にページ最上部へ表示する
+function updateViewModeImage(selectedId) {
+  const container = document.getElementById('view-mode-image-container');
+  if (!container) return;
+
+  const sheets = getSavedSheets();
+  const entry = selectedId ? sheets[selectedId] : null;
+
+  if (entry && entry.image) {
+    container.innerHTML = `<img src="${entry.image}" alt="">`;
+    container.style.display = '';
   } else {
-    prompt('以下のデータをコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
+    container.innerHTML = '';
+    container.style.display = 'none';
   }
 }
 
-// --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
+function renderSaveCards(selectedId = '') {
+  const container = document.getElementById('save-cards');
+  if (!container) return;
 
-function afterExternalLoad(data) {
-  alert(`「${data.name || '(無名)'}」を読み込みました`);
-  if (confirm('このブラウザにもキャラクターとして保存しますか？\n（保存すると「保存済みキャラクター」からいつでも呼び出せます）')) {
-    saveData();
+  updateSelectedActionsVisibility(selectedId);
+  updateViewModeImage(selectedId);
+
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.78rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isSelected = id === selectedId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard('${id}')" data-id="${id}">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectSaveCard(id) {
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
+  renderSaveCards(id);
+}
+
+// ==========================================================
+// キャラクター切替オーバーレイ（画面上部のボタンからいつでも呼び出せる）
+// ==========================================================
+function openCharSwitcher() {
+  renderCharSwitcherCards();
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'block';
+}
+
+function closeCharSwitcher() {
+  const overlay = document.getElementById('char-switch-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// README（使い方）画面の開閉
+function openHelp() {
+  const overlay = document.getElementById('help-overlay');
+  if (overlay) {
+    overlay.style.display = 'block';
+    overlay.scrollTop = 0;
   }
 }
 
-function onJsonFileSelected(event) {
+function closeHelp() {
+  const overlay = document.getElementById('help-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderCharSwitcherCards() {
+  const container = document.getElementById('char-switch-cards');
+  if (!container) return;
+
+  const sheets = getSavedSheets();
+  const select = document.getElementById('save-slot');
+  const currentId = select ? select.value : '';
+  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.85rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+
+  container.innerHTML = ids.map(id => {
+    const s = sheets[id];
+    const isCurrent = id === currentId;
+    const thumbHtml = s.image
+      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    return `
+      <div class="save-card ${isCurrent ? 'selected' : ''}" onclick="quickSwitchToCharacter('${id}')">
+        ${thumbHtml}
+        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// カードをタップした瞬間に、選択だけでなく読み込みまで一気に行う（下までスクロールせずに切替できるようにする）
+function quickSwitchToCharacter(id) {
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return;
+
+  const select = document.getElementById('save-slot');
+  if (select) select.value = id;
+
+  pushUndoSnapshot(); // 切り替え前の編集内容を退避
+  applyData(entry.data);
+  isDirty = false;
+
+  closeCharSwitcher();
+  renderSaveCards(id);
+  alert(`「${entry.name}」に切り替えました`);
+}
+
+// ==========================================================
+// キャラクターの複製
+// ==========================================================
+function duplicateSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('複製するキャラクターをカードから選択してください');
+
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした');
+
+  const defaultName = (entry.name || '(無名)') + 'のコピー';
+  const newName = prompt('複製後の名前を入力してください', defaultName);
+  if (newName === null) return;
+
+  const newId = 'char_' + Date.now();
+  sheets[newId] = {
+    name: newName || defaultName,
+    pl: entry.pl || '',
+    savedAt: new Date().toISOString(),
+    image: entry.image || null,
+    data: JSON.parse(JSON.stringify(entry.data))
+  };
+
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions(newId);
+  alert(`「${newName || defaultName}」として複製しました`);
+}
+
+// ==========================================================
+// サムネイル画像の設定
+// ==========================================================
+function resizeImageToDataURL(file, maxDim = 160, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+        } else {
+          if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function onThumbFileSelected(event) {
   const file = event.target.files && event.target.files[0];
+  event.target.value = '';
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      pushUndoSnapshot(); // 読み込み前の状態を退避
-      applyData(data);
-      afterExternalLoad(data);
-    } catch (err) {
-      alert('JSONファイルの読み込みに失敗しました。ファイルの中身が正しいか確認してください。\n' + err.message);
-    }
-  };
-  reader.onerror = function () {
-    alert('ファイルの読み込みに失敗しました');
-  };
-  reader.readAsText(file);
-  event.target.value = ''; // 同じファイルを連続で選び直せるようにリセット
-}
-
-// ==========================================================
-// 共有データの圧縮・展開（gzip対応ブラウザなら大幅に短縮する）
-// ==========================================================
-
-// 文字列をgzip圧縮してURLセーフなbase64文字列にする
-async function compressToBase64(str) {
-  const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
-  const buffer = await new Response(stream).arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  bytes.forEach(b => { binary += String.fromCharCode(b); });
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-// compressToBase64で作った文字列を元の文字列に戻す
-async function decompressFromBase64(b64) {
-  let normalized = b64.replace(/-/g, '+').replace(/_/g, '/');
-  while (normalized.length % 4) normalized += '=';
-  const binary = atob(normalized);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  const buffer = await new Response(stream).arrayBuffer();
-  return new TextDecoder().decode(buffer);
-}
-
-// JSON文字列を共有用の符号化文字列にする。gzip圧縮に対応していればgz:、
-// 非対応環境ではraw:を先頭に付けて（圧縮なしの）従来方式にフォールバックする
-async function encodeShareString(json) {
-  if (typeof CompressionStream !== 'undefined') {
-    try {
-      return 'gz:' + await compressToBase64(json);
-    } catch (e) {
-      // 圧縮に失敗した場合は無圧縮方式にフォールバック
-    }
-  }
-  return 'raw:' + btoa(unescape(encodeURIComponent(json)));
-}
-
-// encodeShareStringで作った文字列をJSON文字列に戻す。
-// 先頭に印が無い場合は、以前のバージョン（無圧縮のbase64のみ）とみなす
-async function decodeShareString(encoded) {
-  if (encoded.startsWith('gz:')) {
-    return await decompressFromBase64(encoded.slice(3));
-  }
-  if (encoded.startsWith('raw:')) {
-    return decodeURIComponent(escape(atob(encoded.slice(4))));
-  }
-  // 旧バージョン（印の無い無圧縮base64）との互換
-  return decodeURIComponent(escape(atob(encoded)));
-}
-
-async function exportShareCode() {
-  const data = getFullData();
-  const json = JSON.stringify(data);
-  let encoded;
-  try {
-    encoded = await encodeShareString(json);
-  } catch (err) {
-    alert('共有コードの作成に失敗しました: ' + err.message);
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください（未保存の場合は先にブラウザに保存してください）');
     return;
   }
 
-  const finish = () => {
-    alert(`共有コードをクリップボードにコピーしました。（${encoded.length}文字）\n\nLINEやメモ帳などに貼り付けて他の端末に送り、そちらのページで「共有コードから読み込む」に貼り付けると復元できます。`);
-  };
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(encoded).then(finish).catch(() => {
-      prompt('自動コピーに失敗しました。以下のコードを手動でコピーしてください：', encoded);
-    });
-  } else {
-    prompt('以下のコードをコピーしてください：', encoded);
-  }
-}
-
-// ==========================================================
-// Supabase連携（短いトークン付きURLで共有するための保存先）
-// ==========================================================
-const SUPABASE_URL = 'https://mdasgxjuwrweoxndgdbm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kYXNneGp1d3J3ZW94bmRnZGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MTczNzksImV4cCI6MjEwMjI5MzM3OX0.gqOrziRFncLXP8YwUEGmOxmtCChJ1sPYQhGSvRdXkl8';
-
-// 圧縮済みの共有文字列をSupabaseに保存し、発行されたランダムトークン（推測されにくい文字列）を返す
-async function saveCharacterToSupabase(encodedPayload, viewOnly) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_character`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ p_payload: encodedPayload, p_view_only: !!viewOnly })
-  });
-  if (!res.ok) throw new Error('Supabaseへの保存に失敗しました（HTTP ' + res.status + '）');
-  const token = await res.json();
-  if (!token || typeof token !== 'string') throw new Error('Supabaseからの応答が不正です');
-  return token;
-}
-
-// トークンから、保存されていた共有文字列と閲覧専用フラグを取得する
-// （直接テーブルを読み取るのではなく、トークンが一致した場合のみ1件返す専用関数を経由する）
-async function loadCharacterFromSupabase(token) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_character_by_token`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ p_token: token })
-  });
-  if (!res.ok) throw new Error('Supabaseからの読み込みに失敗しました（HTTP ' + res.status + '）');
-  const rows = await res.json();
-  if (!rows || rows.length === 0) throw new Error('該当するデータが見つかりませんでした（削除されたか、URLが間違っている可能性があります）');
-  return rows[0];
-}
-
-// キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
-// まずSupabaseに保存して短いトークン付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
-async function exportShareURL() {
-  const data = getFullData();
-  const json = JSON.stringify(data);
-  let encoded;
-  try {
-    encoded = await encodeShareString(json);
-  } catch (err) {
-    alert('共有URLの作成に失敗しました: ' + err.message);
-    return;
-  }
-
-  let url;
-  try {
-    const token = await saveCharacterToSupabase(encoded, false);
-    url = location.origin + location.pathname + '#tok=' + token;
-  } catch (err) {
-    url = location.origin + location.pathname + '#share=' + encoded;
-  }
-
-  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート';
-
-  const copyFallback = () => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert(`共有URLをクリップボードにコピーしました。（${url.length}文字）\n\nLINEなどに貼り付けて送ると、相手がそのURLを開くだけで自動的にこのキャラクターが読み込まれます。`);
-      }).catch(() => {
-        prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
-      });
-    } else {
-      prompt('以下のURLをコピーしてください：', url);
-    }
-  };
-
-  if (navigator.share) {
-    navigator.share({ title: shareTitle, url: url }).catch(() => {
-      // 共有シートをキャンセルした場合などはクリップボードコピーにフォールバック
-      copyFallback();
-    });
-  } else {
-    copyFallback();
-  }
-}
-
-// キャラクターデータを「閲覧専用」で開けるURLを作成する。
-// 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
-async function exportViewURL() {
-  const data = getFullData();
-
-  // 選択中キャラクターにサムネイル画像が設定されていれば、閲覧用データに含めて相手にも見せる
-  const selectedId = document.getElementById('save-slot')?.value;
-  if (selectedId) {
+  resizeImageToDataURL(file).then(dataUrl => {
     const sheets = getSavedSheets();
-    if (sheets[selectedId] && sheets[selectedId].image) {
-      data.shareImage = sheets[selectedId].image;
-    }
-  }
+    if (!sheets[id]) return;
+    sheets[id].image = dataUrl;
+    setSavedSheets(sheets);
+    renderSaveCards(id);
+    alert('サムネイル画像を設定しました');
+  }).catch(err => {
+    alert('画像の設定に失敗しました: ' + (err && err.message ? err.message : err));
+  });
+}
 
-  const json = JSON.stringify(data);
-  let encoded;
-  try {
-    encoded = await encodeShareString(json);
-  } catch (err) {
-    alert('閲覧用URLの作成に失敗しました: ' + err.message);
+// 選択中のキャラクターのサムネイル画像を削除し、ノーイメージ（プレースホルダー）に戻す
+function clearSelectedThumbnail() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) {
+    alert('先に「保存済みキャラクター」のカードを選択してください');
     return;
   }
 
-  let url;
-  try {
-    const token = await saveCharacterToSupabase(encoded, true);
-    url = location.origin + location.pathname + '#tok=' + token;
-  } catch (err) {
-    url = location.origin + location.pathname + '#view=' + encoded;
-  }
+  const sheets = getSavedSheets();
+  if (!sheets[id]) return;
 
-  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート（閲覧用）';
-
-  const copyFallback = () => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert(`閲覧用URLをクリップボードにコピーしました。（${url.length}文字）\n\nこのURLを開くと、自動的に表示モード（編集不可）でこのキャラクターが表示されます。相手のブラウザには保存されません。`);
-      }).catch(() => {
-        prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください：', url);
-      });
-    } else {
-      prompt('以下のURLをコピーしてください：', url);
-    }
-  };
-
-  if (navigator.share) {
-    navigator.share({ title: shareTitle, url: url }).catch(() => {
-      copyFallback();
-    });
-  } else {
-    copyFallback();
-  }
-}
-
-// ページを開いた時にURLに共有データ（#tok=... または 従来形式の #share=.../#view=...）が含まれていれば自動で読み込む
-async function checkForSharedURLOnLoad() {
-  const hash = location.hash || '';
-
-  // 新形式：Supabase上のトークンを参照する短いURL（#tok=ランダム文字列）
-  const tokMatch = hash.match(/^#tok=([A-Za-z0-9]+)$/);
-  if (tokMatch) {
-    history.replaceState(null, '', location.pathname + location.search);
-    try {
-      const row = await loadCharacterFromSupabase(tokMatch[1]);
-      const json = await decodeShareString(row.payload);
-      const data = JSON.parse(json);
-      applyLoadedShareData(data, row.view_only);
-    } catch (err) {
-      alert('共有データの読み込みに失敗しました。\n' + err.message);
-    }
+  if (!sheets[id].image) {
+    alert('このキャラクターには画像が設定されていません');
     return;
   }
 
-  // 旧形式：URLにデータそのものを埋め込む方式（#share=... / #view=...）との互換
-  const match = hash.match(/^#(share|view)=(.+)$/);
-  if (!match) return;
+  if (!confirm('サムネイル画像を削除して、ノーイメージに戻します。よろしいですか？')) return;
 
-  const isViewOnly = match[1] === 'view';
-
-  // 再読み込み時に誤ってもう一度取り込まれないよう、先にURLから消しておく
-  history.replaceState(null, '', location.pathname + location.search);
-
-  try {
-    const encoded = decodeURIComponent(match[2]);
-    const json = await decodeShareString(encoded);
-    const data = JSON.parse(json);
-    applyLoadedShareData(data, isViewOnly);
-  } catch (err) {
-    alert('共有URLの読み込みに失敗しました。URLが正しいか確認してください。\n' + err.message);
-  }
+  sheets[id].image = null;
+  setSavedSheets(sheets);
+  renderSaveCards(id);
+  alert('画像を削除しました');
 }
 
-// 共有データを実際にシートへ反映する。閲覧用の場合はページ全体を使って表示し、
-// 自動的に表示モード（編集不可）にする。保存するか聞くこともしない
-function applyLoadedShareData(data, isViewOnly) {
-  pushUndoSnapshot();
-  applyData(data);
-
-  if (isViewOnly) {
-    applyViewModeUI(true);
-    try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
-    isDirty = false;
-
-    // 送信側で設定されていたサムネイル画像があれば、閲覧画面の上部に表示する
-    const imageContainer = document.getElementById('view-mode-image-container');
-    if (imageContainer) {
-      if (data.shareImage) {
-        imageContainer.innerHTML = `<img src="${data.shareImage}" alt="">`;
-        imageContainer.style.display = '';
-      } else {
-        imageContainer.innerHTML = '';
-        imageContainer.style.display = 'none';
-      }
-    }
-  } else {
-    afterExternalLoad(data);
-  }
-}
-
-async function importShareCode() {
-  const encoded = prompt('共有コードを貼り付けてください');
-  if (!encoded) return;
-
-  try {
-    const json = await decodeShareString(encoded.trim());
-    const data = JSON.parse(json);
-    pushUndoSnapshot(); // 読み込み前の状態を退避
-    applyData(data);
-    afterExternalLoad(data);
-  } catch (err) {
-    alert('共有コードの読み込みに失敗しました。コードが正しくコピーされているか確認してください。\n' + err.message);
-  }
-}
