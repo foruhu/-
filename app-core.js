@@ -94,31 +94,33 @@ function startAutosaveTimer() {
   }, AUTOSAVE_INTERVAL_MS);
 }
 
-// 未保存の変更を静かに自動保存する（選択中のキャラがあればそこへ上書き、無ければ専用の下書き枠へ）
+// 未保存の変更を下書き枠にだけ自動保存する。
+// 選択中のキャラクターへは上書きしない。「💾 保存」を押すまで、選択中のキャラの保存内容は変わらない。
+// 下書きには元になったキャラの id と名前を残す（draftOf / draftOfName）。
+// 下書き保存だけでは「保存」したことにならないが、閉じる前の警告が毎回出て煩わしくならないよう、
+// 下書きへ保存できたら isDirty は false にする。その代わり、状態表示で「下書き」であることを明示する。
 function performAutosave() {
   try {
     const data = getFullData();
     const select = document.getElementById('save-slot');
     const sheets = getSavedSheets();
-    let id = select ? select.value : '';
-
-    if (id && sheets[id]) {
-      sheets[id] = { ...sheets[id], pl: data.pl || '', savedAt: new Date().toISOString(), data };
-    } else {
-      id = 'autosave_draft';
-      const existingImage = sheets[id] ? sheets[id].image : null;
-      sheets[id] = {
-        name: '（自動保存）' + (data.name || '下書き'),
-        pl: data.pl || '',
-        savedAt: new Date().toISOString(),
-        image: existingImage,
-        data: data
-      };
-    }
+    const selectedId = select ? select.value : '';
+    const selectedEntry = selectedId ? sheets[selectedId] : null;
+    const id = 'autosave_draft';
+    const existingImage = sheets[id] ? sheets[id].image : null;
+    sheets[id] = {
+      name: '（自動保存）' + (data.name || '下書き'),
+      pl: data.pl || '',
+      savedAt: new Date().toISOString(),
+      image: existingImage,
+      draftOf: selectedId || '',
+      draftOfName: selectedEntry ? (selectedEntry.name || '') : '',
+      data: data
+    };
 
     setSavedSheets(sheets);
     isDirty = false;
-    updateAutosaveStatusText('自動保存 ' + formatTimeHM(new Date()));
+    updateAutosaveStatusText('自動保存（下書き） ' + formatTimeHM(new Date()));
     renderSaveCards(select ? select.value : '');
   } catch (e) {
     // 自動保存の失敗はアラートを出さず静かに諦める（次のタイミングで再試行される）
