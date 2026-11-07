@@ -489,528 +489,303 @@ async function importShareCode() {
 
 // ==========================================================
 // キャラクター保管所テキストの読み込み
-// （キャラクター保管所からコピーした全文を貼り付け、
-//  既存の getFullData / applyData 形式に変換して反映する。
-//  このブロックは app-share.js の末尾への追加のみで構成され、
-//  既存の関数は変更しない）
+// 保管所の「テキスト出力」を貼り付けて、キャラシに反映する
 // ==========================================================
+const HK_LOC_TO_SEC = { '頭': 'head', '腕': 'arm', '胴': 'body', '脚': 'leg', '足': 'leg' };
+const HK_SEC_TO_LOC = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+const HK_SKILL_SLOTS = { 'ポジション': 'pos', 'メインクラス': 'mc', 'サブクラス': 'sc' };
+const HK_SLOT_LABEL = { pos: 'ポジション', mc: 'メインクラス', sc: 'サブクラス' };
 
-// 全角数字・全角＋－を半角に正規化する
-// （コスト「０」「３」や効果メモの「最大行動値＋２」対策。
-//  変換しないと calcActionValue の extractActionBonus が拾えない）
-function hokanHalfwidth(str) {
-  return String(str || '')
-    .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-    .replace(/＋/g, '+')
-    .replace(/－/g, '-');
+// 全角数字を半角にする（「０」→「0」）
+function hkToHalf(str) {
+  return String(str == null ? '' : str).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
 }
 
-// パーツ名から data.js の種別・レベルを引く（見つからない場合は null）
-let hokanPartLookupCache = null;
-function hokanLookupPart(name) {
-  if (!hokanPartLookupCache) {
-    const map = new Map();
-    const addList = list => {
-      (list || []).forEach(p => {
-        if (p && p.name && !map.has(p.name)) {
-          map.set(p.name, { type: p.type, level: String(p.level) });
-        }
+// 先頭から最大n個の区切り（「:」または「：」。前後の空白は無視）で分割し、残りを最後の要素にする。
+// 項目が空（「 : : 」）でも位置がずれないよう、空文字として残す
+function hkSplitFields(str, n) {
+  const out = [];
+  let rest = String(str || '');
+  for (let i = 0; i < n; i++) {
+    const m = rest.match(/\s*[:：]\s*/);
+    if (!m) break;
+    out.push(rest.slice(0, m.index));
+    rest = rest.slice(m.index + m[0].length);
+  }
+  out.push(rest);
+  return out.map(s => s.trim());
+}
+
+// 「最大行動値＋２」のような全角表記を、アプリの行動値計算が読める「最大行動値+2」にそろえる
+function hkNormalizeMemo(memo) {
+  return String(memo || '').replace(/最大行動値\s*[＋+]\s*([０-９0-9]+)/g, (m, n) => '最大行動値+' + hkToHalf(n));
+}
+
+// テキストを解析する（画面には触らない）
+function parseHokanshoText(raw) {
+  const r = {
+    fields: {}, memories: [], list: [], skills: [], parts: [],
+    enhanceLines: [], madnessNotes: [], unrecognized: [], recognized: 0
+  };
+  const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
+  let section = '';
+
+  lines.forEach(rawLine => {
+    const line = rawLine.replace(/　/g, ' ').trim();
+    if (!line) return;
+
+    // ■強化値■ のような区切り行
+    const head = line.match(/^■\s*([^■]+?)\s*■\s*(.*)$/) || line.match(/^■\s*([^■\s]+)\s*$/);
+    if (head) {
+      section = head[1];
+      if (head[2] && section === '強化値') r.enhanceLines.push(head[2]); // 区切りと同じ行に値が続く場合
+      return;
+    }
+
+    // [ラベル] で始まる行
+    const lab = line.match(/^[\[［【]\s*([^\]］】]+?)\s*[\]］】]\s*(.*)$/);
+    if (lab) {
+      const label = lab[1].trim();
+      const body = lab[2].trim();
+
+      if (label === '記憶のカケラ') {
+        const sp = body.match(/^(\S+)\s*(.*)$/);
+        if (!sp) { r.unrecognized.push(line); return; }
+        r.memories.push(sp[2] ? `${sp[1]}：${sp[2]}` : sp[1]);
+        r.recognized++;
+        return;
+      }
+
+      if (label === '未練') {
+        const m = body.match(/^(.*?)\s*への\s*(\S+)\s*([■□]*)\s*(.*)$/);
+        if (!m || !m[1]) { r.unrecognized.push(line); return; }
+        const madness = (m[3].match(/■/g) || []).length;
+        r.list.push({ target: m[1].trim(), emotion: m[2].trim(), madness: madness });
+        if (m[4]) r.madnessNotes.push(`${m[1].trim()}：${m[4]}`);
+        r.recognized++;
+        return;
+      }
+
+      if (HK_SKILL_SLOTS[label]) {
+        const f = hkSplitFields(body, 4);
+        if (!f[0]) { r.unrecognized.push(line); return; }
+        r.skills.push({
+          slot: HK_SKILL_SLOTS[label], name: f[0], timing: f[1] || '',
+          cost: hkToHalf(f[2] || ''), range: hkToHalf(f[3] || ''), memo: hkNormalizeMemo(f[4] || '')
+        });
+        r.recognized++;
+        return;
+      }
+
+      if (HK_LOC_TO_SEC[label]) {
+        const f = hkSplitFields(body, 4);
+        if (!f[0]) { r.unrecognized.push(line); return; }
+        r.parts.push({
+          sec: HK_LOC_TO_SEC[label], name: f[0], timing: f[1] || '',
+          cost: hkToHalf(f[2] || ''), range: hkToHalf(f[3] || ''), memo: hkNormalizeMemo(f[4] || '')
+        });
+        r.recognized++;
+        return;
+      }
+
+      r.unrecognized.push(line);
+      return;
+    }
+
+    // 「キー：値」の行
+    const kv = line.match(/^(タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示)\s*[:：]\s*(.*)$/);
+    if (kv) {
+      const key = kv[1], val = kv[2].trim();
+      if (key === 'キャラクター名' || key === '名前') r.fields.name = val;
+      else if (key === '享年') r.fields.age = val;
+      else if (key === 'ポジション') r.fields.pos = val;
+      else if (key === 'クラス') {
+        const cls = val.split(/\s*[\/／・]\s*/);
+        r.fields.mc = (cls[0] || '').trim();
+        r.fields.sc = (cls[1] || '').trim();
+      }
+      else if (key === '初期配置') r.fields.ps = val;
+      else if (key === '行動値') r.fields.act = parseInt(hkToHalf(val), 10);
+      else if (key === '暗示') r.fields.hint = val;
+      if (key !== 'タイトル') r.recognized++;
+      return;
+    }
+
+    // ■強化値■ の中の行は、後で計算結果との比較に使う
+    if (section === '強化値' && /武装|変異|改造/.test(line)) { r.enhanceLines.push(line); return; }
+
+    r.unrecognized.push(line);
+  });
+
+  return r;
+}
+
+// 解析結果をキャラシに反映し、読み込み結果（件数・注意点）を返す
+function applyHokanshoParsed(p) {
+  const rep = {
+    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0,
+    unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
+    unrecognized: p.unrecognized.slice(), madnessNotes: p.madnessNotes.slice()
+  };
+
+  const data = getFullData(); // 保管所テキストに無い項目（PL名・寵愛・たからもの等）は今の内容を引き継ぐ
+  const selectHas = (id, v) => Array.from(document.getElementById(id).options).some(o => o.value === v);
+  const f = p.fields;
+
+  if (f.name) data.name = f.name;
+  if (f.age !== undefined) data.age = f.age;
+  if (f.hint !== undefined) data.hint = f.hint;
+  [['pos', 'ポジション'], ['mc', 'メインクラス'], ['sc', 'サブクラス'], ['ps', '初期配置']].forEach(([key, label]) => {
+    if (!f[key]) return;
+    if (selectHas(key, f[key])) data[key] = f[key];
+    else rep.notes.push(`${label}「${f[key]}」はこのシートの選択肢に無いため、今の設定のままにしました。`);
+  });
+
+  // スキル（区分＝ポジション/メインクラス/サブクラスの今の設定）
+  data.skills = p.skills.map(s => {
+    const category = data[s.slot];
+    const known = typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category] && SKILL_DATABASE[category].some(x => x.name === s.name);
+    if (!known) rep.customSkills.push(`${HK_SLOT_LABEL[s.slot]}「${s.name}」`);
+    rep.skills++;
+    return { category: category, name: s.name, timing: s.timing, cost: s.cost, range: s.range, memo: s.memo, tag: detectCategoryFromMemo(s.memo), isUsed: false };
+  });
+
+  // パーツ：基本パーツは常に自動配置されるので数えるだけ。それ以外はdata.jsと名前で照合して種別・Lvを補う
+  const baseNames = new Set(Object.values(DEFAULT_PARTS).flat().map(b => b.name));
+  const findCatalog = (name, sec) => {
+    return (EXTRA_PARTS_DB[sec] || []).find(x => x.name === name)
+      || COMMON_EXTRA_PARTS.find(x => x.name === name)
+      || Object.values(EXTRA_PARTS_DB).flat().find(x => x.name === name)
+      || null;
+  };
+  data.parts = [];
+  p.parts.forEach(pt => {
+    if (baseNames.has(pt.name)) { rep.partsBase++; return; }
+    const hit = findCatalog(pt.name, pt.sec);
+    let type, level, editable;
+    if (hit) {
+      type = hit.type; level = hit.level; editable = false;
+    } else {
+      // 見つからないもの：「狂気点を回復」とあれば たからもの、それ以外は種別・Lvが分からないので仮置きにして知らせる
+      editable = true;
+      if (/狂気点.{0,6}回復/.test(pt.memo)) { type = 'たからもの'; level = ''; }
+      else { type = '武装'; level = ''; }
+      rep.unmatchedParts.push({
+        loc: HK_SEC_TO_LOC[pt.sec], name: pt.name,
+        assumed: type === 'たからもの' ? '種別を「たからもの」として配置' : '種別を仮に「武装」・Lvを空欄で配置（種別とLvを確認してください）'
       });
-    };
-    if (typeof DEFAULT_PARTS !== 'undefined') {
-      Object.values(DEFAULT_PARTS).forEach(addList);
     }
-    if (typeof EXTRA_PARTS_DB !== 'undefined') {
-      Object.values(EXTRA_PARTS_DB).forEach(addList);
-    }
-    if (typeof COMMON_EXTRA_PARTS !== 'undefined') {
-      addList(COMMON_EXTRA_PARTS);
-    }
-    hokanPartLookupCache = map;
-  }
-  return hokanPartLookupCache.get(name) || null;
-}
-
-// 効果メモからタグを推測する（app-parts.js の detectCategoryFromMemo を再利用）
-function hokanDetectTag(memo) {
-  if (typeof detectCategoryFromMemo === 'function') {
-    return detectCategoryFromMemo(memo) || '';
-  }
-  return '';
-}
-
-// ---------------- パーサー ----------------
-// parseHokanshoText(text) は次の形を返す。
-// {
-//   name, pos, mc, sc, age, ps, hint,   // 基本情報（空文字の場合は反映しない）
-//   memories: ['名前：説明', ...],       // addMemoryEntry 形式の文字列
-//   list: [{target, emotion, madness}], // madness は ■ の数（文字列）
-//   skills: [{category, name, timing, cost, range, memo, tag, isUsed}],
-//   parts:  [{isBroken, isUsed, location, name, type, level, timing, cost, range, memo, isEditable, tag}],
-//   textAct: '10',                       // テキスト側の行動値（照合用、直接は反映しない）
-//   textEnhance: {wep, mut, cyb},        // テキスト側の強化値合計（照合用）
-//   textChouai: '15',                     // テキスト側の寵愛点（照合用、直接は反映しない）
-//   history: [{scenario, battle, personal, memo}], // セッション履歴（獲得）
-//   unmatched: [...], notes: [...],      // 補えなかったもの・備考（表示用）
-//   unparsed: [...]                       // 読み込めなかった行（表示用）
-// }
-function parseHokanshoText(text) {
-  const result = {
-    name: '', pos: '', mc: '', sc: '', age: '', ps: '', hint: '',
-    memories: [], list: [], skills: [], parts: [],
-    textAct: '', textEnhance: null, textChouai: '', history: [],
-    unmatched: [], notes: [], unparsed: []
-  };
-  if (!text || !String(text).trim()) return result;
-
-  const POS_OPTIONS = ['アリス', 'ホリック', 'オートマトン', 'ジャンク', 'コート', 'ソロリティ'];
-  const MC_OPTIONS = ['ロマネスク', 'ステーシー', 'タナトス', 'レクイエム', 'バロック', 'ホリック', 'ゴシック'];
-  const SC_OPTIONS = ['ステーシー', 'タナトス', 'ゴシック', 'レクイエム', 'バロック', 'ロマネスク'];
-  const PS_OPTIONS = ['煉獄', '花園', '楽園'];
-  const LOC_MAP = { '頭': '頭部', '腕': '腕部', '胴': '胴部', '脚': '脚部', '足': '脚部' };
-
-  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
-  let section = 'header';
-
-  // 選択肢にない値は書き込まず、報告だけする
-  const pick = (value, options, label) => {
-    if (!value) return '';
-    if (options.indexOf(value) !== -1) return value;
-    result.unmatched.push(label + '「' + value + '」は選択肢にないため、現在の設定のままにしました');
-    return '';
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) continue;
-
-    // ■区切り行でセクションを切り替える
-    if (line.indexOf('■') === 0) {
-      if (line.indexOf('強化値') !== -1) section = 'enhance';
-      else if (line.indexOf('マニューバ') !== -1) section = 'maneuver';
-      else if (line.indexOf('その他') !== -1) section = 'other';
-      else section = 'header'; // ■パーソナルデータ■ など
-      continue;
-    }
-
-    if (line.indexOf('[記憶のカケラ]') === 0) {
-      section = 'memory';
-      const rest = line.replace('[記憶のカケラ]', '').trim();
-      if (rest && rest !== '内容') {
-        result.memories.push(...parseHokanshoMemoryLine(rest));
-      }
-      continue;
-    }
-    if (line.indexOf('[未練]') === 0) {
-      section = 'mire';
-      continue; // 見出し行（内容 狂気度 発狂時）は読み飛ばす
-    }
-
-    if (section === 'memory') {
-      result.memories.push(...parseHokanshoMemoryLine(line));
-      continue;
-    }
-    if (section === 'mire') {
-      parseHokanshoMireLine(line, result);
-      continue;
-    }
-    if (section === 'enhance') {
-      parseHokanshoEnhanceLine(line, result);
-      continue;
-    }
-    if (section === 'maneuver') {
-      parseHokanshoManeuverLine(line, result, LOC_MAP);
-      continue;
-    }
-    if (section === 'other') {
-      parseHokanshoOtherLine(line, result);
-      continue;
-    }
-
-    parseHokanshoHeaderLine(line, result, POS_OPTIONS, MC_OPTIONS, SC_OPTIONS, PS_OPTIONS, pick);
-  }
-
-  // 基本パーツは DEFAULT_PARTS の並び順に揃える
-  // （applyData → restorePartsFromData が基本パーツを位置で対応付けるため）
-  sortHokanshoBasicParts(result.parts);
-
-  return result;
-}
-
-// 記憶のカケラ1行を「名前：説明」形式の文字列に変換する（0〜1件返す）
-function parseHokanshoMemoryLine(line) {
-  const m = line.match(/^(\S+?)[　 \t]{2,}(.+)$/);
-  if (m) return [m[1].trim() + '：' + m[2].trim()];
-  if (line) return [line.trim()];
-  return [];
-}
-
-// 未練1行を {target, emotion, madness} に変換する。発狂時は欄がないので備考に残す
-function parseHokanshoMireLine(line, result) {
-  const m = line.match(/^(.*?)\s*への\s*(.*?)\s*([■□]+)\s*(.*)$/);
-  if (!m) {
-    result.unparsed.push('未練：' + line);
-    return;
-  }
-  const madness = (m[3].match(/■/g) || []).length;
-  const target = (m[1] || '').trim();
-  const note = (m[4] || '').trim();
-  result.list.push({
-    target: target,
-    emotion: (m[2] || '').trim(),
-    madness: String(madness)
+    data.parts.push({
+      isBroken: false, isUsed: false, location: HK_SEC_TO_LOC[pt.sec], name: pt.name, type: type, level: String(level),
+      timing: pt.timing, cost: pt.cost, range: pt.range, memo: pt.memo, isEditable: editable, tag: detectCategoryFromMemo(pt.memo)
+    });
+    rep.partsExtra++;
   });
-  if (note && note !== '()') {
-    result.notes.push('未練「' + (target || '（無名）') + '」の発狂時「' + note + '」は反映先がないため表示のみです');
-  }
-}
 
-// 強化値セクションの1行。=合計= 行だけテキスト値として保持する（自動計算のため直接は反映しない）
-function parseHokanshoEnhanceLine(line, result) {
-  if (line.indexOf('=合計=') === -1) return;
-  const nums = line.match(/[０-９0-9]+/g);
-  if (!nums || nums.length < 3) return;
-  const vals = nums.map(n => parseInt(hokanHalfwidth(n), 10));
-  result.textEnhance = { wep: vals[0], mut: vals[1], cyb: vals[2] };
-}
+  data.memories = p.memories.slice();
+  rep.memories = p.memories.length;
+  data.list = p.list.map(x => ({ target: x.target, emotion: x.emotion, madness: String(x.madness) }));
+  rep.list = p.list.length;
 
-// マニューバ1行をスキルまたはパーツに変換する
-function parseHokanshoManeuverLine(line, result, LOC_MAP) {
-  const m = line.match(/^\[(.+?)\]\s*(.+)$/);
-  if (!m) {
-    result.unparsed.push('マニューバ：' + line);
-    return;
-  }
-  const locKey = m[1].trim();
-  const rest = m[2].trim();
-  const cols = rest.split(/[:：]/);
-  if (cols.length < 2) {
-    result.unparsed.push('マニューバ：' + line);
-    return;
-  }
-  const name = (cols[0] || '').trim();
-  if (!name || name === 'マニューバ名') return; // 見出し行
-  const timing = (cols[1] || '').trim();
-  if (timing === 'タイミング') return; // 見出し行の念のため
-  const cost = hokanHalfwidth((cols[2] || '').trim());
-  const range = hokanHalfwidth((cols[3] || '').trim());
-  const memo = hokanHalfwidth(cols.slice(4).join(':').trim());
+  applyData(data);
 
-  if (locKey === 'ポジション' || locKey === 'メインクラス' || locKey === 'サブクラス') {
-    const category = locKey === 'ポジション' ? result.pos
-      : locKey === 'メインクラス' ? result.mc : result.sc;
-    const skill = {
-      category: category || locKey, name, timing, cost, range, memo,
-      tag: '', isUsed: false
-    };
-    skill.tag = hokanDetectTag(memo);
-    result.skills.push(skill);
-    // スキル名がデータにないと、選択肢の再構築で名前が残らないため注意書きする
-    if (typeof SKILL_DATABASE !== 'undefined') {
-      const list = SKILL_DATABASE[skill.category];
-      if (!list || !list.some(s => s.name === name)) {
-        result.unmatched.push('スキル「' + name + '」は「' + skill.category + '」のスキル一覧にないため、名前が選択肢に反映されない場合があります');
-      }
-    }
-    return;
-  }
-
-  const location = LOC_MAP[locKey];
-  if (!location) {
-    result.unparsed.push('マニューバ：' + line);
-    return;
-  }
-  const found = hokanLookupPart(name);
-  let type = '武装';
-  let level = '1';
-  let isEditable = true;
-  if (found) {
-    type = found.type;
-    level = found.level;
-    isEditable = false;
-  } else {
-    result.unmatched.push('パーツ「' + name + '」は種別・レベルがデータにないため「武装Lv1（自由入力）」として取り込みました');
-  }
-  const part = {
-    isBroken: false, isUsed: false,
-    location, name, type, level,
-    timing, cost, range, memo,
-    isEditable, tag: ''
-  };
-  part.tag = hokanDetectTag(memo);
-  result.parts.push(part);
-}
-
-// その他セクションの1行。寵愛点は自動集計のため直接は反映せず、テキスト値として保持する。
-// 成長履歴はセッション履歴（獲得）に反映する。保管所側に戦闘/個人の区切りはないため合計を戦闘寵愛に入れる。
-// メモ末尾の数字（例：「武装３「ダイナマイト」10」の「10」）は消費点か判別できないため、使い道には振り分けずメモに残す。
-function parseHokanshoOtherLine(line, result) {
-  let m = line.match(/^寵愛点[:：]\s*([０-９0-9]+)/);
-  if (m) {
-    result.textChouai = hokanHalfwidth(m[1]);
-    return;
-  }
-  if (line.indexOf('成長履歴') === 0) return; // 「成長履歴：」の見出し行
-  if (line.indexOf('No.') === 0 && line.indexOf('獲得寵愛点') !== -1) return; // 表の見出し行
-
-  // 成長履歴の行（内訳あり）：No. 合計点(達成 / ボーナス / ピンゾロ) メモ
-  m = line.match(/^([０-９0-9]+)\s+([０-９0-9]+)点\s*\(([^)]*)\)\s*(.*)$/);
-  if (m) {
-    const no = hokanHalfwidth(m[1]);
-    const total = parseInt(hokanHalfwidth(m[2]), 10) || 0;
-    const inner = (m[3] || '').split('/').map(s => parseInt(hokanHalfwidth(s.trim()), 10) || 0);
-    const ach = inner[0] || 0, bon = inner[1] || 0, pin = inner[2] || 0;
-    const memoText = (m[4] || '').trim();
-    if (total === 0 && !memoText && ach === 0 && bon === 0 && pin === 0) return; // 0点で空欄の行は作らない
-    result.history.push({
-      scenario: 'No.' + no,
-      battle: total,
-      personal: 0,
-      memo: '達成 ' + ach + ' / ボーナス ' + bon + ' / ピンゾロ ' + pin + (memoText ? ' / ' + memoText : '')
-    });
-    hokanNoteHistoryOnce(result, memoText);
-    return;
-  }
-
-  // 成長履歴の行（() なしのフォールバック）：No. 合計点 メモ
-  m = line.match(/^([０-９0-9]+)\s+([０-９0-9]+)点\s*(.*)$/);
-  if (m) {
-    const no = hokanHalfwidth(m[1]);
-    const total = parseInt(hokanHalfwidth(m[2]), 10) || 0;
-    const memoText = (m[3] || '').trim();
-    if (total === 0 && !memoText) return; // 0点で空欄の行は作らない
-    result.history.push({
-      scenario: 'No.' + no,
-      battle: total,
-      personal: 0,
-      memo: '達成 0 / ボーナス 0 / ピンゾロ 0（内訳不明）' + (memoText ? ' / ' + memoText : '')
-    });
-    hokanNoteHistoryOnce(result, memoText);
-    return;
-  }
-  // その他の行（表の罫線など）は読み飛ばす
-}
-
-// 成長履歴の反映方法についての備考を一度だけ追加する
-function hokanNoteHistoryOnce(result, memoText) {
-  const note1 = '成長履歴は戦闘/個人の区切りがないため、合計を戦闘寵愛（獲得）に入れています';
-  if (result.notes.indexOf(note1) === -1) result.notes.push(note1);
-  if (memoText) {
-    const note2 = 'メモ末尾の数字（例：「武装３「ダイナマイト」10」の「10」）は消費点か判別できないため、使い道（消費）には自動で振り分けず、メモに残しています';
-    if (result.notes.indexOf(note2) === -1) result.notes.push(note2);
-  }
-}
-
-// ヘッダー（基本情報）セクションの1行
-function parseHokanshoHeaderLine(line, result, POS_OPTIONS, MC_OPTIONS, SC_OPTIONS, PS_OPTIONS, pick) {
-  const kv = key => {
-    const m = line.match(new RegExp('^' + key + '[:：]\\s*(.*)$'));
-    return m ? m[1].trim() : null;
-  };
-  let v;
-  if ((v = kv('キャラクター名')) !== null) { result.name = v; return; }
-  if ((v = kv('ポジション')) !== null) { result.pos = pick(v, POS_OPTIONS, 'ポジション'); return; }
-  if ((v = kv('クラス')) !== null) {
-    const parts = v.split('/').map(s => s.trim()).filter(Boolean);
-    if (parts[0]) result.mc = pick(parts[0], MC_OPTIONS, 'メインクラス');
-    if (parts[1]) result.sc = pick(parts[1], SC_OPTIONS, 'サブクラス');
-    return;
-  }
-  if ((v = kv('享年')) !== null) { result.age = v; return; }
-  if ((v = kv('初期配置')) !== null) { result.ps = pick(v, PS_OPTIONS, '初期配置'); return; }
-  if ((v = kv('行動値')) !== null) { result.textAct = hokanHalfwidth(v); return; }
-  if ((v = kv('暗示')) !== null) { result.hint = v; return; }
-  if (line.indexOf('タイトル') === 0) return; // シートのタイトル（情報のみ）
-  if (line.indexOf('種族') === 0) {
-    const val = kv('種族') || '';
-    if (val) result.notes.push('種族「' + val + '」は反映先がないため表示のみです');
-    return;
-  }
-  // 外見情報（身長・体重・髪の色など）は反映先がない。値が入っている場合のみ備考に残す
-  if (line.indexOf('身長') === 0 || line.indexOf('体重') === 0 || line.indexOf('髪の色') === 0) {
-    const hasValue = line.split('/').some(seg => {
-      const m = seg.match(/[:：]\s*(.*)$/);
-      return m && m[1].trim() !== '';
-    });
-    if (hasValue) {
-      result.notes.push('外見情報「' + line + '」は反映先がないため表示のみです');
-    }
-    return;
-  }
-  result.unparsed.push(line);
-}
-
-// 基本パーツだけを DEFAULT_PARTS の並び順に揃える（追加パーツとの相対順序は変えない）
-function sortHokanshoBasicParts(parts) {
-  if (typeof DEFAULT_PARTS === 'undefined') return;
-  const secOf = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
-  const order = {};
-  Object.keys(DEFAULT_PARTS).forEach(secId => {
-    DEFAULT_PARTS[secId].forEach((p, idx) => {
-      const key = secId + ':' + p.name;
-      if (!(key in order)) order[key] = idx;
-    });
+  // 強化値・最大行動値は自動計算なので、テキストの値と違えば知らせる
+  const num = id => parseInt(document.getElementById(id)?.textContent, 10);
+  const appTotals = { '武装': num('total-wep'), '変異': num('total-mut'), '改造': num('total-cyb') };
+  const textTotals = {};
+  p.enhanceLines.join(' ').replace(/(武装|変異|改造)[^\d\-]*(\d+)/g, (m, k, v) => { textTotals[k] = parseInt(v, 10); return m; });
+  Object.keys(textTotals).forEach(k => {
+    if (textTotals[k] !== appTotals[k]) rep.mismatches.push(`強化値（${k}）：テキスト ${textTotals[k]} ／ このシートの計算 ${appTotals[k]}`);
   });
-  parts.sort((a, b) => {
-    if (a.type !== '基本' || b.type !== '基本') return 0;
-    const ao = order[(secOf[a.location] || '') + ':' + a.name];
-    const bo = order[(secOf[b.location] || '') + ':' + b.name];
-    const av = ao !== undefined ? ao : 99;
-    const bv = bo !== undefined ? bo : 99;
-    return av - bv;
-  });
-}
-
-// ---------------- 自動計算値との照合（直接は書き込まない） ----------------
-function compareHokanshoAct(textAct, actNow) {
-  if (!textAct || !actNow) return '';
-  if (String(textAct) !== String(actNow)) {
-    return '※行動値がテキストと異なります（テキスト：' + textAct + '、計算結果：' + actNow + '）。基本行動値やパーツの損傷を確認してください。';
+  if (Number.isFinite(f.act)) {
+    const appAct = parseInt(document.getElementById('act')?.value, 10);
+    if (appAct !== f.act) rep.mismatches.push(`最大行動値：テキスト ${f.act} ／ このシートの計算 ${appAct}（基本行動値を変えるとそろえられます）`);
   }
-  return '';
-}
-
-function compareHokanshoTotals(textEnhance, totalNow) {
-  if (!textEnhance || !totalNow) return '';
-  if (textEnhance.wep !== totalNow.wep ||
-      textEnhance.mut !== totalNow.mut ||
-      textEnhance.cyb !== totalNow.cyb) {
-    return '※強化値の合計がテキストと異なります（テキスト：武装' + textEnhance.wep + ' / 変異' + textEnhance.mut + ' / 改造' + textEnhance.cyb +
-      '、計算結果：武装' + totalNow.wep + ' / 変異' + totalNow.mut + ' / 改造' + totalNow.cyb + '）。ボーナスの選択を確認してください。';
+  if (document.querySelector('#limit-tbody .limit-ng')) {
+    rep.notes.push('パーツ配置上限を超えている種別があります（ボーナスや寵愛による修正の設定で変わります）。');
   }
-  return '';
+  return rep;
 }
 
-function compareHokanshoChouai(textChouai, currentNow) {
-  if (textChouai === '' || textChouai == null || currentNow === '' || currentNow == null) return '';
-  if (String(textChouai) !== String(currentNow)) {
-    return '※寵愛点がテキストと異なります（テキスト：' + textChouai + '点、現在の残り：' + currentNow + '点）。セッション履歴の獲得・使用を確認してください。';
+function hkRenderReport(rep) {
+  const e = escapeHtml;
+  const li = arr => '<ul style="margin:2px 0 0; padding-left:1.2em;">' + arr.map(x => `<li>${x}</li>`).join('') + '</ul>';
+  const h = t => `<h4 style="color:#8ff; margin:12px 0 4px;">${t}</h4>`;
+
+  let html = `<div style="color:#7fe3a8; font-weight:bold; margin-bottom:4px;">読み込みました。保存は「💾 保存」で行ってください。</div>`;
+  html += h('■ 読み込めた件数');
+  html += li([
+    `スキル：${rep.skills}件`,
+    `マニューバ（パーツ）：${rep.partsExtra}件（基本パーツ ${rep.partsBase}件は自動配置済み）`,
+    `記憶のカケラ：${rep.memories}件`,
+    `未練：${rep.list}件`
+  ]);
+
+  if (rep.mismatches.length) { html += h('■ 計算結果が違う項目'); html += li(rep.mismatches.map(e)); }
+  if (rep.unmatchedParts.length) {
+    html += h('■ data.js に無かったパーツ');
+    html += li(rep.unmatchedParts.map(u => `${e(u.loc)}「${e(u.name)}」：${e(u.assumed)}`));
   }
-  return '';
+  if (rep.customSkills.length) {
+    html += h('■ スキル一覧に無かったスキル');
+    html += li(rep.customSkills.map(e)); 
+    html += `<div style="color:#888; font-size:0.72rem;">名前はそのまま入れています。</div>`;
+  }
+  if (rep.madnessNotes.length) {
+    html += h('■ 発狂の情報（このシートに欄が無いため未反映）');
+    html += li(rep.madnessNotes.map(e));
+  }
+  if (rep.notes.length) { html += h('■ 注意'); html += li(rep.notes.map(e)); }
+  if (rep.unrecognized.length) {
+    html += h('■ 読み込めなかった行');
+    html += li(rep.unrecognized.map(l => e(l.length > 60 ? l.slice(0, 60) + '…' : l)));
+  }
+  return html;
 }
-
-// ---------------- モーダルUI ----------------
-let hokanLastParsed = null;
 
 function openHokanshoImport() {
-  const overlay = document.getElementById('hokansho-import-overlay');
-  if (!overlay) return;
-  overlay.style.display = 'block';
-  overlay.scrollTop = 0;
-  const preview = document.getElementById('hokansho-import-preview');
-  if (preview) preview.innerHTML = '';
-  hokanLastParsed = null;
+  const ov = document.getElementById('hokansho-overlay');
+  if (!ov) return;
+  document.getElementById('hokansho-input-panel').style.display = '';
+  document.getElementById('hokansho-result-panel').style.display = 'none';
+  document.getElementById('hokansho-result-panel').innerHTML = '';
+  ov.style.display = 'block';
+  ov.scrollTop = 0;
 }
 
 function closeHokanshoImport() {
-  const overlay = document.getElementById('hokansho-import-overlay');
-  if (overlay) overlay.style.display = 'none';
+  const ov = document.getElementById('hokansho-overlay');
+  if (ov) ov.style.display = 'none';
 }
 
-function hokanEscape(str) {
-  if (typeof escapeHtml === 'function') return escapeHtml(str);
-  return String(str || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
+function runHokanshoImport() {
+  const raw = document.getElementById('hokansho-text').value;
+  const panel = document.getElementById('hokansho-result-panel');
+  const showResult = html => {
+    document.getElementById('hokansho-input-panel').style.display = 'none';
+    panel.style.display = 'block';
+    panel.innerHTML = html + `<div style="margin-top:14px;"><button type="button" onclick="closeHokanshoImport()" style="width:100%;">閉じる</button></div>`;
+  };
 
-function renderHokanshoPreview(parsed) {
-  const preview = document.getElementById('hokansho-import-preview');
-  if (!preview) return;
-  if (!parsed || (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0 && parsed.history.length === 0)) {
-    preview.innerHTML = '<p style="color:#ff8888;">キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。</p>';
+  if (!raw.trim()) { alert('テキストを貼り付けてください'); return; }
+
+  const parsed = parseHokanshoText(raw);
+  if (parsed.recognized === 0) {
+    showResult(`<div style="color:#ff8888; font-weight:bold;">読み込める内容が見つかりませんでした。</div>` +
+      `<div style="margin-top:6px;">保管所の「テキスト出力」のテキストを、そのまま貼り付けているか確認してください。シートの内容は変更していません。</div>`);
     return;
   }
-  const rows = [];
-  rows.push('<p><b>ドール名：</b>' + hokanEscape(parsed.name || '（不明）') + '　<b>ポジション：</b>' + hokanEscape(parsed.pos || '（不明）') + '</p>');
-  rows.push('<p><b>メイン：</b>' + hokanEscape(parsed.mc || '（不明）') + '　<b>サブ：</b>' + hokanEscape(parsed.sc || '（不明）') + '　<b>享年：</b>' + hokanEscape(parsed.age || '（不明）') + '　<b>初期配置：</b>' + hokanEscape(parsed.ps || '（不明）') + '　<b>暗示：</b>' + hokanEscape(parsed.hint || '（不明）') + '</p>');
-  rows.push('<p>スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件</p>');
-  if (parsed.textAct || parsed.textEnhance) {
-    rows.push('<p>行動値（テキスト）：' + hokanEscape(parsed.textAct || '（なし）') + ' ／ 強化値（テキスト）：' +
-      (parsed.textEnhance ? '武装' + parsed.textEnhance.wep + ' / 変異' + parsed.textEnhance.mut + ' / 改造' + parsed.textEnhance.cyb : '（なし）') +
-      ' ※自動計算のため直接は反映しません</p>');
-  }
-  if (parsed.textChouai !== '' || parsed.history.length) {
-    rows.push('<p>セッション履歴 ' + parsed.history.length + '件、寵愛点（テキスト）：' + hokanEscape(parsed.textChouai || '（なし）') + '点 ※自動集計のため直接は反映しません</p>');
-  }
-  if (parsed.history.length) rows.push('<p>セッション履歴：' + parsed.history.map(h => hokanEscape(h.scenario + '：' + h.battle + '点（' + h.memo + '）')).join(' ／ ') + '</p>');
-  if (parsed.skills.length) rows.push('<p>スキル：' + parsed.skills.map(s => hokanEscape(s.name)).join('、') + '</p>');
-  if (parsed.parts.length) rows.push('<p>パーツ：' + parsed.parts.map(p => hokanEscape(p.name)).join('、') + '</p>');
-  if (parsed.memories.length) rows.push('<p>記憶のカケラ：' + parsed.memories.map(m => hokanEscape(m)).join(' ／ ') + '</p>');
-  if (parsed.unmatched.length) rows.push('<p style="color:#f0c060;">補えなかったもの：<br>' + parsed.unmatched.map(hokanEscape).join('<br>') + '</p>');
-  if (parsed.notes.length) rows.push('<p style="color:#aaa;">備考：<br>' + parsed.notes.map(hokanEscape).join('<br>') + '</p>');
-  if (parsed.unparsed.length) rows.push('<p style="color:#ff8888;">読み込めなかった行：<br>' + parsed.unparsed.map(hokanEscape).join('<br>') + '</p>');
-  preview.innerHTML = rows.join('');
-}
 
-function previewHokanshoImport() {
-  const textEl = document.getElementById('hokansho-import-text');
-  const text = textEl ? textEl.value : '';
-  hokanLastParsed = parseHokanshoText(text);
-  renderHokanshoPreview(hokanLastParsed);
-}
-
-// 解析結果を既存の getFullData 形式に組み立てる
-// （基本情報は空の場合に現在の値を残す。スキル・パーツ・記憶・未練はテキストの内容で置き換える）
-function buildHokanshoImportData(parsed) {
-  const data = getFullData();
-  if (parsed.name) data.name = parsed.name;
-  if (parsed.pos) data.pos = parsed.pos;
-  if (parsed.mc) data.mc = parsed.mc;
-  if (parsed.sc) data.sc = parsed.sc;
-  if (parsed.age) data.age = parsed.age;
-  if (parsed.ps) data.ps = parsed.ps;
-  if (parsed.hint) data.hint = parsed.hint;
-  data.skills = parsed.skills;
-  data.parts = parsed.parts;
-  data.memories = parsed.memories;
-  data.list = parsed.list;
-  if (parsed.history.length > 0) data.history = parsed.history; // 0件のときは今の履歴を残す
-  return data;
-}
-
-function importHokanshoText() {
-  const textEl = document.getElementById('hokansho-import-text');
-  const text = textEl ? textEl.value : '';
-  const parsed = parseHokanshoText(text);
-  hokanLastParsed = parsed;
-  if (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0 && parsed.history.length === 0) {
-    alert('キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。');
-    return;
-  }
-  const chouaiLine = parsed.textChouai !== '' ? '\n寵愛点（テキスト）：' + parsed.textChouai + '点 ※自動集計のため直接は反映しません' : '';
-  if (!confirm('「' + (parsed.name || '(無名)') + '」を読み込みます。\n今の編集中の内容は上書きされます（「元に戻す」で戻せます）。\n\nスキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件、セッション履歴 ' + parsed.history.length + '件を反映します。' + chouaiLine + '\n\nよろしいですか？')) return;
+  if (!confirm('今のシートの内容（キャラ名・クラス・スキル・マニューバ・記憶のカケラ・未練など）を、貼り付けたテキストの内容で上書きします。\n「↩️ 元に戻す」で戻せます。\n\nよろしいですか？')) return;
 
   pushUndoSnapshot();
-  const data = buildHokanshoImportData(parsed);
-  applyData(data);
-
-  // 自動計算される値との照合（直接は書き込まない）
-  const lines = [];
-  lines.push('「' + (parsed.name || '(無名)') + '」を読み込みました');
-  lines.push('スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件、セッション履歴 ' + parsed.history.length + '件を反映しました');
-  const actNow = document.getElementById('act') ? document.getElementById('act').value : '';
-  const actMsg = compareHokanshoAct(parsed.textAct, actNow);
-  if (actMsg) lines.push(actMsg);
-  const totalNow = {
-    wep: parseInt(document.getElementById('total-wep') ? document.getElementById('total-wep').textContent : '0', 10) || 0,
-    mut: parseInt(document.getElementById('total-mut') ? document.getElementById('total-mut').textContent : '0', 10) || 0,
-    cyb: parseInt(document.getElementById('total-cyb') ? document.getElementById('total-cyb').textContent : '0', 10) || 0
-  };
-  const totalMsg = compareHokanshoTotals(parsed.textEnhance, totalNow);
-  if (totalMsg) lines.push(totalMsg);
-  if (parsed.textChouai !== '') {
-    lines.push('寵愛点（テキスト）：' + parsed.textChouai + '点 ※自動集計のため直接は反映しません');
-  }
-  const chouaiNow = document.getElementById('current-chouai') ? document.getElementById('current-chouai').textContent : '';
-  const chouaiMsg = compareHokanshoChouai(parsed.textChouai, chouaiNow);
-  if (chouaiMsg) lines.push(chouaiMsg);
-  if (parsed.unmatched.length) lines.push('補えなかったもの：\n' + parsed.unmatched.join('\n'));
-  if (parsed.notes.length) lines.push('備考：\n' + parsed.notes.join('\n'));
-  if (parsed.unparsed.length) lines.push('読み込めなかった行：\n' + parsed.unparsed.join('\n'));
-
-  closeHokanshoImport();
-  alert(lines.join('\n'));
-  if (confirm('このブラウザにもキャラクターとして保存しますか？\n（保存すると「保存済みキャラクター」からいつでも呼び出せます）')) {
-    saveData();
+  let rep;
+  try {
+    rep = applyHokanshoParsed(parsed);
+  } catch (err) {
+    showResult(`<div style="color:#ff8888; font-weight:bold;">読み込み中にエラーが起きました。</div><div style="margin-top:6px;">${escapeHtml(err.message)}</div><div style="margin-top:6px;">「↩️ 元に戻す」で読み込み前に戻せます。</div>`);
+    return;
   }
   markDirty();
+  showResult(hkRenderReport(rep));
 }
