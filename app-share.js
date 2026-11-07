@@ -549,6 +549,8 @@ function hokanDetectTag(memo) {
 //   parts:  [{isBroken, isUsed, location, name, type, level, timing, cost, range, memo, isEditable, tag}],
 //   textAct: '10',                       // テキスト側の行動値（照合用、直接は反映しない）
 //   textEnhance: {wep, mut, cyb},        // テキスト側の強化値合計（照合用）
+//   textChouai: '15',                     // テキスト側の寵愛点（照合用、直接は反映しない）
+//   history: [{scenario, battle, personal, memo}], // セッション履歴（獲得）
 //   unmatched: [...], notes: [...],      // 補えなかったもの・備考（表示用）
 //   unparsed: [...]                       // 読み込めなかった行（表示用）
 // }
@@ -556,7 +558,7 @@ function parseHokanshoText(text) {
   const result = {
     name: '', pos: '', mc: '', sc: '', age: '', ps: '', hint: '',
     memories: [], list: [], skills: [], parts: [],
-    textAct: '', textEnhance: null,
+    textAct: '', textEnhance: null, textChouai: '', history: [],
     unmatched: [], notes: [], unparsed: []
   };
   if (!text || !String(text).trim()) return result;
@@ -739,13 +741,64 @@ function parseHokanshoManeuverLine(line, result, LOC_MAP) {
   result.parts.push(part);
 }
 
-// その他セクションの1行。寵愛点は自動集計のため直接は反映しない
+// その他セクションの1行。寵愛点は自動集計のため直接は反映せず、テキスト値として保持する。
+// 成長履歴はセッション履歴（獲得）に反映する。保管所側に戦闘/個人の区切りはないため合計を戦闘寵愛に入れる。
+// メモ末尾の数字（例：「武装３「ダイナマイト」10」の「10」）は消費点か判別できないため、使い道には振り分けずメモに残す。
 function parseHokanshoOtherLine(line, result) {
-  const m = line.match(/^寵愛点[:：]\s*(.*)$/);
+  let m = line.match(/^寵愛点[:：]\s*([０-９0-9]+)/);
   if (m) {
-    result.notes.push('寵愛点「' + m[1].trim() + '」はセッション履歴からの自動集計のため、直接は反映しません');
+    result.textChouai = hokanHalfwidth(m[1]);
+    return;
   }
-  // 成長履歴の表などは反映先がないため読み飛ばす
+  if (line.indexOf('成長履歴') === 0) return; // 「成長履歴：」の見出し行
+  if (line.indexOf('No.') === 0 && line.indexOf('獲得寵愛点') !== -1) return; // 表の見出し行
+
+  // 成長履歴の行（内訳あり）：No. 合計点(達成 / ボーナス / ピンゾロ) メモ
+  m = line.match(/^([０-９0-9]+)\s+([０-９0-9]+)点\s*\(([^)]*)\)\s*(.*)$/);
+  if (m) {
+    const no = hokanHalfwidth(m[1]);
+    const total = parseInt(hokanHalfwidth(m[2]), 10) || 0;
+    const inner = (m[3] || '').split('/').map(s => parseInt(hokanHalfwidth(s.trim()), 10) || 0);
+    const ach = inner[0] || 0, bon = inner[1] || 0, pin = inner[2] || 0;
+    const memoText = (m[4] || '').trim();
+    if (total === 0 && !memoText && ach === 0 && bon === 0 && pin === 0) return; // 0点で空欄の行は作らない
+    result.history.push({
+      scenario: 'No.' + no,
+      battle: total,
+      personal: 0,
+      memo: '達成 ' + ach + ' / ボーナス ' + bon + ' / ピンゾロ ' + pin + (memoText ? ' / ' + memoText : '')
+    });
+    hokanNoteHistoryOnce(result, memoText);
+    return;
+  }
+
+  // 成長履歴の行（() なしのフォールバック）：No. 合計点 メモ
+  m = line.match(/^([０-９0-9]+)\s+([０-９0-9]+)点\s*(.*)$/);
+  if (m) {
+    const no = hokanHalfwidth(m[1]);
+    const total = parseInt(hokanHalfwidth(m[2]), 10) || 0;
+    const memoText = (m[3] || '').trim();
+    if (total === 0 && !memoText) return; // 0点で空欄の行は作らない
+    result.history.push({
+      scenario: 'No.' + no,
+      battle: total,
+      personal: 0,
+      memo: '達成 0 / ボーナス 0 / ピンゾロ 0（内訳不明）' + (memoText ? ' / ' + memoText : '')
+    });
+    hokanNoteHistoryOnce(result, memoText);
+    return;
+  }
+  // その他の行（表の罫線など）は読み飛ばす
+}
+
+// 成長履歴の反映方法についての備考を一度だけ追加する
+function hokanNoteHistoryOnce(result, memoText) {
+  const note1 = '成長履歴は戦闘/個人の区切りがないため、合計を戦闘寵愛（獲得）に入れています';
+  if (result.notes.indexOf(note1) === -1) result.notes.push(note1);
+  if (memoText) {
+    const note2 = 'メモ末尾の数字（例：「武装３「ダイナマイト」10」の「10」）は消費点か判別できないため、使い道（消費）には自動で振り分けず、メモに残しています';
+    if (result.notes.indexOf(note2) === -1) result.notes.push(note2);
+  }
 }
 
 // ヘッダー（基本情報）セクションの1行
@@ -828,6 +881,14 @@ function compareHokanshoTotals(textEnhance, totalNow) {
   return '';
 }
 
+function compareHokanshoChouai(textChouai, currentNow) {
+  if (textChouai === '' || textChouai == null || currentNow === '' || currentNow == null) return '';
+  if (String(textChouai) !== String(currentNow)) {
+    return '※寵愛点がテキストと異なります（テキスト：' + textChouai + '点、現在の残り：' + currentNow + '点）。セッション履歴の獲得・使用を確認してください。';
+  }
+  return '';
+}
+
 // ---------------- モーダルUI ----------------
 let hokanLastParsed = null;
 
@@ -854,7 +915,7 @@ function hokanEscape(str) {
 function renderHokanshoPreview(parsed) {
   const preview = document.getElementById('hokansho-import-preview');
   if (!preview) return;
-  if (!parsed || (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0)) {
+  if (!parsed || (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0 && parsed.history.length === 0)) {
     preview.innerHTML = '<p style="color:#ff8888;">キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。</p>';
     return;
   }
@@ -867,6 +928,10 @@ function renderHokanshoPreview(parsed) {
       (parsed.textEnhance ? '武装' + parsed.textEnhance.wep + ' / 変異' + parsed.textEnhance.mut + ' / 改造' + parsed.textEnhance.cyb : '（なし）') +
       ' ※自動計算のため直接は反映しません</p>');
   }
+  if (parsed.textChouai !== '' || parsed.history.length) {
+    rows.push('<p>セッション履歴 ' + parsed.history.length + '件、寵愛点（テキスト）：' + hokanEscape(parsed.textChouai || '（なし）') + '点 ※自動集計のため直接は反映しません</p>');
+  }
+  if (parsed.history.length) rows.push('<p>セッション履歴：' + parsed.history.map(h => hokanEscape(h.scenario + '：' + h.battle + '点（' + h.memo + '）')).join(' ／ ') + '</p>');
   if (parsed.skills.length) rows.push('<p>スキル：' + parsed.skills.map(s => hokanEscape(s.name)).join('、') + '</p>');
   if (parsed.parts.length) rows.push('<p>パーツ：' + parsed.parts.map(p => hokanEscape(p.name)).join('、') + '</p>');
   if (parsed.memories.length) rows.push('<p>記憶のカケラ：' + parsed.memories.map(m => hokanEscape(m)).join(' ／ ') + '</p>');
@@ -898,6 +963,7 @@ function buildHokanshoImportData(parsed) {
   data.parts = parsed.parts;
   data.memories = parsed.memories;
   data.list = parsed.list;
+  if (parsed.history.length > 0) data.history = parsed.history; // 0件のときは今の履歴を残す
   return data;
 }
 
@@ -906,11 +972,12 @@ function importHokanshoText() {
   const text = textEl ? textEl.value : '';
   const parsed = parseHokanshoText(text);
   hokanLastParsed = parsed;
-  if (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0) {
+  if (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0 && parsed.history.length === 0) {
     alert('キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。');
     return;
   }
-  if (!confirm('「' + (parsed.name || '(無名)') + '」を読み込みます。\n今の編集中の内容は上書きされます（「元に戻す」で戻せます）。\n\nスキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件を反映します。\n\nよろしいですか？')) return;
+  const chouaiLine = parsed.textChouai !== '' ? '\n寵愛点（テキスト）：' + parsed.textChouai + '点 ※自動集計のため直接は反映しません' : '';
+  if (!confirm('「' + (parsed.name || '(無名)') + '」を読み込みます。\n今の編集中の内容は上書きされます（「元に戻す」で戻せます）。\n\nスキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件、セッション履歴 ' + parsed.history.length + '件を反映します。' + chouaiLine + '\n\nよろしいですか？')) return;
 
   pushUndoSnapshot();
   const data = buildHokanshoImportData(parsed);
@@ -919,7 +986,7 @@ function importHokanshoText() {
   // 自動計算される値との照合（直接は書き込まない）
   const lines = [];
   lines.push('「' + (parsed.name || '(無名)') + '」を読み込みました');
-  lines.push('スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件を反映しました');
+  lines.push('スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件、セッション履歴 ' + parsed.history.length + '件を反映しました');
   const actNow = document.getElementById('act') ? document.getElementById('act').value : '';
   const actMsg = compareHokanshoAct(parsed.textAct, actNow);
   if (actMsg) lines.push(actMsg);
@@ -930,6 +997,12 @@ function importHokanshoText() {
   };
   const totalMsg = compareHokanshoTotals(parsed.textEnhance, totalNow);
   if (totalMsg) lines.push(totalMsg);
+  if (parsed.textChouai !== '') {
+    lines.push('寵愛点（テキスト）：' + parsed.textChouai + '点 ※自動集計のため直接は反映しません');
+  }
+  const chouaiNow = document.getElementById('current-chouai') ? document.getElementById('current-chouai').textContent : '';
+  const chouaiMsg = compareHokanshoChouai(parsed.textChouai, chouaiNow);
+  if (chouaiMsg) lines.push(chouaiMsg);
   if (parsed.unmatched.length) lines.push('補えなかったもの：\n' + parsed.unmatched.join('\n'));
   if (parsed.notes.length) lines.push('備考：\n' + parsed.notes.join('\n'));
   if (parsed.unparsed.length) lines.push('読み込めなかった行：\n' + parsed.unparsed.join('\n'));
