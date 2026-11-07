@@ -444,13 +444,16 @@ function togglePartBreak(checkbox) {
 
 // メモ欄のテキストから「最大行動値+N」の合計を抽出する
 function extractActionBonus(memoText) {
+  // 全角の「＋」「２」や、空白が入った書き方（「最大行動値 ＋ 2」）も読む
+  const text = String(memoText || '')
+    .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/[＋﹢]/g, '+');
   let sum = 0;
-  const matches = (memoText || '').match(/最大行動値\+(\d+)/g);
-  if (matches) {
-    matches.forEach(m => {
-      const n = parseInt(m.replace('最大行動値+', ''), 10);
-      if (!isNaN(n)) sum += n;
-    });
+  const re = /最大行動値\s*\+\s*(\d+)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const n = parseInt(m[1], 10);
+    if (!isNaN(n)) sum += n;
   }
   return sum;
 }

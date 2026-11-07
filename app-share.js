@@ -745,16 +745,30 @@ function applyHokanshoParsed(p) {
   rep.keep = { skills: !plan.skills, parts: !plan.parts, memories: !plan.memories, list: !plan.list };
   const data = getFullData(); // 保管所テキストに無い項目（PL名・寵愛・たからもの等）は今の内容を引き継ぐ
 
-  // 読み込めなかった行は、メモ欄に追記する（今のメモは消さない。すでにメモにある行は重ねて入れない）
-  if (p.unrecognized.length) {
+  // メモ欄への追記：今のメモは消さない。すでにメモにある行は重ねて入れない。追加した行数を返す
+  const appendToMemo = (heading, lines) => {
     const current = data.freeMemo || '';
     const existing = new Set(current.split('\n').map(l => l.trim()));
-    const fresh = p.unrecognized.filter(l => !existing.has(l.trim()));
-    rep.memoSkipped = p.unrecognized.length - fresh.length;
+    const fresh = lines.filter(l => !existing.has(l.trim()));
     if (fresh.length) {
-      data.freeMemo = (current.trim() ? current.replace(/\s+$/, '') + '\n\n' : '') + '■ 保管所テキストで読み込めなかった行\n' + fresh.join('\n');
-      rep.memoAdded = fresh.length;
+      data.freeMemo = (current.trim() ? current.replace(/\s+$/, '') + '\n\n' : '') + heading + '\n' + fresh.join('\n');
     }
+    return { added: fresh.length, skipped: lines.length - fresh.length };
+  };
+
+  // 読み込めなかった行は、メモ欄に追記する
+  if (p.unrecognized.length) {
+    const res = appendToMemo('■ 保管所テキストで読み込めなかった行', p.unrecognized);
+    rep.memoAdded = res.added; rep.memoSkipped = res.skipped;
+  }
+
+  // このシートに欄が無い「発狂時」の効果と「成長履歴」の文章も、結果画面を閉じると消えてしまうので、メモ欄に追記する
+  const extraLines = [];
+  p.madnessNotes.forEach(n => extraLines.push('【発狂時】' + n));
+  if (p.growth) extraLines.push('【成長履歴】' + p.growth);
+  if (extraLines.length) {
+    const res = appendToMemo('■ 保管所テキストの発狂時・成長履歴', extraLines);
+    rep.extraMemoAdded = res.added;
   }
   const selectHas = (id, v) => Array.from(document.getElementById(id).options).some(o => o.value === v);
   const f = p.fields;
@@ -962,11 +976,11 @@ function hkRenderReport(rep) {
     html += `<div style="color:#888; font-size:0.72rem;">名前はそのまま入れています。</div>`;
   }
   if (rep.growth) {
-    html += h('■ 成長履歴の文章（このシートに欄が無いため未反映）');
+    html += h('■ 成長履歴の文章（メモ欄に追記しました）');
     html += li([e(rep.growth)]);
   }
   if (rep.madnessNotes.length) {
-    html += h('■ 発狂の情報（このシートに欄が無いため未反映）');
+    html += h('■ 発狂の情報（メモ欄に追記しました）');
     html += li(rep.madnessNotes.map(e));
   }
   if (rep.notes.length) { html += h('■ 注意'); html += li(rep.notes.map(e)); }
