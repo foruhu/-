@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
@@ -351,6 +351,9 @@
     </div>
     <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none" onchange="onBackupFileSelected(event)">
     <div class="action-btn-row">
+      <button type="button" class="action-btn c-yellow" onclick="exportForHokanshoText()">
+        <span class="icon">📋</span><span>保管所向け<br>テキスト出力</span>
+      </button>
       <button type="button" class="action-btn c-orange" onclick="openHokanshoImport()">
         <span class="icon">📝</span><span>保管所テキスト<br>から読み込む</span>
       </button>
@@ -525,12 +528,12 @@
   </div>
 </div>
 
-<script src="data.js?v=12"></script>
-<script src="app-core.js?v=12"></script>
-<script src="app-parts.js?v=12"></script>
-<script src="app-skills.js?v=12"></script>
-<script src="app-save.js?v=12"></script>
-<script src="app-share.js?v=12"></script>
-<script src="app-main.js?v=12"></script>
+<script src="data.js?v=13"></script>
+<script src="app-core.js?v=13"></script>
+<script src="app-parts.js?v=13"></script>
+<script src="app-skills.js?v=13"></script>
+<script src="app-save.js?v=13"></script>
+<script src="app-share.js?v=13"></script>
+<script src="app-main.js?v=13"></script>
 </body>
 </html>
