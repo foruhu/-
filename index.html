@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=26">
+<link rel="stylesheet" href="style.css?v=27">
 </head>
 <body>
 
@@ -47,8 +47,29 @@
   </div>
 </div>
 
+<details class="card fold-card" id="limit-card" open>
+  <summary class="title">レベル取得制限チェッカー</summary>
+  <div class="table-scroll">
+    <table class="limit-table">
+      <thead>
+        <tr>
+          <th style="width:20%">カテゴリ</th>
+          <th style="width:12%">レベル</th>
+          <th style="width:18%">規定上限</th>
+          <th style="width:15%">現在取得</th>
+          <th style="width:20%">判定</th>
+        </tr>
+      </thead>
+      <tbody id="limit-tbody"></tbody>
+    </table>
+    <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
+      ※「時計仕掛け」「業躯」のスキルを選ぶとLv3の追加枠が自動で+1されます
+    </div>
+  </div>
+</details>
+
 <div class="card">
-  <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
+  <div class="title">基本情報・強化値計算</div>
   <div class="kv-grid">
     <div class="kv kv-wide"><label>PL名</label><input type="text" id="pl"></div>
     <div class="kv kv-wide"><label>ドール名</label><input type="text" id="name"></div>
@@ -115,24 +136,6 @@
         </tr>
       </tbody>
     </table>
-  </div>
-
-  <div class="table-scroll">
-    <table class="limit-table">
-      <thead>
-        <tr>
-          <th style="width:20%">カテゴリ</th>
-          <th style="width:12%">レベル</th>
-          <th style="width:18%">規定上限</th>
-          <th style="width:15%">現在取得</th>
-          <th style="width:20%">判定</th>
-        </tr>
-      </thead>
-      <tbody id="limit-tbody"></tbody>
-    </table>
-    <div style="font-size:0.7rem; color:#aaa; margin-top:4px; text-align:right;">
-      ※「時計仕掛け」「業躯」のスキルを選ぶとLv3の追加枠が自動で+1されます
-    </div>
   </div>
 
   <div class="kv-grid" style="margin-top:8px;">
@@ -533,12 +536,12 @@
   </div>
 </div>
 
-<script src="data.js?v=26"></script>
-<script src="app-core.js?v=26"></script>
-<script src="app-parts.js?v=26"></script>
-<script src="app-skills.js?v=26"></script>
-<script src="app-save.js?v=26"></script>
-<script src="app-share.js?v=26"></script>
-<script src="app-main.js?v=26"></script>
+<script src="data.js?v=27"></script>
+<script src="app-core.js?v=27"></script>
+<script src="app-parts.js?v=27"></script>
+<script src="app-skills.js?v=27"></script>
+<script src="app-save.js?v=27"></script>
+<script src="app-share.js?v=27"></script>
+<script src="app-main.js?v=27"></script>
 </body>
 </html>

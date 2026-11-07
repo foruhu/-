@@ -180,3 +180,10 @@ body.view-mode tr.part-memo-row:has(.add-memo-btn) { display: none; }
 .kv > label { flex: 0 0 auto; display: flex; align-items: center; margin: 0; padding: 0 8px; background: #0e0e12; color: #ddd; font-size: .75rem; white-space: nowrap; }
 .kv > input, .kv > select { flex: 1 1 auto; min-width: 0; width: 100%; border: none; border-radius: 0; margin: 0; background: #2a2a30; color: #fff; }
 @media (min-width: 640px) { .kv-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* 折りたたみできるカード（見出しを押すと開閉） */
+.fold-card > summary.title { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.fold-card > summary.title::-webkit-details-marker { display: none; }
+.fold-card > summary.title::after { content: "▾"; color: #aaa; font-size: 1rem; transition: transform .15s; }
+.fold-card:not([open]) > summary.title::after { transform: rotate(-90deg); }
+.fold-card:not([open]) > summary.title { margin-bottom: 0; border-bottom: none; }
