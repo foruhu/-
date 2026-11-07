@@ -342,6 +342,14 @@
       </button>
     </div>
     <div class="action-btn-row">
+      <button type="button" class="action-btn c-orange" onclick="exportForHokanshoText()" title="キャラクター保管所に貼り付けるためのテキストをコピーします">
+        <span class="icon">📋</span><span>保管所テキストを<br>出力</span>
+      </button>
+      <button type="button" class="action-btn c-teal" onclick="openHokanshoImport()" title="キャラクター保管所からコピーしたテキストを読み込みます">
+        <span class="icon">📥</span><span>保管所テキストから<br>読み込む</span>
+      </button>
+    </div>
+    <div class="action-btn-row">
       <button type="button" class="action-btn c-green" onclick="exportAllCharactersBackup()">
         <span class="icon">📦</span><span>全キャラを<br>バックアップ</span>
       </button>
@@ -476,6 +484,7 @@
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
+      <li>「保管所テキストから読み込む」: キャラクター保管所からコピーしたテキスト全文を貼り付けると、キャラシに反映されます。「保管所テキストを出力」で保管所用のテキストをコピーできます。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ ライセンス・権利表記</h4>
@@ -497,12 +506,33 @@
   </div>
 </div>
 
+<!-- キャラクター保管所テキスト読み込みモーダル -->
+<div id="hokansho-import-overlay" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
+  z-index:10003; padding:16px; overflow-y:auto;
+" onclick="if(event.target===this) closeHokanshoImport()">
+  <div style="max-width:480px; margin:30px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.7);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="color:#f0a0a0; font-weight:bold; font-size:1rem;">保管所テキストから読み込む</span>
+      <button type="button" onclick="closeHokanshoImport()" style="background:none;border:none;color:#aaa;font-size:1.3rem;cursor:pointer;line-height:1;min-width:44px;min-height:44px;">✕</button>
+    </div>
+    <p style="margin:0 0 8px; font-size:0.9rem; color:#ccc;">キャラクター保管所からコピーしたテキスト全文を貼り付けてください。「解析プレビュー」で内容を確認してから「読み込む」を押すと、編集中の内容に上書きされます（「元に戻す」で戻せます）。</p>
+    <textarea id="hokansho-import-text" rows="8" placeholder="キャラクター名：ヘリオデュール&#10;ポジション：オートマトン&#10;クラス：タナトス / バロック&#10;…" style="width:100%; box-sizing:border-box; font-size:16px; background:#222; color:#eee; border:1px solid #555; border-radius:6px; padding:8px; resize:vertical;"></textarea>
+    <div id="hokansho-import-preview" style="margin-top:10px; font-size:0.9rem; color:#eee;"></div>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button type="button" onclick="previewHokanshoImport()" style="flex:1; min-height:44px; background:#8b0000; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">解析プレビュー</button>
+      <button type="button" onclick="importHokanshoText()" style="flex:1; min-height:44px; background:#2e7d32; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">読み込む</button>
+      <button type="button" onclick="closeHokanshoImport()" style="flex:1; min-height:44px; background:#555; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <script src="data.js?v=11"></script>
 <script src="app-core.js?v=11"></script>
 <script src="app-parts.js?v=11"></script>
 <script src="app-skills.js?v=11"></script>
 <script src="app-save.js?v=11"></script>
-<script src="app-share.js?v=11"></script>
+<script src="app-share.js?v=12"></script>
 <script src="app-main.js?v=11"></script>
 </body>
 </html>
