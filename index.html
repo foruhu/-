@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 
@@ -278,6 +278,12 @@
 </table>
 <button type="button" class="sec edit-only" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
 
+<div class="card" style="margin-top:14px;">
+  <div class="title">メモ</div>
+  <div style="font-size:0.72rem; color:#888; margin-bottom:4px;">自由に書けるメモ欄です。保管所テキストの読み込みで読み込めなかった行は、ここに追記されます。</div>
+  <textarea id="free-memo" rows="4" oninput="autoResizeTextarea(this)" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="メモ" style="min-height:90px; resize:none; overflow-y:hidden;"></textarea>
+</div>
+
 <div class="card edit-only">
   <div class="title">キャラクター管理（複数保存）</div>
 
@@ -511,7 +517,7 @@
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
-      <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。</li>
+      <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ ライセンス・権利表記</h4>
@@ -533,12 +539,12 @@
   </div>
 </div>
 
-<script src="data.js?v=18"></script>
-<script src="app-core.js?v=18"></script>
-<script src="app-parts.js?v=18"></script>
-<script src="app-skills.js?v=18"></script>
-<script src="app-save.js?v=18"></script>
-<script src="app-share.js?v=18"></script>
-<script src="app-main.js?v=18"></script>
+<script src="data.js?v=19"></script>
+<script src="app-core.js?v=19"></script>
+<script src="app-parts.js?v=19"></script>
+<script src="app-skills.js?v=19"></script>
+<script src="app-save.js?v=19"></script>
+<script src="app-share.js?v=19"></script>
+<script src="app-main.js?v=19"></script>
 </body>
 </html>

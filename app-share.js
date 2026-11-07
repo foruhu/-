@@ -616,12 +616,24 @@ function applyHokanshoParsed(p) {
   const rep = {
     skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
     growth: p.growth, unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
-    unrecognized: p.unrecognized.slice(), madnessNotes: p.madnessNotes.slice()
+    unrecognized: p.unrecognized.slice(), memoAdded: 0, memoSkipped: 0, madnessNotes: p.madnessNotes.slice()
   };
 
   const plan = hkReplacePlan(p);
   rep.keep = { skills: !plan.skills, parts: !plan.parts, memories: !plan.memories, list: !plan.list };
   const data = getFullData(); // 保管所テキストに無い項目（PL名・寵愛・たからもの等）は今の内容を引き継ぐ
+
+  // 読み込めなかった行は、メモ欄に追記する（今のメモは消さない。すでにメモにある行は重ねて入れない）
+  if (p.unrecognized.length) {
+    const current = data.freeMemo || '';
+    const existing = new Set(current.split('\n').map(l => l.trim()));
+    const fresh = p.unrecognized.filter(l => !existing.has(l.trim()));
+    rep.memoSkipped = p.unrecognized.length - fresh.length;
+    if (fresh.length) {
+      data.freeMemo = (current.trim() ? current.replace(/\s+$/, '') + '\n\n' : '') + '■ 保管所テキストで読み込めなかった行\n' + fresh.join('\n');
+      rep.memoAdded = fresh.length;
+    }
+  }
   const selectHas = (id, v) => Array.from(document.getElementById(id).options).some(o => o.value === v);
   const f = p.fields;
 
@@ -766,6 +778,11 @@ function hkRenderReport(rep) {
   if (rep.unrecognized.length) {
     html += h('■ 読み込めなかった行');
     html += li(rep.unrecognized.map(l => e(l.length > 60 ? l.slice(0, 60) + '…' : l)));
+    // メモ欄への追記の結果
+    const memoNote = rep.memoAdded
+      ? `これらの行は、シート下部の「メモ」欄に追記しました（${rep.memoAdded}行）。` + (rep.memoSkipped ? `すでにメモにある ${rep.memoSkipped}行は重ねて入れていません。` : '')
+      : 'すべて、すでにメモ欄にある行でした（重ねて入れていません）。';
+    html += `<div style="color:#7fe3a8; font-size:0.78rem; margin-top:4px;">${e(memoNote)}</div>`;
   }
   return html;
 }

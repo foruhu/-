@@ -13,6 +13,7 @@ function getFullData() {
     hair: getVal('hair'),
     eye: getVal('eye'),
     skin: getVal('skin'),
+    freeMemo: getVal('free-memo'),
     ps: getVal('ps'),
     hint: getVal('hint'),
     act: getVal('act'),
@@ -342,6 +343,8 @@ function applyData(data) {
   setVal('age', data.age); setVal('ps', data.ps || '煉獄');
   setVal('height', data.height); setVal('weight', data.weight);
   setVal('hair', data.hair); setVal('eye', data.eye); setVal('skin', data.skin);
+  setVal('free-memo', data.freeMemo);
+  autoResizeTextarea(document.getElementById('free-memo'));
   setVal('hint', data.hint);
   setVal('act', data.act || '9'); setVal('fav', data.fav || '0');
   setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
