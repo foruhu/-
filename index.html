@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=25">
+<link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
 
@@ -168,6 +168,32 @@
 </div>
 
 <div class="card">
+  <div class="title">たからもの・未練（姉妹への感情）</div>
+  <div style="margin-bottom:6px">
+    <label>たからもの（入手した数だけ追加できます）</label>
+    <div id="treasure-list"></div>
+    <button type="button" class="sec edit-only" onclick="addTreasureEntry()" style="width:100%;margin-top:2px;padding:4px;">+ たからもの枠を追加</button>
+    <div style="font-size:0.68rem;color:#888;margin-top:4px;">
+      オート／バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除かれます。
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">対象（姉妹）</th>
+          <th style="width:25%">未練（感情）</th>
+          <th style="width:35%">狂気点</th>
+          <th style="width:15%" class="col-op">操作</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+  <button type="button" class="sec edit-only" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
+</div>
+
+<div class="card">
   <div class="title">習得スキル</div>
   <div class="table-scroll">
     <table class="sheet-table maneuver-table">
@@ -202,32 +228,6 @@
     </span>
   </div>
   <div id="parts-container"></div>
-</div>
-
-<div class="card">
-  <div class="title">たからもの・未練（姉妹への感情）</div>
-  <div style="margin-bottom:6px">
-    <label>たからもの（入手した数だけ追加できます）</label>
-    <div id="treasure-list"></div>
-    <button type="button" class="sec edit-only" onclick="addTreasureEntry()" style="width:100%;margin-top:2px;padding:4px;">+ たからもの枠を追加</button>
-    <div style="font-size:0.68rem;color:#888;margin-top:4px;">
-      オート／バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除かれます。
-    </div>
-  </div>
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:25%">対象（姉妹）</th>
-          <th style="width:25%">未練（感情）</th>
-          <th style="width:35%">狂気点</th>
-          <th style="width:15%" class="col-op">操作</th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
-  </div>
-  <button type="button" class="sec edit-only" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
 <!-- 寵愛点サマリー -->
@@ -533,12 +533,12 @@
   </div>
 </div>
 
-<script src="data.js?v=25"></script>
-<script src="app-core.js?v=25"></script>
-<script src="app-parts.js?v=25"></script>
-<script src="app-skills.js?v=25"></script>
-<script src="app-save.js?v=25"></script>
-<script src="app-share.js?v=25"></script>
-<script src="app-main.js?v=25"></script>
+<script src="data.js?v=26"></script>
+<script src="app-core.js?v=26"></script>
+<script src="app-parts.js?v=26"></script>
+<script src="app-skills.js?v=26"></script>
+<script src="app-save.js?v=26"></script>
+<script src="app-share.js?v=26"></script>
+<script src="app-main.js?v=26"></script>
 </body>
 </html>
