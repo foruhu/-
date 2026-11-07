@@ -133,6 +133,62 @@ function setSavedSheets(sheets) {
   localStorage.setItem(SHEETS_KEY, JSON.stringify(sheets));
 }
 
+// ==========================================================
+// 削除したキャラクターのゴミ箱（復元用、直近5件まで）
+// バックアップファイルには含めない。localStorage の別キー 'necro_trash' を使う
+// ==========================================================
+const TRASH_KEY = 'necro_trash';
+const TRASH_LIMIT = 5;
+
+function getTrash() {
+  try {
+    const trash = JSON.parse(localStorage.getItem(TRASH_KEY) || '[]');
+    return Array.isArray(trash) ? trash : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setTrash(trash) {
+  localStorage.setItem(TRASH_KEY, JSON.stringify(trash));
+}
+
+// 削除対象のエントリ全体をゴミ箱の先頭に入れる（直近5件まで残す）
+function moveToTrash(id, entry) {
+  const trash = getTrash();
+  trash.unshift({
+    name: entry.name || '(無名)',
+    pl: entry.pl || '',
+    savedAt: entry.savedAt || '',
+    image: entry.image || null,
+    data: entry.data,
+    deletedAt: new Date().toISOString(),
+    originalId: id
+  });
+  setTrash(trash.slice(0, TRASH_LIMIT));
+}
+
+// ゴミ箱の最新1件を、新しい id で保存済み一覧に復元する（同名があっても上書きしない）
+function restoreDeletedSave() {
+  const trash = getTrash();
+  if (trash.length === 0) return alert('復元できる削除済みキャラクターはありません');
+
+  const entry = trash[0];
+  const sheets = getSavedSheets();
+  const newId = 'char_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  sheets[newId] = {
+    name: entry.name || '(無名)',
+    pl: entry.pl || '',
+    savedAt: entry.savedAt || new Date().toISOString(),
+    image: entry.image || null,
+    data: JSON.parse(JSON.stringify(entry.data || {}))
+  };
+  setTrash(trash.slice(1));
+  setSavedSheets(sheets);
+  refreshSaveSlotOptions(newId);
+  alert(`「${entry.name || '(無名)'}」を復元しました`);
+}
+
 function refreshSaveSlotOptions(selectedId = '') {
   const select = document.getElementById('save-slot');
   if (!select) return;
@@ -240,12 +296,22 @@ function deleteSelectedSave() {
   const entry = sheets[id];
   if (!entry) return;
 
-  if (!confirm(`「${entry.name}」を削除します。この操作は取り消せません。よろしいですか？`)) return;
+  if (!confirm(`「${entry.name}」を削除します。よろしいですか？\n\n削除したキャラクターは「削除したキャラを復元」ボタンから復元できます（直近5件まで）。`)) return;
 
+  if (id === 'autosave_draft') {
+    // 自動保存の下書きはゴミ箱に入れず、そのまま削除する（下書きは「保存」ボタンで確定したものではないため）
+    delete sheets[id];
+    setSavedSheets(sheets);
+    refreshSaveSlotOptions('');
+    alert('下書きを削除しました');
+    return;
+  }
+
+  moveToTrash(id, entry);
   delete sheets[id];
   setSavedSheets(sheets);
   refreshSaveSlotOptions('');
-  alert('削除しました');
+  alert(`「${entry.name}」を削除しました。\n「削除したキャラを復元」ボタンから復元できます。`);
 }
 
 // ==========================================================
