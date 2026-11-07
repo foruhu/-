@@ -20,11 +20,12 @@ function exportForHokanshoText() {
   const sc = getVal('sc');
   const age = getVal('age');
   const ps = getVal('ps');
+  const hint = getVal('hint');
 
   let text = `【ドール名】${name}\n`;
   text += `【PL名】${pl}\n`;
   text += `【ポジション】${pos} / 【メイン】${mc} / 【サブ】${sc}\n`;
-  text += `【年齢】${age} / 【暗示】${ps}\n`;
+  text += `【年齢】${age} / 【初期配置】${ps} / 【暗示】${hint}\n`;
   text += `----------------------------------------\n`;
 
   text += `■ たからもの\n`;
