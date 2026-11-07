@@ -108,9 +108,9 @@ function addRow(target = '', emotion = '', madness = 0) {
   if (!tbody) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" value="${target}"></td>
-    <td><input type="text" value="${emotion}"></td>
-    <td><input type="number" value="${madness}" min="0"></td>
+    <td><input type="text" value="${escapeHtml(target)}"></td>
+    <td><input type="text" value="${escapeHtml(emotion)}"></td>
+    <td><input type="number" value="${escapeHtml(madness)}" min="0"></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this)">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -134,6 +134,11 @@ function updateSkillOptions() {
         const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
         optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
       });
+    }
+    // スキル一覧に無い名前（保管所テキストの読み込みなど）が入っている場合も、選択肢として残して値が消えないようにする
+    const inDb = !!(typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category] && SKILL_DATABASE[category].some(s => s.name === currentValue));
+    if (currentValue && !inDb) {
+      optionsHtml += `<option value="${escapeHtml(currentValue)}" selected>${escapeHtml(currentValue)}</option>`;
     }
     select.innerHTML = optionsHtml;
   });
@@ -165,7 +170,7 @@ function buildTimingOptionsHtml(selected) {
   const options = SKILL_TIMING_OPTIONS.includes(selected) || !selected
     ? SKILL_TIMING_OPTIONS
     : [...SKILL_TIMING_OPTIONS, selected]; // 未知の値は選択肢の最後に追加して保持する
-  return options.map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${t || '（未選択）'}</option>`).join('');
+  return options.map(t => `<option value="${escapeHtml(t)}" ${t === selected ? 'selected' : ''}>${escapeHtml(t) || '（未選択）'}</option>`).join('');
 }
 
 // 既存のselectに無い値をセットしたい時、その場で選択肢へ追加してから値を反映する
@@ -216,15 +221,15 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
-    <td><input type="text" class="skill-cost" value="${cost}"></td>
-    <td><input type="text" class="skill-range" value="${range}"></td>
+    <td><input type="text" class="skill-cost" value="${escapeHtml(cost)}"></td>
+    <td><input type="text" class="skill-range" value="${escapeHtml(range)}"></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
 
   const memoTr = document.createElement('tr');
   memoTr.className = 'skill-memo-row';
-  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
+  memoTr.innerHTML = `<td colspan="8"><textarea class="skill-memo" oninput="onManeuverMemoInput(this, '.skill-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${escapeHtml(memo)}</textarea></td>`;
   tbody.appendChild(memoTr);
 
   applyCategoryColorToRow(tr, tag);
@@ -239,7 +244,16 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
 
   // 選択肢一覧を先に生成してから値をセットする（順序を逆にすると保存データの選択状態が復元されない）
   updateSkillOptions();
-  if (skillName) tr.querySelector('.skill-name-select').value = skillName;
+  if (skillName) {
+    const nameSelect = tr.querySelector('.skill-name-select');
+    if (!Array.from(nameSelect.options).some(o => o.value === skillName)) {
+      const opt = document.createElement('option');
+      opt.value = skillName;
+      opt.textContent = skillName;
+      nameSelect.appendChild(opt);
+    }
+    nameSelect.value = skillName;
+  }
   markDirty();
   calcTotals();
 }
