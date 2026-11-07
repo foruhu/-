@@ -267,7 +267,7 @@ function addMemoryEntry(value = '') {
   row.className = 'memory-entry';
   row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center;';
   row.innerHTML = `
-    <input type="text" class="memory-value" value="${value}" style="flex:1;">
+    <input type="text" class="memory-value" value="${escapeHtml(value)}" style="flex:1;">
     <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
   `;
   container.appendChild(row);
@@ -377,16 +377,16 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td class="p-used-cell"><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
     <td class="color-col"><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
-    <td><input type="text" value="${name}" class="p-name" ${readOnlyAttr}></td>
+    <td><input type="text" value="${escapeHtml(name)}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
         ${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
-    <td><input type="number" value="${level}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
-    <td><input type="text" value="${timing}" class="p-timing" ${readOnlyAttr} oninput="updatePartUsedCheckboxVisibility(this.closest('tr'))"></td>
-    <td><input type="text" value="${cost}" class="p-cost" ${readOnlyAttr}></td>
-    <td><input type="text" value="${range}" class="p-range" ${readOnlyAttr}></td>
+    <td><input type="number" value="${escapeHtml(level)}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
+    <td><input type="text" value="${escapeHtml(timing)}" class="p-timing" ${readOnlyAttr} oninput="updatePartUsedCheckboxVisibility(this.closest('tr'))"></td>
+    <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
+    <td><input type="text" value="${escapeHtml(range)}" class="p-range" ${readOnlyAttr}></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -404,7 +404,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     </td>`;
     tr.classList.add('standalone-row'); // 2段目が畳まれている間は、1段目の下線を通常通り出す
   } else {
-    memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${memo}</textarea></td>`;
+    memoTr.innerHTML = `<td colspan="11"><textarea class="p-memo" ${readOnlyAttr} oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ">${escapeHtml(memo)}</textarea></td>`;
   }
   tbody.appendChild(memoTr);
 
