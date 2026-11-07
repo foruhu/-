@@ -215,7 +215,7 @@ function renderPartsContainer() {
     const secDiv = document.createElement('div');
     secDiv.innerHTML = `
       <div class="part-header">
-        <span>【${sec.title}】</span>
+        <span>【${sec.title}】<span class="part-count" id="part-count-${sec.id}"></span></span>
         <span class="val">基本パーツ / 追加パーツ</span>
       </div>
       <div class="table-scroll">
@@ -553,3 +553,42 @@ function resetPartUsedFlags() {
   markDirty();
 }
 
+
+
+// --- 部位ごとの残りパーツ数と、固定バーの行動値・損傷数 ---
+function updatePartCounts() {
+  let allTotal = 0, allBroken = 0;
+  ['head', 'arm', 'body', 'leg'].forEach(id => {
+    const tbody = document.getElementById(`parts-tbody-${id}`);
+    const el = document.getElementById(`part-count-${id}`);
+    if (!tbody || !el) return;
+    const rows = tbody.querySelectorAll('tr.part-row');
+    const broken = Array.from(rows).filter(tr => tr.querySelector('.p-broken')?.checked).length;
+    const alive = rows.length - broken;
+    allTotal += rows.length; allBroken += broken;
+    el.textContent = `残り ${alive}/${rows.length}`;
+    el.classList.toggle('low', rows.length > 0 && alive === 0);
+  });
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('bar-broken', allBroken);
+  set('bar-parts', allTotal);
+  set('bar-act', document.getElementById('act')?.value || '0');
+}
+
+(function () {
+  // 最大行動値を計算し直したとき（損傷・パーツ追加など）に、一緒に更新する
+  const baseCalc = calcActionValue;
+  calcActionValue = function () {
+    const r = baseCalc.apply(this, arguments);
+    updatePartCounts();
+    return r;
+  };
+  let timer = null;
+  const schedule = () => { clearTimeout(timer); timer = setTimeout(updatePartCounts, 30); };
+  document.addEventListener('change', schedule);
+  document.addEventListener('DOMContentLoaded', () => {
+    const c = document.getElementById('parts-container');
+    if (c) new MutationObserver(schedule).observe(c, { childList: true, subtree: true });
+    schedule();
+  });
+})();

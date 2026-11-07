@@ -9,6 +9,23 @@ function applyViewModeUI(isView) {
   }
 }
 
+// 戦闘用表示：表示モードのとき、パーツ・スキル・未練・行動値だけに絞る（初期はON）
+function applyBattleView(on) {
+  document.body.classList.toggle('battle-view', on);
+  const b = document.getElementById('battle-toggle');
+  if (b) b.textContent = on ? '⚔️ 戦闘用：ON' : '⚔️ 戦闘用：OFF';
+}
+function toggleBattleView() {
+  const on = !document.body.classList.contains('battle-view');
+  applyBattleView(on);
+  try { localStorage.setItem('necro_battle_view', on ? '1' : '0'); } catch (e) {}
+}
+function initBattleView() {
+  let on = true;
+  try { if (localStorage.getItem('necro_battle_view') === '0') on = false; } catch (e) {}
+  applyBattleView(on);
+}
+
 function toggleViewMode() {
   const isView = !document.body.classList.contains('view-mode');
   applyViewModeUI(isView);
@@ -23,6 +40,7 @@ function toggleViewMode() {
 }
 
 window.onload = async function() {
+  initBattleView();
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
   if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();

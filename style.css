@@ -187,3 +187,19 @@ body.view-mode tr.part-memo-row:has(.add-memo-btn) { display: none; }
 .fold-card > summary.title::after { content: "▾"; color: #aaa; font-size: 1rem; transition: transform .15s; }
 .fold-card:not([open]) > summary.title::after { transform: rotate(-90deg); }
 .fold-card:not([open]) > summary.title { margin-bottom: 0; border-bottom: none; }
+
+/* 戦闘用表示（表示モードのときだけ）：パーツ・スキル・未練・行動値だけに絞る */
+body.view-mode.battle-view .non-battle { display: none !important; }
+
+/* 損傷したパーツ：行全体を灰色にして、名前に取り消し線を付ける */
+tr.broken td { background: rgba(140, 140, 140, 0.16); }
+tr.broken .p-name { text-decoration: line-through; }
+tr.broken input, tr.broken textarea, tr.broken select { color: #999; }
+
+/* 部位見出しの残りパーツ数 */
+.part-count { font-size: .72rem; font-weight: normal; color: #ffd0d0; margin-left: 6px; letter-spacing: 0; }
+.part-count.low { color: #ff8888; font-weight: bold; }
+
+/* 表示モードの固定バー：2つのボタンを横に並べて、縦幅を取らない */
+body.view-mode .view-btn-row { display: flex; gap: 6px; }
+.view-btn-row .char-switch-btn { flex: 1; width: auto; margin: 0; padding: 5px 4px; font-size: .75rem; }

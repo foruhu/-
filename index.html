@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
 
@@ -15,10 +15,17 @@
 
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
-    <button type="button" class="view-only char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URLを作成</button>
+    <div class="view-only view-btn-row">
+      <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
+      <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
+    </div>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="color:#f0a0a0; font-weight:bold;">行動値</span>
+      <span>最大 <b id="bar-act" style="color:#ffd0d0;">0</b> | 損傷 <b id="bar-broken" style="color:#ffd0d0;">0</b>/<span id="bar-parts">0</span></span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#ff6b6b; font-weight:bold;">武装</span>
@@ -47,7 +54,7 @@
   </div>
 </div>
 
-<details class="card fold-card" id="limit-card" open>
+<details class="card fold-card non-battle" id="limit-card" open>
   <summary class="title">レベル取得制限チェッカー</summary>
   <div class="table-scroll">
     <table class="limit-table">
@@ -74,7 +81,7 @@
     <div class="kv kv-wide"><label>PL名</label><input type="text" id="pl"></div>
     <div class="kv kv-wide"><label>ドール名</label><input type="text" id="name"></div>
   </div>
-  <div class="table-scroll">
+  <div class="table-scroll non-battle">
     <table class="calc-table">
       <thead>
         <tr>
@@ -233,6 +240,7 @@
   <div id="parts-container"></div>
 </div>
 
+<div class="non-battle">
 <!-- 寵愛点サマリー -->
 <div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
   <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
@@ -275,7 +283,9 @@
 </table>
 <button type="button" class="sec edit-only" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
 
-<div class="card" style="margin-top:14px;">
+</div>
+
+<div class="card non-battle" style="margin-top:14px;">
   <div class="title">メモ</div>
   <div style="font-size:0.72rem; color:#888; margin-bottom:4px;">自由に書けるメモ欄です。保管所テキストの読み込みで読み込めなかった行は、ここに追記されます。</div>
   <textarea id="free-memo" rows="4" oninput="autoResizeTextarea(this)" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="メモ" style="min-height:90px; resize:none; overflow-y:hidden;"></textarea>
@@ -536,12 +546,12 @@
   </div>
 </div>
 
-<script src="data.js?v=27"></script>
-<script src="app-core.js?v=27"></script>
-<script src="app-parts.js?v=27"></script>
-<script src="app-skills.js?v=27"></script>
-<script src="app-save.js?v=27"></script>
-<script src="app-share.js?v=27"></script>
-<script src="app-main.js?v=27"></script>
+<script src="data.js?v=28"></script>
+<script src="app-core.js?v=28"></script>
+<script src="app-parts.js?v=28"></script>
+<script src="app-skills.js?v=28"></script>
+<script src="app-save.js?v=28"></script>
+<script src="app-share.js?v=28"></script>
+<script src="app-main.js?v=28"></script>
 </body>
 </html>
