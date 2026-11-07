@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -351,9 +351,6 @@
     </div>
     <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none" onchange="onBackupFileSelected(event)">
     <div class="action-btn-row">
-      <button type="button" class="action-btn c-yellow" onclick="exportForHokanshoText()">
-        <span class="icon">📋</span><span>保管所向け<br>テキスト出力</span>
-      </button>
       <button type="button" class="action-btn c-orange" onclick="openHokanshoImport()">
         <span class="icon">📝</span><span>保管所テキスト<br>から読み込む</span>
       </button>
@@ -506,7 +503,7 @@
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
-      <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練が反映されます(今の内容は上書きされますが、「↩️ 元に戻す」で戻せます)。強化値と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。</li>
+      <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ ライセンス・権利表記</h4>
@@ -528,12 +525,12 @@
   </div>
 </div>
 
-<script src="data.js?v=13"></script>
-<script src="app-core.js?v=13"></script>
-<script src="app-parts.js?v=13"></script>
-<script src="app-skills.js?v=13"></script>
-<script src="app-save.js?v=13"></script>
-<script src="app-share.js?v=13"></script>
-<script src="app-main.js?v=13"></script>
+<script src="data.js?v=15"></script>
+<script src="app-core.js?v=15"></script>
+<script src="app-parts.js?v=15"></script>
+<script src="app-skills.js?v=15"></script>
+<script src="app-save.js?v=15"></script>
+<script src="app-share.js?v=15"></script>
+<script src="app-main.js?v=15"></script>
 </body>
 </html>
