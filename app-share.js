@@ -429,6 +429,8 @@ const HK_APPEARANCE_KEYS = {
   '身長': 'height', '体重': 'weight',
   '髪の色': 'hair', '髪色': 'hair', '瞳の色': 'eye', '瞳色': 'eye', '肌の色': 'skin', '肌色': 'skin'
 };
+// 「項目名：値」の行の判定（表の途中で、表の終わりを見分けるために使う）
+const HK_KEY_LINE = /^(種族|タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴|身長|体重|髪の色|髪色|瞳の色|瞳色|肌の色|肌色)\s*[:：]/;
 const HK_APPEARANCE_NAMES = { height: '身長', weight: '体重', hair: '髪の色', eye: '瞳の色', skin: '肌の色' };
 
 // 全角数字を半角にする（「０」→「0」）
@@ -502,10 +504,13 @@ function parseHokanshoText(raw) {
   const r = {
     fields: {}, memories: [], list: [], skills: [], parts: [],
     enhanceLines: [], enhance: {}, madnessNotes: [], unrecognized: [], recognized: 0,
-    history: [], blankHistoryRows: 0, blankMirenRows: 0, growth: ''
+    history: [], uses: [], blankHistoryRows: 0, blankMirenRows: 0, blankManeuverRows: 0, growth: ''
   };
   const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
   let section = '';
+  // 同じ項目が2か所に出てくるとき（先頭の「享年：8」と、パーソナルデータの「享年：」など）、空の値が先の値を消さないようにする
+  const setField = (key, val) => { if (val !== '' || r.fields[key] === undefined) r.fields[key] = val; };
+  let memoryMode = false; // 「[記憶のカケラ] 内容」の見出しの後、1行1件で記憶のカケラが並んでいる間はtrue
   let mirenMode = false; // 「[未練] 内容 狂気度 発狂時」の見出しの後、1行1件で未練が並んでいる間はtrue
 
   // 未練の1行を結果に入れる（空の行は数えるだけ）
@@ -524,17 +529,41 @@ function parseHokanshoText(raw) {
     const head = line.match(/^■\s*([^■]+?)\s*■\s*(.*)$/) || line.match(/^■\s*([^■\s]+)\s*$/);
     if (head) {
       mirenMode = false;
+      memoryMode = false;
       section = head[1];
       if (head[2] && section === '強化値') r.enhanceLines.push(head[2]); // 区切りと同じ行に値が続く場合
       return;
     }
 
+    // 記憶のカケラの表の中の行（見出しの後に続く、1行1件の形）
+    if (memoryMode) {
+      if (/^[\[［【]/.test(line) || HK_KEY_LINE.test(line)) {
+        memoryMode = false; // 表が終わった。この行は、ほかの行と同じように読む
+      } else {
+        const sp = line.match(/^(\S+)\s*[:：]?\s*(.*)$/);
+        r.memories.push(sp[2] ? `${sp[1]}：${sp[2]}` : sp[1]);
+        r.recognized++;
+        return;
+      }
+    }
+
     // 未練の表の中の行（見出し「[未練] 内容 狂気度 発狂時」の後に続く、1行1件の形）
     if (mirenMode) {
-      const isKeyLine = /^(タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴|身長|体重|髪の色|髪色|瞳の色|瞳色|肌の色|肌色)\s*[:：]/.test(line);
+      const isKeyLine = HK_KEY_LINE.test(line);
       const row = (!/^[\[［【]/.test(line) && !isKeyLine) ? hkParseMirenRow(line) : null;
       if (row) { addMirenRow(row); return; }
       mirenMode = false; // 表が終わった。この行は、ほかの行と同じように読む
+    }
+
+    // 「[]」（部位が空）で始まる行。マニューバ名が空なら、保管所の空き枠として読み込まない
+    // （空き枠の行は「: オート :」のように初期値が入っているため、内容としては数えない）
+    const emptyLab = line.match(/^[\[［【]\s*[\]］】]\s*(.*)$/);
+    if (emptyLab) {
+      mirenMode = false;
+      const f = hkSplitFields(emptyLab[1], 4);
+      if (!f[0]) { r.blankManeuverRows++; return; }
+      r.unrecognized.push(line); // 名前があるのに部位が空：どこに置くか決められないので、知らせてメモに残す
+      return;
     }
 
     // [ラベル] で始まる行
@@ -543,8 +572,12 @@ function parseHokanshoText(raw) {
       const label = lab[1].trim();
       const body = lab[2].trim();
       if (label !== '未練') mirenMode = false;
+      if (label !== '記憶のカケラ') memoryMode = false;
+      if (label === '部位' && /マニューバ名/.test(body)) return; // 表の見出し行
 
       if (label === '記憶のカケラ') {
+        // 「[記憶のカケラ] 内容」のような見出し行（中身が空の枠も同じ）。読み込む内容は無いので数えない
+        if (!body || /^(内容|名前|詳細|内容\s*詳細|名前\s*内容)$/.test(body)) { memoryMode = !body || body !== '' ; return; }
         const sp = body.match(/^(\S+)\s*(.*)$/);
         if (!sp) { r.unrecognized.push(line); return; }
         r.memories.push(sp[2] ? `${sp[1]}：${sp[2]}` : sp[1]);
@@ -617,29 +650,30 @@ function parseHokanshoText(raw) {
       marks.forEach((mk, i) => {
         // 次の項目との区切り（「 / 」「/」「、」「,」）は値に含めない。値の途中の「/」（例：銀/青）はそのまま残す
         const val = line.slice(mk.valStart, i + 1 < marks.length ? marks[i + 1].start : line.length).trim().replace(/[\s\/／、,，]+$/, '');
-        r.fields[HK_APPEARANCE_KEYS[mk.key]] = val;
+        setField(HK_APPEARANCE_KEYS[mk.key], val);
         if (val) r.recognized++; // 値が空の項目は、読み込めた内容として数えない（空のひな形だけの貼り付けを見分けるため）
       });
       return;
     }
 
     // 「キー：値」の行
-    const kv = line.match(/^(タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴)\s*[:：]\s*(.*)$/);
+    const kv = line.match(/^(種族|タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴)\s*[:：]\s*(.*)$/);
     if (kv) {
       const key = kv[1], val = kv[2].trim();
-      if (key === 'キャラクター名' || key === '名前') r.fields.name = val;
-      else if (key === '享年') r.fields.age = val;
-      else if (key === 'ポジション') r.fields.pos = val;
+      if (key === '種族') { if (val) r.unrecognized.push(line); return; } // このシートに欄が無い。空なら何もしない
+      if (key === 'キャラクター名' || key === '名前') setField('name', val);
+      else if (key === '享年') setField('age', val);
+      else if (key === 'ポジション') setField('pos', val);
       else if (key === 'クラス') {
         const cls = val.split(/\s*[\/／・]\s*/);
-        r.fields.mc = (cls[0] || '').trim();
-        r.fields.sc = (cls[1] || '').trim();
+        setField('mc', (cls[0] || '').trim());
+        setField('sc', (cls[1] || '').trim());
       }
-      else if (key === '初期配置') r.fields.ps = val;
+      else if (key === '初期配置') setField('ps', val);
       else if (key === '行動値') r.fields.act = parseInt(hkToHalf(val), 10);
-      else if (key === '暗示') r.fields.hint = val;
+      else if (key === '暗示') setField('hint', val);
       else if (key === '寵愛点') { const n = parseInt(hkToHalf(val), 10); if (Number.isFinite(n)) r.fields.chouai = n; }
-      else if (key === '成長履歴') r.growth = val;
+      else if (key === '成長履歴') { if (val || !r.growth) r.growth = val; }
       // 値が空の項目は、読み込めた内容として数えない（空のひな形だけの貼り付けを見分けるため）
       if (key !== 'タイトル' && val) r.recognized++;
       return;
@@ -650,7 +684,13 @@ function parseHokanshoText(raw) {
 
     // 成長履歴の1行：「No.  合計点(戦闘/個人)  メモ」。例：「1 3点(2/1) 第一話」
     const histConv = hkToHalf(line);
-    const hist = histConv.match(/^(\d+)\s*(\d*)\s*点\s*[(（]\s*(\d*)\s*[\/／]\s*(\d*)\s*[)）]\s*(.*)$/);
+    const hist = histConv.match(/^(\d+)\s*(-?\d*)\s*点\s*[(（]\s*(-?\d*)\s*[\/／]\s*(-?\d*)\s*[)）]\s*(.*)$/);
+    if (hist && hist[2].startsWith('-') && hist[2].length > 1) {
+      // マイナスの行は寵愛点を使った記録。「寵愛点の使い道・強化履歴」に入れる
+      r.uses.push({ no: parseInt(hist[1], 10), used: -parseInt(hist[2], 10), memo: line.slice(histConv.length - hist[5].length).trim() });
+      r.recognized++;
+      return;
+    }
     if (hist) {
       const row = {
         no: parseInt(hist[1], 10),
@@ -688,6 +728,7 @@ function hkReplacePlan(p) {
     memories: full || p.memories.length > 0,
     list: full || p.list.length > 0,
     history: p.history.length > 0,
+    uses: p.uses.length > 0,
     enhance: !!((p.enhance.bonus && !p.enhance.bonus.ambiguous && p.enhance.bonus.cells.some(v => v > 0)) || (p.enhance.chouai && !p.enhance.chouai.ambiguous && p.enhance.chouai.cells.some(v => v > 0)))
   };
 }
@@ -695,7 +736,7 @@ function hkReplacePlan(p) {
 // 解析結果をキャラシに反映し、読み込み結果（件数・注意点）を返す
 function applyHokanshoParsed(p) {
   const rep = {
-    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, blankMirenRows: p.blankMirenRows, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
+    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, blankMirenRows: p.blankMirenRows, blankManeuverRows: p.blankManeuverRows, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
     growth: p.growth, unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
     unrecognized: p.unrecognized.slice(), memoAdded: 0, memoSkipped: 0, madnessNotes: p.madnessNotes.slice(), enhanceApplied: []
   };
@@ -776,6 +817,34 @@ function applyHokanshoParsed(p) {
   if (plan.memories) { data.memories = p.memories.slice(); rep.memories = p.memories.length; }
   if (plan.list) { data.list = p.list.map(x => ({ target: x.target, emotion: x.emotion, madness: String(x.madness) })); rep.list = p.list.length; }
 
+  // 強化値の数字が1つだけで列が決められないとき、合計−メイン−サブの差から決められるなら決める
+  (function () {
+    const e = p.enhance || {};
+    if (!e.total || !e.main || !e.sub || e.total.ambiguous || e.main.ambiguous || e.sub.ambiguous) return;
+    const resid = [0, 1, 2].map(i => (e.total.cells[i] === null ? null : e.total.cells[i] - (e.main.cells[i] || 0) - (e.sub.cells[i] || 0)));
+    if (resid.some(v => v === null)) return;
+    const used = [0, 0, 0];
+    if (e.chouai && e.chouai.ambiguous && e.chouai.hasNumbers) {
+      const val = e.chouai.cells.find(v => v !== null && v > 0);
+      const hit = resid.map((v, i) => (v === val ? i : -1)).filter(i => i >= 0);
+      if (val && hit.length === 1) {
+        e.chouai = { key: 'chouai', cells: [0, 1, 2].map(i => (i === hit[0] ? val : null)), hasNumbers: true, ambiguous: false, inferred: true };
+        used[hit[0]] = val;
+        rep.notes.push('強化値の寵愛：数字の位置が分からなかったため、合計との差から ' + ['武装', '変異', '改造'][hit[0]] + ' と判断しました。');
+      }
+    } else if (e.chouai && e.chouai.cells) {
+      e.chouai.cells.forEach((v, i) => { used[i] = v || 0; });
+    }
+    if (e.bonus && !e.bonus.hasNumbers) {
+      const left = resid.map((v, i) => v - used[i]);
+      const pos = left.map((v, i) => (v > 0 ? i : -1)).filter(i => i >= 0);
+      if (pos.length === 1 && left[pos[0]] === 1 && !e.chouai.ambiguous) {
+        e.bonus = { key: 'bonus', cells: [0, 1, 2].map(i => (i === pos[0] ? 1 : null)), hasNumbers: true, ambiguous: false, inferred: true };
+        rep.notes.push('強化値のボーナス：テキストの欄は空でしたが、合計との差から ' + ['武装', '変異', '改造'][pos[0]] + ' +1 と判断しました。');
+      }
+    }
+  })();
+
   // 強化値：ボーナス（+1する列）と寵愛による修正を反映する。メインクラス・サブクラス・合計は自動計算なので、反映せず後で比べるだけ
   const en = p.enhance || {};
   const COLS = ['武装', '変異', '改造'];
@@ -796,6 +865,12 @@ function applyHokanshoParsed(p) {
       data.chouaiWep = String(v[0]); data.chouaiMut = String(v[1]); data.chouaiCyb = String(v[2]);
       if (v.some(x => x > 0)) rep.enhanceApplied.push(`寵愛による修正＝武装${v[0]}・変異${v[1]}・改造${v[2]}`);
     }
+  }
+
+  // 寵愛点の使い道：マイナスの行があるときだけ置き換える
+  if (p.uses.length) {
+    data.chouaiUses = p.uses.map(u => ({ used: String(u.used), memo: u.memo }));
+    rep.uses = p.uses.length;
   }
 
   // セッション履歴（獲得寵愛）：中身のある行があるときだけ置き換え、ひな形だけなら今の履歴をそのまま残す
@@ -868,9 +943,11 @@ function hkRenderReport(rep) {
     rep.keep.skills ? 'スキル：変更なし（テキストに無かったため）' : `スキル：${rep.skills}件`,
     rep.keep.parts ? 'マニューバ（パーツ）：変更なし（テキストに無かったため）' : `マニューバ（パーツ）：${rep.partsExtra}件（基本パーツ ${rep.partsBase}件は自動配置済み）`,
     rep.keep.memories ? '記憶のカケラ：変更なし（テキストに無かったため）' : `記憶のカケラ：${rep.memories}件`,
+    ...(rep.blankManeuverRows ? [`マニューバの空き枠：${rep.blankManeuverRows}行は読み込んでいません`] : []),
     rep.keep.list ? '未練：変更なし（テキストに無かったため）' : `未練：${rep.list}件` + (rep.blankMirenRows ? `（空の行 ${rep.blankMirenRows}行は読み込んでいません）` : ''),
     ...(rep.appearance ? [`外見（身長・体重・髪/瞳/肌の色）：${rep.appearance}項目`] : []),
     ...(rep.enhanceApplied.length ? [`強化値：${rep.enhanceApplied.join('、')}`] : []),
+    `寵愛点の使い道：${rep.uses || 0}件`,
     `セッション履歴（獲得寵愛）：${rep.history}件` + (rep.blankHistoryRows ? `（空の行 ${rep.blankHistoryRows}行は読み込んでいません）` : '') + (rep.historyKept ? '（今の履歴をそのまま残しました）' : '')
   ]);
 
