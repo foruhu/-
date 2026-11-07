@@ -486,3 +486,458 @@ async function importShareCode() {
     alert('共有コードの読み込みに失敗しました。コードが正しくコピーされているか確認してください。\n' + err.message);
   }
 }
+
+// ==========================================================
+// キャラクター保管所テキストの読み込み
+// （キャラクター保管所からコピーした全文を貼り付け、
+//  既存の getFullData / applyData 形式に変換して反映する。
+//  このブロックは app-share.js の末尾への追加のみで構成され、
+//  既存の関数は変更しない）
+// ==========================================================
+
+// 全角数字・全角＋－を半角に正規化する
+// （コスト「０」「３」や効果メモの「最大行動値＋２」対策。
+//  変換しないと calcActionValue の extractActionBonus が拾えない）
+function hokanHalfwidth(str) {
+  return String(str || '')
+    .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/＋/g, '+')
+    .replace(/－/g, '-');
+}
+
+// パーツ名から data.js の種別・レベルを引く（見つからない場合は null）
+let hokanPartLookupCache = null;
+function hokanLookupPart(name) {
+  if (!hokanPartLookupCache) {
+    const map = new Map();
+    const addList = list => {
+      (list || []).forEach(p => {
+        if (p && p.name && !map.has(p.name)) {
+          map.set(p.name, { type: p.type, level: String(p.level) });
+        }
+      });
+    };
+    if (typeof DEFAULT_PARTS !== 'undefined') {
+      Object.values(DEFAULT_PARTS).forEach(addList);
+    }
+    if (typeof EXTRA_PARTS_DB !== 'undefined') {
+      Object.values(EXTRA_PARTS_DB).forEach(addList);
+    }
+    if (typeof COMMON_EXTRA_PARTS !== 'undefined') {
+      addList(COMMON_EXTRA_PARTS);
+    }
+    hokanPartLookupCache = map;
+  }
+  return hokanPartLookupCache.get(name) || null;
+}
+
+// 効果メモからタグを推測する（app-parts.js の detectCategoryFromMemo を再利用）
+function hokanDetectTag(memo) {
+  if (typeof detectCategoryFromMemo === 'function') {
+    return detectCategoryFromMemo(memo) || '';
+  }
+  return '';
+}
+
+// ---------------- パーサー ----------------
+// parseHokanshoText(text) は次の形を返す。
+// {
+//   name, pos, mc, sc, age, ps, hint,   // 基本情報（空文字の場合は反映しない）
+//   memories: ['名前：説明', ...],       // addMemoryEntry 形式の文字列
+//   list: [{target, emotion, madness}], // madness は ■ の数（文字列）
+//   skills: [{category, name, timing, cost, range, memo, tag, isUsed}],
+//   parts:  [{isBroken, isUsed, location, name, type, level, timing, cost, range, memo, isEditable, tag}],
+//   textAct: '10',                       // テキスト側の行動値（照合用、直接は反映しない）
+//   textEnhance: {wep, mut, cyb},        // テキスト側の強化値合計（照合用）
+//   unmatched: [...], notes: [...],      // 補えなかったもの・備考（表示用）
+//   unparsed: [...]                       // 読み込めなかった行（表示用）
+// }
+function parseHokanshoText(text) {
+  const result = {
+    name: '', pos: '', mc: '', sc: '', age: '', ps: '', hint: '',
+    memories: [], list: [], skills: [], parts: [],
+    textAct: '', textEnhance: null,
+    unmatched: [], notes: [], unparsed: []
+  };
+  if (!text || !String(text).trim()) return result;
+
+  const POS_OPTIONS = ['アリス', 'ホリック', 'オートマトン', 'ジャンク', 'コート', 'ソロリティ'];
+  const MC_OPTIONS = ['ロマネスク', 'ステーシー', 'タナトス', 'レクイエム', 'バロック', 'ホリック', 'ゴシック'];
+  const SC_OPTIONS = ['ステーシー', 'タナトス', 'ゴシック', 'レクイエム', 'バロック', 'ロマネスク'];
+  const PS_OPTIONS = ['煉獄', '花園', '楽園'];
+  const LOC_MAP = { '頭': '頭部', '腕': '腕部', '胴': '胴部', '脚': '脚部', '足': '脚部' };
+
+  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+  let section = 'header';
+
+  // 選択肢にない値は書き込まず、報告だけする
+  const pick = (value, options, label) => {
+    if (!value) return '';
+    if (options.indexOf(value) !== -1) return value;
+    result.unmatched.push(label + '「' + value + '」は選択肢にないため、現在の設定のままにしました');
+    return '';
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // ■区切り行でセクションを切り替える
+    if (line.indexOf('■') === 0) {
+      if (line.indexOf('強化値') !== -1) section = 'enhance';
+      else if (line.indexOf('マニューバ') !== -1) section = 'maneuver';
+      else if (line.indexOf('その他') !== -1) section = 'other';
+      else section = 'header'; // ■パーソナルデータ■ など
+      continue;
+    }
+
+    if (line.indexOf('[記憶のカケラ]') === 0) {
+      section = 'memory';
+      const rest = line.replace('[記憶のカケラ]', '').trim();
+      if (rest && rest !== '内容') {
+        result.memories.push(...parseHokanshoMemoryLine(rest));
+      }
+      continue;
+    }
+    if (line.indexOf('[未練]') === 0) {
+      section = 'mire';
+      continue; // 見出し行（内容 狂気度 発狂時）は読み飛ばす
+    }
+
+    if (section === 'memory') {
+      result.memories.push(...parseHokanshoMemoryLine(line));
+      continue;
+    }
+    if (section === 'mire') {
+      parseHokanshoMireLine(line, result);
+      continue;
+    }
+    if (section === 'enhance') {
+      parseHokanshoEnhanceLine(line, result);
+      continue;
+    }
+    if (section === 'maneuver') {
+      parseHokanshoManeuverLine(line, result, LOC_MAP);
+      continue;
+    }
+    if (section === 'other') {
+      parseHokanshoOtherLine(line, result);
+      continue;
+    }
+
+    parseHokanshoHeaderLine(line, result, POS_OPTIONS, MC_OPTIONS, SC_OPTIONS, PS_OPTIONS, pick);
+  }
+
+  // 基本パーツは DEFAULT_PARTS の並び順に揃える
+  // （applyData → restorePartsFromData が基本パーツを位置で対応付けるため）
+  sortHokanshoBasicParts(result.parts);
+
+  return result;
+}
+
+// 記憶のカケラ1行を「名前：説明」形式の文字列に変換する（0〜1件返す）
+function parseHokanshoMemoryLine(line) {
+  const m = line.match(/^(\S+?)[　 \t]{2,}(.+)$/);
+  if (m) return [m[1].trim() + '：' + m[2].trim()];
+  if (line) return [line.trim()];
+  return [];
+}
+
+// 未練1行を {target, emotion, madness} に変換する。発狂時は欄がないので備考に残す
+function parseHokanshoMireLine(line, result) {
+  const m = line.match(/^(.*?)\s*への\s*(.*?)\s*([■□]+)\s*(.*)$/);
+  if (!m) {
+    result.unparsed.push('未練：' + line);
+    return;
+  }
+  const madness = (m[3].match(/■/g) || []).length;
+  const target = (m[1] || '').trim();
+  const note = (m[4] || '').trim();
+  result.list.push({
+    target: target,
+    emotion: (m[2] || '').trim(),
+    madness: String(madness)
+  });
+  if (note && note !== '()') {
+    result.notes.push('未練「' + (target || '（無名）') + '」の発狂時「' + note + '」は反映先がないため表示のみです');
+  }
+}
+
+// 強化値セクションの1行。=合計= 行だけテキスト値として保持する（自動計算のため直接は反映しない）
+function parseHokanshoEnhanceLine(line, result) {
+  if (line.indexOf('=合計=') === -1) return;
+  const nums = line.match(/[０-９0-9]+/g);
+  if (!nums || nums.length < 3) return;
+  const vals = nums.map(n => parseInt(hokanHalfwidth(n), 10));
+  result.textEnhance = { wep: vals[0], mut: vals[1], cyb: vals[2] };
+}
+
+// マニューバ1行をスキルまたはパーツに変換する
+function parseHokanshoManeuverLine(line, result, LOC_MAP) {
+  const m = line.match(/^\[(.+?)\]\s*(.+)$/);
+  if (!m) {
+    result.unparsed.push('マニューバ：' + line);
+    return;
+  }
+  const locKey = m[1].trim();
+  const rest = m[2].trim();
+  const cols = rest.split(/[:：]/);
+  if (cols.length < 2) {
+    result.unparsed.push('マニューバ：' + line);
+    return;
+  }
+  const name = (cols[0] || '').trim();
+  if (!name || name === 'マニューバ名') return; // 見出し行
+  const timing = (cols[1] || '').trim();
+  if (timing === 'タイミング') return; // 見出し行の念のため
+  const cost = hokanHalfwidth((cols[2] || '').trim());
+  const range = hokanHalfwidth((cols[3] || '').trim());
+  const memo = hokanHalfwidth(cols.slice(4).join(':').trim());
+
+  if (locKey === 'ポジション' || locKey === 'メインクラス' || locKey === 'サブクラス') {
+    const category = locKey === 'ポジション' ? result.pos
+      : locKey === 'メインクラス' ? result.mc : result.sc;
+    const skill = {
+      category: category || locKey, name, timing, cost, range, memo,
+      tag: '', isUsed: false
+    };
+    skill.tag = hokanDetectTag(memo);
+    result.skills.push(skill);
+    // スキル名がデータにないと、選択肢の再構築で名前が残らないため注意書きする
+    if (typeof SKILL_DATABASE !== 'undefined') {
+      const list = SKILL_DATABASE[skill.category];
+      if (!list || !list.some(s => s.name === name)) {
+        result.unmatched.push('スキル「' + name + '」は「' + skill.category + '」のスキル一覧にないため、名前が選択肢に反映されない場合があります');
+      }
+    }
+    return;
+  }
+
+  const location = LOC_MAP[locKey];
+  if (!location) {
+    result.unparsed.push('マニューバ：' + line);
+    return;
+  }
+  const found = hokanLookupPart(name);
+  let type = '武装';
+  let level = '1';
+  let isEditable = true;
+  if (found) {
+    type = found.type;
+    level = found.level;
+    isEditable = false;
+  } else {
+    result.unmatched.push('パーツ「' + name + '」は種別・レベルがデータにないため「武装Lv1（自由入力）」として取り込みました');
+  }
+  const part = {
+    isBroken: false, isUsed: false,
+    location, name, type, level,
+    timing, cost, range, memo,
+    isEditable, tag: ''
+  };
+  part.tag = hokanDetectTag(memo);
+  result.parts.push(part);
+}
+
+// その他セクションの1行。寵愛点は自動集計のため直接は反映しない
+function parseHokanshoOtherLine(line, result) {
+  const m = line.match(/^寵愛点[:：]\s*(.*)$/);
+  if (m) {
+    result.notes.push('寵愛点「' + m[1].trim() + '」はセッション履歴からの自動集計のため、直接は反映しません');
+  }
+  // 成長履歴の表などは反映先がないため読み飛ばす
+}
+
+// ヘッダー（基本情報）セクションの1行
+function parseHokanshoHeaderLine(line, result, POS_OPTIONS, MC_OPTIONS, SC_OPTIONS, PS_OPTIONS, pick) {
+  const kv = key => {
+    const m = line.match(new RegExp('^' + key + '[:：]\\s*(.*)$'));
+    return m ? m[1].trim() : null;
+  };
+  let v;
+  if ((v = kv('キャラクター名')) !== null) { result.name = v; return; }
+  if ((v = kv('ポジション')) !== null) { result.pos = pick(v, POS_OPTIONS, 'ポジション'); return; }
+  if ((v = kv('クラス')) !== null) {
+    const parts = v.split('/').map(s => s.trim()).filter(Boolean);
+    if (parts[0]) result.mc = pick(parts[0], MC_OPTIONS, 'メインクラス');
+    if (parts[1]) result.sc = pick(parts[1], SC_OPTIONS, 'サブクラス');
+    return;
+  }
+  if ((v = kv('享年')) !== null) { result.age = v; return; }
+  if ((v = kv('初期配置')) !== null) { result.ps = pick(v, PS_OPTIONS, '初期配置'); return; }
+  if ((v = kv('行動値')) !== null) { result.textAct = hokanHalfwidth(v); return; }
+  if ((v = kv('暗示')) !== null) { result.hint = v; return; }
+  if (line.indexOf('タイトル') === 0) return; // シートのタイトル（情報のみ）
+  if (line.indexOf('種族') === 0) {
+    const val = kv('種族') || '';
+    if (val) result.notes.push('種族「' + val + '」は反映先がないため表示のみです');
+    return;
+  }
+  // 外見情報（身長・体重・髪の色など）は反映先がない。値が入っている場合のみ備考に残す
+  if (line.indexOf('身長') === 0 || line.indexOf('体重') === 0 || line.indexOf('髪の色') === 0) {
+    const hasValue = line.split('/').some(seg => {
+      const m = seg.match(/[:：]\s*(.*)$/);
+      return m && m[1].trim() !== '';
+    });
+    if (hasValue) {
+      result.notes.push('外見情報「' + line + '」は反映先がないため表示のみです');
+    }
+    return;
+  }
+  result.unparsed.push(line);
+}
+
+// 基本パーツだけを DEFAULT_PARTS の並び順に揃える（追加パーツとの相対順序は変えない）
+function sortHokanshoBasicParts(parts) {
+  if (typeof DEFAULT_PARTS === 'undefined') return;
+  const secOf = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
+  const order = {};
+  Object.keys(DEFAULT_PARTS).forEach(secId => {
+    DEFAULT_PARTS[secId].forEach((p, idx) => {
+      const key = secId + ':' + p.name;
+      if (!(key in order)) order[key] = idx;
+    });
+  });
+  parts.sort((a, b) => {
+    if (a.type !== '基本' || b.type !== '基本') return 0;
+    const ao = order[(secOf[a.location] || '') + ':' + a.name];
+    const bo = order[(secOf[b.location] || '') + ':' + b.name];
+    const av = ao !== undefined ? ao : 99;
+    const bv = bo !== undefined ? bo : 99;
+    return av - bv;
+  });
+}
+
+// ---------------- 自動計算値との照合（直接は書き込まない） ----------------
+function compareHokanshoAct(textAct, actNow) {
+  if (!textAct || !actNow) return '';
+  if (String(textAct) !== String(actNow)) {
+    return '※行動値がテキストと異なります（テキスト：' + textAct + '、計算結果：' + actNow + '）。基本行動値やパーツの損傷を確認してください。';
+  }
+  return '';
+}
+
+function compareHokanshoTotals(textEnhance, totalNow) {
+  if (!textEnhance || !totalNow) return '';
+  if (textEnhance.wep !== totalNow.wep ||
+      textEnhance.mut !== totalNow.mut ||
+      textEnhance.cyb !== totalNow.cyb) {
+    return '※強化値の合計がテキストと異なります（テキスト：武装' + textEnhance.wep + ' / 変異' + textEnhance.mut + ' / 改造' + textEnhance.cyb +
+      '、計算結果：武装' + totalNow.wep + ' / 変異' + totalNow.mut + ' / 改造' + totalNow.cyb + '）。ボーナスの選択を確認してください。';
+  }
+  return '';
+}
+
+// ---------------- モーダルUI ----------------
+let hokanLastParsed = null;
+
+function openHokanshoImport() {
+  const overlay = document.getElementById('hokansho-import-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'block';
+  overlay.scrollTop = 0;
+  const preview = document.getElementById('hokansho-import-preview');
+  if (preview) preview.innerHTML = '';
+  hokanLastParsed = null;
+}
+
+function closeHokanshoImport() {
+  const overlay = document.getElementById('hokansho-import-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function hokanEscape(str) {
+  if (typeof escapeHtml === 'function') return escapeHtml(str);
+  return String(str || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function renderHokanshoPreview(parsed) {
+  const preview = document.getElementById('hokansho-import-preview');
+  if (!preview) return;
+  if (!parsed || (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0)) {
+    preview.innerHTML = '<p style="color:#ff8888;">キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。</p>';
+    return;
+  }
+  const rows = [];
+  rows.push('<p><b>ドール名：</b>' + hokanEscape(parsed.name || '（不明）') + '　<b>ポジション：</b>' + hokanEscape(parsed.pos || '（不明）') + '</p>');
+  rows.push('<p><b>メイン：</b>' + hokanEscape(parsed.mc || '（不明）') + '　<b>サブ：</b>' + hokanEscape(parsed.sc || '（不明）') + '　<b>享年：</b>' + hokanEscape(parsed.age || '（不明）') + '　<b>初期配置：</b>' + hokanEscape(parsed.ps || '（不明）') + '　<b>暗示：</b>' + hokanEscape(parsed.hint || '（不明）') + '</p>');
+  rows.push('<p>スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件</p>');
+  if (parsed.textAct || parsed.textEnhance) {
+    rows.push('<p>行動値（テキスト）：' + hokanEscape(parsed.textAct || '（なし）') + ' ／ 強化値（テキスト）：' +
+      (parsed.textEnhance ? '武装' + parsed.textEnhance.wep + ' / 変異' + parsed.textEnhance.mut + ' / 改造' + parsed.textEnhance.cyb : '（なし）') +
+      ' ※自動計算のため直接は反映しません</p>');
+  }
+  if (parsed.skills.length) rows.push('<p>スキル：' + parsed.skills.map(s => hokanEscape(s.name)).join('、') + '</p>');
+  if (parsed.parts.length) rows.push('<p>パーツ：' + parsed.parts.map(p => hokanEscape(p.name)).join('、') + '</p>');
+  if (parsed.memories.length) rows.push('<p>記憶のカケラ：' + parsed.memories.map(m => hokanEscape(m)).join(' ／ ') + '</p>');
+  if (parsed.unmatched.length) rows.push('<p style="color:#f0c060;">補えなかったもの：<br>' + parsed.unmatched.map(hokanEscape).join('<br>') + '</p>');
+  if (parsed.notes.length) rows.push('<p style="color:#aaa;">備考：<br>' + parsed.notes.map(hokanEscape).join('<br>') + '</p>');
+  if (parsed.unparsed.length) rows.push('<p style="color:#ff8888;">読み込めなかった行：<br>' + parsed.unparsed.map(hokanEscape).join('<br>') + '</p>');
+  preview.innerHTML = rows.join('');
+}
+
+function previewHokanshoImport() {
+  const textEl = document.getElementById('hokansho-import-text');
+  const text = textEl ? textEl.value : '';
+  hokanLastParsed = parseHokanshoText(text);
+  renderHokanshoPreview(hokanLastParsed);
+}
+
+// 解析結果を既存の getFullData 形式に組み立てる
+// （基本情報は空の場合に現在の値を残す。スキル・パーツ・記憶・未練はテキストの内容で置き換える）
+function buildHokanshoImportData(parsed) {
+  const data = getFullData();
+  if (parsed.name) data.name = parsed.name;
+  if (parsed.pos) data.pos = parsed.pos;
+  if (parsed.mc) data.mc = parsed.mc;
+  if (parsed.sc) data.sc = parsed.sc;
+  if (parsed.age) data.age = parsed.age;
+  if (parsed.ps) data.ps = parsed.ps;
+  if (parsed.hint) data.hint = parsed.hint;
+  data.skills = parsed.skills;
+  data.parts = parsed.parts;
+  data.memories = parsed.memories;
+  data.list = parsed.list;
+  return data;
+}
+
+function importHokanshoText() {
+  const textEl = document.getElementById('hokansho-import-text');
+  const text = textEl ? textEl.value : '';
+  const parsed = parseHokanshoText(text);
+  hokanLastParsed = parsed;
+  if (!parsed.name && parsed.skills.length === 0 && parsed.parts.length === 0) {
+    alert('キャラクター保管所のテキストとして認識できませんでした。保管所からコピーした全文を貼り付けているか確認してください。');
+    return;
+  }
+  if (!confirm('「' + (parsed.name || '(無名)') + '」を読み込みます。\n今の編集中の内容は上書きされます（「元に戻す」で戻せます）。\n\nスキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件を反映します。\n\nよろしいですか？')) return;
+
+  pushUndoSnapshot();
+  const data = buildHokanshoImportData(parsed);
+  applyData(data);
+
+  // 自動計算される値との照合（直接は書き込まない）
+  const lines = [];
+  lines.push('「' + (parsed.name || '(無名)') + '」を読み込みました');
+  lines.push('スキル ' + parsed.skills.length + '件、パーツ ' + parsed.parts.length + '件、記憶のカケラ ' + parsed.memories.length + '件、未練 ' + parsed.list.length + '件を反映しました');
+  const actNow = document.getElementById('act') ? document.getElementById('act').value : '';
+  const actMsg = compareHokanshoAct(parsed.textAct, actNow);
+  if (actMsg) lines.push(actMsg);
+  const totalNow = {
+    wep: parseInt(document.getElementById('total-wep') ? document.getElementById('total-wep').textContent : '0', 10) || 0,
+    mut: parseInt(document.getElementById('total-mut') ? document.getElementById('total-mut').textContent : '0', 10) || 0,
+    cyb: parseInt(document.getElementById('total-cyb') ? document.getElementById('total-cyb').textContent : '0', 10) || 0
+  };
+  const totalMsg = compareHokanshoTotals(parsed.textEnhance, totalNow);
+  if (totalMsg) lines.push(totalMsg);
+  if (parsed.unmatched.length) lines.push('補えなかったもの：\n' + parsed.unmatched.join('\n'));
+  if (parsed.notes.length) lines.push('備考：\n' + parsed.notes.join('\n'));
+  if (parsed.unparsed.length) lines.push('読み込めなかった行：\n' + parsed.unparsed.join('\n'));
+
+  closeHokanshoImport();
+  alert(lines.join('\n'));
+  if (confirm('このブラウザにもキャラクターとして保存しますか？\n（保存すると「保存済みキャラクター」からいつでも呼び出せます）')) {
+    saveData();
+  }
+  markDirty();
+}
