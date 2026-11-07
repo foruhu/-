@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=24">
+<link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
 
@@ -49,9 +49,9 @@
 
 <div class="card">
   <div class="title">基本情報・強化値計算 & レベル取得制限チェッカー</div>
-  <div class="g2">
-    <div><label>PL名</label><input type="text" id="pl"></div>
-    <div><label>ドール名</label><input type="text" id="name"></div>
+  <div class="kv-grid">
+    <div class="kv kv-wide"><label>PL名</label><input type="text" id="pl"></div>
+    <div class="kv kv-wide"><label>ドール名</label><input type="text" id="name"></div>
   </div>
   <div class="table-scroll">
     <table class="calc-table">
@@ -135,25 +135,19 @@
     </div>
   </div>
 
-  <div class="g2" style="margin-top:8px;">
-    <div><label>享年/外見</label><input type="text" id="age"></div>
-    <div><label>初期配置</label>
+  <div class="kv-grid" style="margin-top:8px;">
+    <div class="kv kv-wide"><label>享年/外見</label><input type="text" id="age"></div>
+    <div class="kv kv-wide"><label>暗示</label><input type="text" id="hint"></div>
+    <div class="kv"><label>初期配置</label>
       <select id="ps">
         <option>煉獄</option><option>花園</option><option>楽園</option>
       </select>
     </div>
-  </div>
-  <div class="g2">
-    <div><label>暗示</label><input type="text" id="hint"></div>
-    <div><label>身長</label><input type="text" id="height"></div>
-  </div>
-  <div class="g2">
-    <div><label>体重</label><input type="text" id="weight"></div>
-    <div><label>髪の色</label><input type="text" id="hair"></div>
-  </div>
-  <div class="g2">
-    <div><label>瞳の色</label><input type="text" id="eye"></div>
-    <div><label>肌の色</label><input type="text" id="skin"></div>
+    <div class="kv"><label>身長</label><input type="text" id="height"></div>
+    <div class="kv"><label>体重</label><input type="text" id="weight"></div>
+    <div class="kv"><label>髪の色</label><input type="text" id="hair"></div>
+    <div class="kv"><label>瞳の色</label><input type="text" id="eye"></div>
+    <div class="kv"><label>肌の色</label><input type="text" id="skin"></div>
   </div>
   <div style="margin-bottom:6px;">
     <label>記憶のカケラ（入手した数だけ追加できます）</label>
@@ -539,12 +533,12 @@
   </div>
 </div>
 
-<script src="data.js?v=24"></script>
-<script src="app-core.js?v=24"></script>
-<script src="app-parts.js?v=24"></script>
-<script src="app-skills.js?v=24"></script>
-<script src="app-save.js?v=24"></script>
-<script src="app-share.js?v=24"></script>
-<script src="app-main.js?v=24"></script>
+<script src="data.js?v=25"></script>
+<script src="app-core.js?v=25"></script>
+<script src="app-parts.js?v=25"></script>
+<script src="app-skills.js?v=25"></script>
+<script src="app-save.js?v=25"></script>
+<script src="app-share.js?v=25"></script>
+<script src="app-main.js?v=25"></script>
 </body>
 </html>

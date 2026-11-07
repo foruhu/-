@@ -172,3 +172,11 @@ body.view-mode th { color: #ddd; }
 }
 /* 表示モードでは、まだメモが追加されていない（ボタンが残ったままの）2段目は場所を取らないようにする */
 body.view-mode tr.part-memo-row:has(.add-memo-btn) { display: none; }
+
+/* 基本情報：ラベルが黒い小さなセルで、入力欄と横並びの格子 */
+.kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px; }
+.kv { display: flex; align-items: stretch; min-width: 0; border-radius: 4px; overflow: hidden; border: 1px solid #444; background: #18181c; }
+.kv.kv-wide { grid-column: 1 / -1; }
+.kv > label { flex: 0 0 auto; display: flex; align-items: center; margin: 0; padding: 0 8px; background: #0e0e12; color: #ddd; font-size: .75rem; white-space: nowrap; }
+.kv > input, .kv > select { flex: 1 1 auto; min-width: 0; width: 100%; border: none; border-radius: 0; margin: 0; background: #2a2a30; color: #fff; }
+@media (min-width: 640px) { .kv-grid { grid-template-columns: repeat(3, 1fr); } }
