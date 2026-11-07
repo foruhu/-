@@ -8,6 +8,11 @@ function getFullData() {
     mc: getVal('mc'),
     sc: getVal('sc'),
     age: getVal('age'),
+    height: getVal('height'),
+    weight: getVal('weight'),
+    hair: getVal('hair'),
+    eye: getVal('eye'),
+    skin: getVal('skin'),
     ps: getVal('ps'),
     hint: getVal('hint'),
     act: getVal('act'),
@@ -335,6 +340,8 @@ function applyData(data) {
   setVal('pl', data.pl); setVal('name', data.name);
   setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
   setVal('age', data.age); setVal('ps', data.ps || '煉獄');
+  setVal('height', data.height); setVal('weight', data.weight);
+  setVal('hair', data.hair); setVal('eye', data.eye); setVal('skin', data.skin);
   setVal('hint', data.hint);
   setVal('act', data.act || '9'); setVal('fav', data.fav || '0');
   setVal('chouai-wep', data.chouaiWep || '0'); setVal('chouai-mut', data.chouaiMut || '0'); setVal('chouai-cyb', data.chouaiCyb || '0');
