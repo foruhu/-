@@ -328,6 +328,12 @@
   </div>
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="onThumbFileSelected(event)">
 
+  <div class="action-btn-row" style="margin-top:8px;">
+    <button type="button" class="action-btn c-blue" onclick="restoreDeletedSave()">
+      <span class="icon">↩️</span><span>削除したキャラを<br>復元</span>
+    </button>
+  </div>
+
   <button type="button" class="edit-only" id="export-share-toggle" onclick="toggleExportShareSection()" style="
     width:100%; margin-top:8px; padding:6px; background:#1c1c22; color:#aaa;
     border:1px dashed var(--border); border-radius:4px; font-size:.78rem; cursor:pointer;
@@ -383,7 +389,7 @@
 
   <div style="font-size:0.7rem; color:#888; margin-top:8px;">
     ※カードをタップしてキャラクターを選択すると、削除・複製・画像設定のボタンが出てきます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
-    ※未保存の変更がある場合、一定時間ごとに自動でブラウザに保存されます（画面上部に保存時刻が表示されます）。
+    ※自動保存は下書き枠にだけ保存されます（画面上部に「自動保存（下書き）」と表示されます）。選択中のキャラクターは「💾 保存」を押すまで変わりません。削除したキャラクターは「削除したキャラを復元」ボタンから復元できます（直近5件まで）。
   </div>
 </div>
 
@@ -513,7 +519,7 @@
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 保存・切り替え</h4>
     <ul style="margin:0; padding-left:1.2em;">
       <li>データはこのブラウザの中に保存されます。「💾 保存」で保存し、カードを選んで保存すると上書きになります。</li>
-      <li>未保存の変更は一定時間ごとに自動保存されます。「↩️ 元に戻す」で直前の削除などを戻せます。</li>
+      <li>未保存の変更は一定時間ごとに自動保存されますが、下書き枠にだけ保存されます。選択中のキャラクターは「💾 保存」を押すまで変わりません。「↩️ 元に戻す」で直前の削除などを戻せます。</li>
       <li>「🔄 切替」で保存済みキャラを一覧から切り替えられます。</li>
       <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
     </ul>
@@ -547,10 +553,10 @@
 </div>
 
 <script src="data.js?v=28"></script>
-<script src="app-core.js?v=28"></script>
+<script src="app-core.js?v=29"></script>
 <script src="app-parts.js?v=28"></script>
 <script src="app-skills.js?v=28"></script>
-<script src="app-save.js?v=28"></script>
+<script src="app-save.js?v=29"></script>
 <script src="app-share.js?v=28"></script>
 <script src="app-main.js?v=28"></script>
 </body>
