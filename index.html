@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -342,14 +342,6 @@
       </button>
     </div>
     <div class="action-btn-row">
-      <button type="button" class="action-btn c-orange" onclick="exportForHokanshoText()" title="キャラクター保管所に貼り付けるためのテキストをコピーします">
-        <span class="icon">📋</span><span>保管所テキストを<br>出力</span>
-      </button>
-      <button type="button" class="action-btn c-teal" onclick="openHokanshoImport()" title="キャラクター保管所からコピーしたテキストを読み込みます">
-        <span class="icon">📥</span><span>保管所テキストから<br>読み込む</span>
-      </button>
-    </div>
-    <div class="action-btn-row">
       <button type="button" class="action-btn c-green" onclick="exportAllCharactersBackup()">
         <span class="icon">📦</span><span>全キャラを<br>バックアップ</span>
       </button>
@@ -358,6 +350,11 @@
       </button>
     </div>
     <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none" onchange="onBackupFileSelected(event)">
+    <div class="action-btn-row">
+      <button type="button" class="action-btn c-orange" onclick="openHokanshoImport()">
+        <span class="icon">📝</span><span>保管所テキスト<br>から読み込む</span>
+      </button>
+    </div>
     <div style="font-size:0.7rem; color:#888; margin-top:4px;">
       ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。「閲覧用URL」は開くと自動的に表示モード(編集不可)になる専用のリンクです(相手のブラウザには保存されません)。「共有コード」は文字列をコピー&貼り付けする方式です。「全キャラをバックアップ」は、保存済みの全キャラクターをまとめて1つのファイルに書き出します(機種変更やブラウザデータが消えた時の保険用です)。
     </div>
@@ -424,6 +421,28 @@
   font-family: sans-serif;
 ">📜 README</button>
 
+<!-- 保管所テキストから読み込む：貼り付け画面＋読み込み結果 -->
+<div id="hokansho-overlay" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
+  z-index:10003; padding:16px; overflow-y:auto;
+" onclick="if(event.target===this) closeHokanshoImport()">
+  <div style="max-width:560px; margin:20px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:14px 16px 18px; box-shadow:0 8px 24px rgba(0,0,0,0.7); font-family:sans-serif; font-size:0.82rem; line-height:1.6; color:#ddd;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="color:#f0a0a0; font-weight:bold; font-size:1.05rem;">保管所テキストから読み込む</span>
+      <button type="button" onclick="closeHokanshoImport()" style="background:none;border:none;color:#aaa;font-size:1.3rem;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="hokansho-input-panel">
+      <div style="color:#aaa; margin-bottom:6px;">キャラクター保管所の「テキスト出力」で出てくるテキストを、そのまま貼り付けてください。今のシートの内容は上書きされます（「↩️ 元に戻す」で戻せます）。</div>
+      <textarea id="hokansho-text" rows="12" placeholder="タイトル：ネクロニカ&#10;キャラクター名：…&#10;[ポジション] …&#10;[頭] …" style="width:100%; font-size:0.8rem;"></textarea>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button type="button" class="sec" onclick="closeHokanshoImport()" style="flex:1;">キャンセル</button>
+        <button type="button" onclick="runHokanshoImport()" style="flex:2;">読み込む</button>
+      </div>
+    </div>
+    <div id="hokansho-result-panel" style="display:none;"></div>
+  </div>
+</div>
+
 <!-- README（使い方）オーバーレイ -->
 <div id="help-overlay" style="
   display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
@@ -484,7 +503,7 @@
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
-      <li>「保管所テキストから読み込む」: キャラクター保管所からコピーしたテキスト全文を貼り付けると、キャラシに反映されます。「保管所テキストを出力」で保管所用のテキストをコピーできます。</li>
+      <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練が反映されます(今の内容は上書きされますが、「↩️ 元に戻す」で戻せます)。強化値と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ ライセンス・権利表記</h4>
@@ -506,33 +525,12 @@
   </div>
 </div>
 
-<!-- キャラクター保管所テキスト読み込みモーダル -->
-<div id="hokansho-import-overlay" style="
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
-  z-index:10003; padding:16px; overflow-y:auto;
-" onclick="if(event.target===this) closeHokanshoImport()">
-  <div style="max-width:480px; margin:30px auto; background:#18181c; border:1.5px solid #8b0000; border-radius:10px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.7);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <span style="color:#f0a0a0; font-weight:bold; font-size:1rem;">保管所テキストから読み込む</span>
-      <button type="button" onclick="closeHokanshoImport()" style="background:none;border:none;color:#aaa;font-size:1.3rem;cursor:pointer;line-height:1;min-width:44px;min-height:44px;">✕</button>
-    </div>
-    <p style="margin:0 0 8px; font-size:0.9rem; color:#ccc;">キャラクター保管所からコピーしたテキスト全文を貼り付けてください。「解析プレビュー」で内容を確認してから「読み込む」を押すと、編集中の内容に上書きされます（「元に戻す」で戻せます）。</p>
-    <textarea id="hokansho-import-text" rows="8" placeholder="キャラクター名：ヘリオデュール&#10;ポジション：オートマトン&#10;クラス：タナトス / バロック&#10;…" style="width:100%; box-sizing:border-box; font-size:16px; background:#222; color:#eee; border:1px solid #555; border-radius:6px; padding:8px; resize:vertical;"></textarea>
-    <div id="hokansho-import-preview" style="margin-top:10px; font-size:0.9rem; color:#eee;"></div>
-    <div style="display:flex; gap:10px; margin-top:12px;">
-      <button type="button" onclick="previewHokanshoImport()" style="flex:1; min-height:44px; background:#8b0000; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">解析プレビュー</button>
-      <button type="button" onclick="importHokanshoText()" style="flex:1; min-height:44px; background:#2e7d32; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">読み込む</button>
-      <button type="button" onclick="closeHokanshoImport()" style="flex:1; min-height:44px; background:#555; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">閉じる</button>
-    </div>
-  </div>
-</div>
-
-<script src="data.js?v=11"></script>
-<script src="app-core.js?v=11"></script>
-<script src="app-parts.js?v=11"></script>
-<script src="app-skills.js?v=11"></script>
-<script src="app-save.js?v=11"></script>
-<script src="app-share.js?v=13"></script>
-<script src="app-main.js?v=11"></script>
+<script src="data.js?v=12"></script>
+<script src="app-core.js?v=12"></script>
+<script src="app-parts.js?v=12"></script>
+<script src="app-skills.js?v=12"></script>
+<script src="app-save.js?v=12"></script>
+<script src="app-share.js?v=12"></script>
+<script src="app-main.js?v=12"></script>
 </body>
 </html>
