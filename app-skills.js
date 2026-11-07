@@ -313,7 +313,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-scenario" value="${scenario}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="h-scenario" value="${escapeHtml(scenario)}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
       <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
@@ -322,7 +322,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
       <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-memo" value="${memo}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="h-memo" value="${escapeHtml(memo)}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
