@@ -456,6 +456,37 @@ function hkNormalizeMemo(memo) {
   return String(memo || '').replace(/最大行動値\s*[＋+]\s*([０-９0-9]+)/g, (m, n) => '最大行動値+' + hkToHalf(n));
 }
 
+// 強化値の表の1行「ﾒｲﾝｸﾗｽ　　 1　　 0　　 1」を読む。半角カナ・全角の「＝合計＝」なども正規化して、ラベルを判定する。
+// 数字は「武装・変異・改造」の3列に割り振る。3つ並んでいれば順番どおり。少ないときは、数字の前の空白の幅（1列＝3文字分）から列を求める
+// 空白の幅が合わず列が決められないときは ambiguous: true を返す（呼び出し側で「位置が分からない」と知らせる）
+function hkParseEnhanceRow(rawLine) {
+  const s = String(rawLine || '').normalize('NFKC').replace(/\s+$/, '');
+  const m = s.match(/^\s*(メインクラス|サブクラス|ボーナス|寵愛による修正|寵愛|=?合計=?|総計)/);
+  if (!m) return null;
+  const labelRaw = m[1];
+  const key = labelRaw === 'メインクラス' ? 'main' : labelRaw === 'サブクラス' ? 'sub' : labelRaw === 'ボーナス' ? 'bonus'
+    : /寵愛/.test(labelRaw) ? 'chouai' : 'total';
+  const rest = s.slice(m[0].length);
+  const tokens = [];
+  const re = /(\s*)([+-]?\d+)/g;
+  let t;
+  while ((t = re.exec(rest)) !== null) tokens.push({ gap: t[1].length, value: parseInt(t[2], 10) });
+
+  const cells = [null, null, null];
+  let ambiguous = false;
+  if (tokens.length >= 3) {
+    for (let i = 0; i < 3; i++) cells[i] = tokens[i].value;
+  } else {
+    let col = -1;
+    tokens.forEach(tk => {
+      if (tk.gap % 3 !== 0) ambiguous = true;
+      col += Math.max(1, Math.round(tk.gap / 3));
+      if (col >= 0 && col < 3) cells[col] = tk.value;
+    });
+  }
+  return { key: key, cells: cells, hasNumbers: tokens.length > 0, ambiguous: ambiguous };
+}
+
 // 未練の1行「対象 への 内容 ■■■□ 発狂時(効果)」を読む。対象と内容が両方空なら空の行（保管所の空き枠）として返す
 // 内容は ■□ を含まない文字列。狂気度は ■ の数。発狂時の「()」だけのものは空として扱う
 function hkParseMirenRow(text) {
@@ -470,7 +501,7 @@ function hkParseMirenRow(text) {
 function parseHokanshoText(raw) {
   const r = {
     fields: {}, memories: [], list: [], skills: [], parts: [],
-    enhanceLines: [], madnessNotes: [], unrecognized: [], recognized: 0,
+    enhanceLines: [], enhance: {}, madnessNotes: [], unrecognized: [], recognized: 0,
     history: [], blankHistoryRows: 0, blankMirenRows: 0, growth: ''
   };
   const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
@@ -555,6 +586,20 @@ function parseHokanshoText(raw) {
 
       r.unrecognized.push(line);
       return;
+    }
+
+    // ■強化値■ の表（見出し「武装 変異 改造」と、メインクラス/サブクラス/ボーナス/寵愛/合計の各行）
+    if (section === '強化値') {
+      const nl = line.normalize('NFKC');
+      if (/武装/.test(nl) && /変異/.test(nl) && /改造/.test(nl) && !/\d/.test(nl)) return; // 列の見出し行は読み飛ばす
+      const er = hkParseEnhanceRow(rawLine);
+      if (er) {
+        r.enhance[er.key] = er;
+        // ボーナス・寵愛に1以上の数字があるときだけ、読み込めた内容として数える
+        // （メインクラス・サブクラス・合計は自動計算と比べるだけ。空のひな形の「0 0 0」を内容として数えないため）
+        if ((er.key === 'bonus' || er.key === 'chouai') && !er.ambiguous && er.cells.some(v => v > 0)) r.recognized++;
+        return;
+      }
     }
 
     // 見出し行が無くても、「…への…■■■□」の形の行は未練の1行として読む
@@ -642,7 +687,8 @@ function hkReplacePlan(p) {
     parts: full || p.parts.length > 0,
     memories: full || p.memories.length > 0,
     list: full || p.list.length > 0,
-    history: p.history.length > 0
+    history: p.history.length > 0,
+    enhance: !!((p.enhance.bonus && !p.enhance.bonus.ambiguous && p.enhance.bonus.cells.some(v => v > 0)) || (p.enhance.chouai && !p.enhance.chouai.ambiguous && p.enhance.chouai.cells.some(v => v > 0)))
   };
 }
 
@@ -651,7 +697,7 @@ function applyHokanshoParsed(p) {
   const rep = {
     skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, blankMirenRows: p.blankMirenRows, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
     growth: p.growth, unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
-    unrecognized: p.unrecognized.slice(), memoAdded: 0, memoSkipped: 0, madnessNotes: p.madnessNotes.slice()
+    unrecognized: p.unrecognized.slice(), memoAdded: 0, memoSkipped: 0, madnessNotes: p.madnessNotes.slice(), enhanceApplied: []
   };
 
   const plan = hkReplacePlan(p);
@@ -730,6 +776,28 @@ function applyHokanshoParsed(p) {
   if (plan.memories) { data.memories = p.memories.slice(); rep.memories = p.memories.length; }
   if (plan.list) { data.list = p.list.map(x => ({ target: x.target, emotion: x.emotion, madness: String(x.madness) })); rep.list = p.list.length; }
 
+  // 強化値：ボーナス（+1する列）と寵愛による修正を反映する。メインクラス・サブクラス・合計は自動計算なので、反映せず後で比べるだけ
+  const en = p.enhance || {};
+  const COLS = ['武装', '変異', '改造'];
+  if (en.bonus) {
+    const idx = en.bonus.cells.findIndex(v => v > 0);
+    if (en.bonus.ambiguous) {
+      if (en.bonus.hasNumbers) rep.notes.push('強化値のボーナス：数字の位置から武装・変異・改造のどの列か判断できなかったため、今の設定のままにしました。');
+    } else if (idx >= 0) {
+      data.bonus = ['wep', 'mut', 'cyb'][idx]; rep.enhanceApplied.push(`ボーナス＝${COLS[idx]}`);
+    }
+  }
+  if (en.chouai) {
+    if (en.chouai.ambiguous) {
+      rep.notes.push('強化値の寵愛：数字の位置から武装・変異・改造のどの列か判断できなかったため、今の設定のままにしました。');
+    } else if (en.chouai.cells.some(v => v !== null) || plan.full) {
+      // シート全体のテキストで寵愛の欄が空なら、寵愛による修正は 0 とする。一部だけ貼った場合は、数字があるときだけ反映する
+      const v = en.chouai.cells.map(x => x || 0);
+      data.chouaiWep = String(v[0]); data.chouaiMut = String(v[1]); data.chouaiCyb = String(v[2]);
+      if (v.some(x => x > 0)) rep.enhanceApplied.push(`寵愛による修正＝武装${v[0]}・変異${v[1]}・改造${v[2]}`);
+    }
+  }
+
   // セッション履歴（獲得寵愛）：中身のある行があるときだけ置き換え、ひな形だけなら今の履歴をそのまま残す
   if (p.history.length) {
     data.history = p.history.map(h => {
@@ -754,9 +822,23 @@ function applyHokanshoParsed(p) {
   const num = id => parseInt(document.getElementById(id)?.textContent, 10);
   const appTotals = { '武装': num('total-wep'), '変異': num('total-mut'), '改造': num('total-cyb') };
   const textTotals = {};
-  p.enhanceLines.join(' ').replace(/(武装|変異|改造)[^\d\-]*(\d+)/g, (m, k, v) => { textTotals[k] = parseInt(v, 10); return m; });
+  const totalRow = (p.enhance || {}).total;
+  if (totalRow && totalRow.hasNumbers && !totalRow.ambiguous) {
+    ['武装', '変異', '改造'].forEach((k, i) => { if (totalRow.cells[i] !== null) textTotals[k] = totalRow.cells[i]; });
+  } else {
+    // 従来の「武装：5 変異：1 改造：2」のような書き方
+    p.enhanceLines.join(' ').replace(/(武装|変異|改造)[^\d\-]*(\d+)/g, (m, k, v) => { textTotals[k] = parseInt(v, 10); return m; });
+  }
   Object.keys(textTotals).forEach(k => {
-    if (textTotals[k] !== appTotals[k]) rep.mismatches.push(`強化値（${k}）：テキスト ${textTotals[k]} ／ このシートの計算 ${appTotals[k]}`);
+    if (textTotals[k] !== appTotals[k]) rep.mismatches.push(`強化値の合計（${k}）：テキスト ${textTotals[k]} ／ このシートの計算 ${appTotals[k]}`);
+  });
+  // メインクラス・サブクラスの強化値も、シートの計算（クラスから自動で決まる）と比べる
+  [['main', 'メインクラス', 'mc'], ['sub', 'サブクラス', 'sc']].forEach(([k, label, pre]) => {
+    const row = (p.enhance || {})[k];
+    if (!row || !row.hasNumbers || row.ambiguous) return;
+    const app3 = ['wep', 'mut', 'cyb'].map(x => num(`${pre}-${x}`));
+    const txt3 = row.cells.map(v => (v === null ? 0 : v));
+    if (txt3.some((v, i) => v !== app3[i])) rep.mismatches.push(`強化値（${label}）：テキスト 武装${txt3[0]}・変異${txt3[1]}・改造${txt3[2]} ／ このシートの計算 武装${app3[0]}・変異${app3[1]}・改造${app3[2]}`);
   });
   if (Number.isFinite(f.act)) {
     const appAct = parseInt(document.getElementById('act')?.value, 10);
@@ -788,6 +870,7 @@ function hkRenderReport(rep) {
     rep.keep.memories ? '記憶のカケラ：変更なし（テキストに無かったため）' : `記憶のカケラ：${rep.memories}件`,
     rep.keep.list ? '未練：変更なし（テキストに無かったため）' : `未練：${rep.list}件` + (rep.blankMirenRows ? `（空の行 ${rep.blankMirenRows}行は読み込んでいません）` : ''),
     ...(rep.appearance ? [`外見（身長・体重・髪/瞳/肌の色）：${rep.appearance}項目`] : []),
+    ...(rep.enhanceApplied.length ? [`強化値：${rep.enhanceApplied.join('、')}`] : []),
     `セッション履歴（獲得寵愛）：${rep.history}件` + (rep.blankHistoryRows ? `（空の行 ${rep.blankHistoryRows}行は読み込んでいません）` : '') + (rep.historyKept ? '（今の履歴をそのまま残しました）' : '')
   ]);
 
@@ -858,7 +941,7 @@ function runHokanshoImport() {
   const plan = hkReplacePlan(parsed);
   const overwriteList = plan.full
     ? 'キャラ名・クラス・スキル・マニューバ・記憶のカケラ・未練' + (plan.history ? '・セッション履歴' : '') + 'など'
-    : [plan.skills && 'スキル', plan.parts && 'マニューバ', plan.memories && '記憶のカケラ', plan.list && '未練', plan.history && 'セッション履歴'].filter(Boolean).join('・') || '一部の項目';
+    : [plan.skills && 'スキル', plan.parts && 'マニューバ', plan.memories && '記憶のカケラ', plan.list && '未練', plan.history && 'セッション履歴', plan.enhance && 'ボーナス・寵愛による修正'].filter(Boolean).join('・') || '一部の項目';
   if (!confirm(`今のシートの内容（${overwriteList}）を、貼り付けたテキストの内容で上書きします。\n「↩️ 元に戻す」で戻せます。\n\nよろしいですか？`)) return;
 
   pushUndoSnapshot();
