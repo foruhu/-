@@ -424,6 +424,12 @@ const HK_LOC_TO_SEC = { '頭': 'head', '腕': 'arm', '胴': 'body', '脚': 'leg'
 const HK_SEC_TO_LOC = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
 const HK_SKILL_SLOTS = { 'ポジション': 'pos', 'メインクラス': 'mc', 'サブクラス': 'sc' };
 const HK_SLOT_LABEL = { pos: 'ポジション', mc: 'メインクラス', sc: 'サブクラス' };
+// 外見などの項目名 → シートの欄（髪色/瞳色/肌色のような短い書き方も受け付ける）
+const HK_APPEARANCE_KEYS = {
+  '身長': 'height', '体重': 'weight',
+  '髪の色': 'hair', '髪色': 'hair', '瞳の色': 'eye', '瞳色': 'eye', '肌の色': 'skin', '肌色': 'skin'
+};
+const HK_APPEARANCE_NAMES = { height: '身長', weight: '体重', hair: '髪の色', eye: '瞳の色', skin: '肌の色' };
 
 // 全角数字を半角にする（「０」→「0」）
 function hkToHalf(str) {
@@ -522,6 +528,21 @@ function parseHokanshoText(raw) {
       return;
     }
 
+    // 身長・体重・髪の色・瞳の色・肌の色（1行に1項目でも、1行に複数並んでいても読む）
+    if (/^(身長|体重|髪の色|髪色|瞳の色|瞳色|肌の色|肌色)\s*[:：]/.test(line)) {
+      const re = /(身長|体重|髪の色|髪色|瞳の色|瞳色|肌の色|肌色)\s*[:：]\s*/g;
+      const marks = [];
+      let mm;
+      while ((mm = re.exec(line)) !== null) marks.push({ key: mm[1], start: mm.index, valStart: re.lastIndex });
+      marks.forEach((mk, i) => {
+        // 次の項目との区切り（「 / 」「/」「、」「,」）は値に含めない。値の途中の「/」（例：銀/青）はそのまま残す
+        const val = line.slice(mk.valStart, i + 1 < marks.length ? marks[i + 1].start : line.length).trim().replace(/[\s\/／、,，]+$/, '');
+        r.fields[HK_APPEARANCE_KEYS[mk.key]] = val;
+        if (val) r.recognized++; // 値が空の項目は、読み込めた内容として数えない（空のひな形だけの貼り付けを見分けるため）
+      });
+      return;
+    }
+
     // 「キー：値」の行
     const kv = line.match(/^(タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴)\s*[:：]\s*(.*)$/);
     if (kv) {
@@ -539,8 +560,8 @@ function parseHokanshoText(raw) {
       else if (key === '暗示') r.fields.hint = val;
       else if (key === '寵愛点') { const n = parseInt(hkToHalf(val), 10); if (Number.isFinite(n)) r.fields.chouai = n; }
       else if (key === '成長履歴') r.growth = val;
-      // 「寵愛点：」「成長履歴：」は、値が空なら読み込めた内容として数えない（空のひな形だけの貼り付けを見分けるため）
-      if (key !== 'タイトル' && !((key === '寵愛点' || key === '成長履歴') && !val)) r.recognized++;
+      // 値が空の項目は、読み込めた内容として数えない（空のひな形だけの貼り付けを見分けるため）
+      if (key !== 'タイトル' && val) r.recognized++;
       return;
     }
 
@@ -593,7 +614,7 @@ function hkReplacePlan(p) {
 // 解析結果をキャラシに反映し、読み込み結果（件数・注意点）を返す
 function applyHokanshoParsed(p) {
   const rep = {
-    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, history: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
+    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
     growth: p.growth, unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
     unrecognized: p.unrecognized.slice(), madnessNotes: p.madnessNotes.slice()
   };
@@ -607,6 +628,9 @@ function applyHokanshoParsed(p) {
   if (f.name) data.name = f.name;
   if (f.age !== undefined) data.age = f.age;
   if (f.hint !== undefined) data.hint = f.hint;
+  Object.keys(HK_APPEARANCE_NAMES).forEach(k => {
+    if (f[k] !== undefined) { data[k] = f[k]; if (f[k]) rep.appearance++; }
+  });
   [['pos', 'ポジション'], ['mc', 'メインクラス'], ['sc', 'サブクラス'], ['ps', '初期配置']].forEach(([key, label]) => {
     if (!f[key]) return;
     if (selectHas(key, f[key])) data[key] = f[key];
@@ -716,6 +740,7 @@ function hkRenderReport(rep) {
     rep.keep.parts ? 'マニューバ（パーツ）：変更なし（テキストに無かったため）' : `マニューバ（パーツ）：${rep.partsExtra}件（基本パーツ ${rep.partsBase}件は自動配置済み）`,
     rep.keep.memories ? '記憶のカケラ：変更なし（テキストに無かったため）' : `記憶のカケラ：${rep.memories}件`,
     rep.keep.list ? '未練：変更なし（テキストに無かったため）' : `未練：${rep.list}件`,
+    ...(rep.appearance ? [`外見（身長・体重・髪/瞳/肌の色）：${rep.appearance}項目`] : []),
     `セッション履歴（獲得寵愛）：${rep.history}件` + (rep.blankHistoryRows ? `（空の行 ${rep.blankHistoryRows}行は読み込んでいません）` : '') + (rep.historyKept ? '（今の履歴をそのまま残しました）' : '')
   ]);
 
