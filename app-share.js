@@ -456,15 +456,34 @@ function hkNormalizeMemo(memo) {
   return String(memo || '').replace(/最大行動値\s*[＋+]\s*([０-９0-9]+)/g, (m, n) => '最大行動値+' + hkToHalf(n));
 }
 
+// 未練の1行「対象 への 内容 ■■■□ 発狂時(効果)」を読む。対象と内容が両方空なら空の行（保管所の空き枠）として返す
+// 内容は ■□ を含まない文字列。狂気度は ■ の数。発狂時の「()」だけのものは空として扱う
+function hkParseMirenRow(text) {
+  const m = String(text || '').match(/^(.*?)\s*への\s*([^\s■□]*)\s*([■□]*)\s*(.*)$/);
+  if (!m) return null;
+  const target = m[1].trim(), emotion = m[2].trim();
+  const note = /^[()（）\s]*$/.test(m[4]) ? '' : m[4].trim();
+  return { target: target, emotion: emotion, madness: (m[3].match(/■/g) || []).length, note: note, blank: !target && !emotion };
+}
+
 // テキストを解析する（画面には触らない）
 function parseHokanshoText(raw) {
   const r = {
     fields: {}, memories: [], list: [], skills: [], parts: [],
     enhanceLines: [], madnessNotes: [], unrecognized: [], recognized: 0,
-    history: [], blankHistoryRows: 0, growth: ''
+    history: [], blankHistoryRows: 0, blankMirenRows: 0, growth: ''
   };
   const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
   let section = '';
+  let mirenMode = false; // 「[未練] 内容 狂気度 発狂時」の見出しの後、1行1件で未練が並んでいる間はtrue
+
+  // 未練の1行を結果に入れる（空の行は数えるだけ）
+  const addMirenRow = row => {
+    if (row.blank) { r.blankMirenRows++; return; }
+    r.list.push({ target: row.target, emotion: row.emotion, madness: row.madness });
+    if (row.note) r.madnessNotes.push(`${row.target || '（対象なし）'}：${row.note}`);
+    r.recognized++;
+  };
 
   lines.forEach(rawLine => {
     const line = rawLine.replace(/　/g, ' ').trim();
@@ -473,9 +492,18 @@ function parseHokanshoText(raw) {
     // ■強化値■ のような区切り行
     const head = line.match(/^■\s*([^■]+?)\s*■\s*(.*)$/) || line.match(/^■\s*([^■\s]+)\s*$/);
     if (head) {
+      mirenMode = false;
       section = head[1];
       if (head[2] && section === '強化値') r.enhanceLines.push(head[2]); // 区切りと同じ行に値が続く場合
       return;
+    }
+
+    // 未練の表の中の行（見出し「[未練] 内容 狂気度 発狂時」の後に続く、1行1件の形）
+    if (mirenMode) {
+      const isKeyLine = /^(タイトル|キャラクター名|名前|享年|ポジション|クラス|初期配置|行動値|暗示|寵愛点|成長履歴|身長|体重|髪の色|髪色|瞳の色|瞳色|肌の色|肌色)\s*[:：]/.test(line);
+      const row = (!/^[\[［【]/.test(line) && !isKeyLine) ? hkParseMirenRow(line) : null;
+      if (row) { addMirenRow(row); return; }
+      mirenMode = false; // 表が終わった。この行は、ほかの行と同じように読む
     }
 
     // [ラベル] で始まる行
@@ -483,6 +511,7 @@ function parseHokanshoText(raw) {
     if (lab) {
       const label = lab[1].trim();
       const body = lab[2].trim();
+      if (label !== '未練') mirenMode = false;
 
       if (label === '記憶のカケラ') {
         const sp = body.match(/^(\S+)\s*(.*)$/);
@@ -493,12 +522,12 @@ function parseHokanshoText(raw) {
       }
 
       if (label === '未練') {
-        const m = body.match(/^(.*?)\s*への\s*(\S+)\s*([■□]*)\s*(.*)$/);
-        if (!m || !m[1]) { r.unrecognized.push(line); return; }
-        const madness = (m[3].match(/■/g) || []).length;
-        r.list.push({ target: m[1].trim(), emotion: m[2].trim(), madness: madness });
-        if (m[4]) r.madnessNotes.push(`${m[1].trim()}：${m[4]}`);
-        r.recognized++;
+        // 「[未練] たからもの への 依存 ■■■□ …」のように1行に書かれている形
+        const row = /への/.test(body) ? hkParseMirenRow(body) : null;
+        if (row) { addMirenRow(row); return; }
+        // 「[未練] 内容 狂気度 発狂時」のような見出し行。次の行から未練が1行ずつ並ぶ
+        if (!body || /内容|狂気度|発狂/.test(body)) { mirenMode = true; return; }
+        r.unrecognized.push(line);
         return;
       }
 
@@ -526,6 +555,12 @@ function parseHokanshoText(raw) {
 
       r.unrecognized.push(line);
       return;
+    }
+
+    // 見出し行が無くても、「…への…■■■□」の形の行は未練の1行として読む
+    if (/への/.test(line) && /[■□]{2,}/.test(line)) {
+      const row = hkParseMirenRow(line);
+      if (row) { addMirenRow(row); return; }
     }
 
     // 身長・体重・髪の色・瞳の色・肌の色（1行に1項目でも、1行に複数並んでいても読む）
@@ -614,7 +649,7 @@ function hkReplacePlan(p) {
 // 解析結果をキャラシに反映し、読み込み結果（件数・注意点）を返す
 function applyHokanshoParsed(p) {
   const rep = {
-    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
+    skills: 0, partsExtra: 0, partsBase: 0, memories: 0, list: 0, blankMirenRows: p.blankMirenRows, history: 0, appearance: 0, historyKept: false, blankHistoryRows: p.blankHistoryRows,
     growth: p.growth, unmatchedParts: [], customSkills: [], notes: [], mismatches: [],
     unrecognized: p.unrecognized.slice(), memoAdded: 0, memoSkipped: 0, madnessNotes: p.madnessNotes.slice()
   };
@@ -751,7 +786,7 @@ function hkRenderReport(rep) {
     rep.keep.skills ? 'スキル：変更なし（テキストに無かったため）' : `スキル：${rep.skills}件`,
     rep.keep.parts ? 'マニューバ（パーツ）：変更なし（テキストに無かったため）' : `マニューバ（パーツ）：${rep.partsExtra}件（基本パーツ ${rep.partsBase}件は自動配置済み）`,
     rep.keep.memories ? '記憶のカケラ：変更なし（テキストに無かったため）' : `記憶のカケラ：${rep.memories}件`,
-    rep.keep.list ? '未練：変更なし（テキストに無かったため）' : `未練：${rep.list}件`,
+    rep.keep.list ? '未練：変更なし（テキストに無かったため）' : `未練：${rep.list}件` + (rep.blankMirenRows ? `（空の行 ${rep.blankMirenRows}行は読み込んでいません）` : ''),
     ...(rep.appearance ? [`外見（身長・体重・髪/瞳/肌の色）：${rep.appearance}項目`] : []),
     `セッション履歴（獲得寵愛）：${rep.history}件` + (rep.blankHistoryRows ? `（空の行 ${rep.blankHistoryRows}行は読み込んでいません）` : '') + (rep.historyKept ? '（今の履歴をそのまま残しました）' : '')
   ]);
