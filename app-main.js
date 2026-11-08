@@ -46,7 +46,12 @@ function printSheet() {
   credit.textContent = 'Printed by ドール設計図館, ' + location.origin + location.pathname;
   document.body.appendChild(credit);
   setTimeout(() => {
-    try { window.print(); } finally { restoreAfterPrint(); }
+    // iPhoneのSafariは print() がすぐ戻ってくるので、ここですぐ元に戻すと印刷プレビューが普通の画面になってしまう。
+    // 印刷が終わった合図(afterprint)か、印刷のあとの最初の操作で元に戻す
+    window.print();
+    const t0 = Date.now();
+    const later = () => { if (Date.now() - t0 < 1500) return; ['pointerdown', 'keydown', 'visibilitychange'].forEach(ev => document.removeEventListener(ev, later, true)); restoreAfterPrint(); };
+    ['pointerdown', 'keydown', 'visibilitychange'].forEach(ev => document.addEventListener(ev, later, true));
   }, 100);
 }
 // 1行の入力欄は、長い文章が欄の幅で切れて印刷されてしまう。はみ出す欄だけ、折り返して全文が出る表示に差し替える

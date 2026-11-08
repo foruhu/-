@@ -10,19 +10,19 @@ function printSheetLayout() {
 
   // 記憶のカケラ
   const mems = (d.memories || []).map(normalizeMemory).filter(m => m.name || m.detail || m.num);
-  const memRows = pad(mems, 15, { num: '', name: '', detail: '' }).map(m =>
+  const memRows = pad(mems, 12, { num: '', name: '', detail: '' }).map(m =>
     `<tr><td class="sp-c">${E(m.name)}</td><td class="sp-c">${E(m.num)}</td><td>${E(m.detail)}</td></tr>`).join('');
 
   // スキル
   const skills = d.skills.filter(s => s.name);
-  const skillRows = pad(skills, 6, null).map(s => s ?
+  const skillRows = pad(skills, 5, null).map(s => s ?
     `<tr><td class="sp-c">${box(s.isUsed)}</td><td>${E(s.name)}</td><td class="sp-c">${E(s.timing)}</td><td class="sp-c">${E(s.cost)}</td><td class="sp-c">${E(s.range)}</td><td>${E(s.memo)}</td></tr>`
     : `<tr><td class="sp-c">□</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('');
 
   // 未練
   const mirens = d.list.filter(m => m.target || m.emotion || m.madness || m.madName || m.madEffect);
   const dots = v => { const n = Math.max(0, Math.min(4, parseInt(v, 10) || 0)); return '●'.repeat(n) + '○'.repeat(4 - n); };
-  const mirenRows = pad(mirens, 9, null).map(m => m ?
+  const mirenRows = pad(mirens, 8, null).map(m => m ?
     `<tr><td>${E(m.target)}</td><td>${E(m.emotion)}</td><td class="sp-c">${dots(m.madness)}</td><td>${E([m.madName, m.madEffect].filter(Boolean).join('：'))}</td></tr>`
     : `<tr><td></td><td></td><td class="sp-c">○○○○</td><td></td></tr>`).join('');
 
@@ -85,12 +85,16 @@ function printSheetLayout() {
     ${foot}
   </section>`;
 
+  // 前に作った印刷用の表があれば消してから作り直す
+  document.querySelectorAll('#sheet-print').forEach(e => e.remove());
   const wrap = document.createElement('div');
   wrap.id = 'sheet-print';
   wrap.innerHTML = html;
   document.body.appendChild(wrap);
   document.body.classList.add('sheet-print-mode');
+  // 画面には出ない（印刷のときだけ表示される）ので、印刷が終わるまで消さずに置いておく。
+  // iPhoneのSafariは print() がすぐ戻ってくるため、ここですぐ消すと印刷プレビューが普通の画面になってしまう
   const done = () => { document.body.classList.remove('sheet-print-mode'); wrap.remove(); window.removeEventListener('afterprint', done); };
   window.addEventListener('afterprint', done);
-  setTimeout(() => { try { window.print(); } finally { if (!window.matchMedia('print').matches) setTimeout(done, 1000); } }, 100);
+  setTimeout(() => window.print(), 150);
 }

@@ -313,7 +313,7 @@ body.print-mode .memory-preview { display: none !important; }
 
 /* --- 設計図風の印刷（A4縦2枚） --- */
 #sheet-print { display: none; }
-@page { size: A4 portrait; margin: 7mm; }
+@page { size: A4 portrait; margin: 6mm; }
 @media print {
   body.sheet-print-mode > *:not(#sheet-print) { display: none !important; }
   body.sheet-print-mode { background: #fff !important; padding: 0 !important; }
@@ -362,18 +362,17 @@ body.print-mode .memory-preview { display: none !important; }
 
 @media print {
   /* 1枚目は、記憶のカケラと未練を用紙の一番下に寄せる */
-  .sp-page:first-child { display: flex; flex-direction: column; min-height: 279mm; }
-  .sp-page:first-child .sp-bottom { margin-top: auto; }
+  .sp-page:first-child .sp-bottom { margin-top: 4mm; }
 }
 
 @media print {
   /* 2枚目はスキルも入るので、行を少し低くする */
-  .sp-page:nth-child(2) .sp-t tbody tr { height: 4.8mm; }
+  .sp-page:nth-child(2) .sp-t tbody tr { height: 4.6mm; }
   .sp-page:nth-child(2) .sp-t td { font-size: 7.5pt; padding-top: 0.2mm; padding-bottom: 0.2mm; }
   .sp-page:nth-child(2) .sp-t td:last-child { font-size: 7pt; }
   .sp-page:nth-child(2) .sp-sec { margin-top: 1.8mm; }
 }
-@media print { .sp-page:first-child .sp-t tbody tr { height: 7.2mm; } }
+@media print { .sp-page:first-child .sp-t tbody tr { height: 6.6mm; } }
 
 .print-credit { display: none; }
 @media print {
