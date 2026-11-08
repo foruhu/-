@@ -258,7 +258,7 @@ async function exportShareURL() {
     url = location.origin + location.pathname + '#share=' + encoded;
   }
 
-  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート';
+  const shareTitle = (data.name || 'ドール') + ' のキャラクターシート';
 
   const copyFallback = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -313,7 +313,7 @@ async function exportViewURL() {
     url = location.origin + location.pathname + '#view=' + encoded;
   }
 
-  const shareTitle = (data.name || 'ネクロニカ') + ' のキャラクターシート（閲覧用）';
+  const shareTitle = (data.name || 'ドール') + ' のキャラクターシート（閲覧用）';
 
   const copyFallback = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
