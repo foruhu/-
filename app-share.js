@@ -286,7 +286,8 @@ async function loadCharacterFromSupabase(token) {
 // キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
 // まずSupabaseに保存して短いトークン付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
 async function exportShareURL() {
-  if (!confirmIssueShare(false)) return;
+  const mode = await confirmIssueShare(false);
+  if (!mode) return;
   const data = getFullData();
   const json = JSON.stringify(data);
   let encoded;
@@ -298,12 +299,16 @@ async function exportShareURL() {
   }
 
   let url;
-  try {
-    const token = await saveCharacterToSupabase(encoded, false);
-    recordShare(token, data.name, false);
-    url = location.origin + location.pathname + '#tok=' + token;
-  } catch (err) {
+  if (mode === 'inline') {
     url = location.origin + location.pathname + '#share=' + encoded;
+  } else {
+    try {
+      const token = await saveCharacterToSupabase(encoded, false);
+      recordShare(token, data.name, false);
+      url = location.origin + location.pathname + '#tok=' + token;
+    } catch (err) {
+      url = location.origin + location.pathname + '#share=' + encoded;
+    }
   }
 
   const shareTitle = (data.name || 'ドール') + ' のキャラクターシート';
@@ -333,12 +338,13 @@ async function exportShareURL() {
 // キャラクターデータを「閲覧専用」で開けるURLを作成する。
 // 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
 async function exportViewURL() {
-  if (!confirmIssueShare(true)) return;
+  const mode = await confirmIssueShare(true);
+  if (!mode) return;
   const data = getFullData();
 
   // 選択中キャラクターにサムネイル画像が設定されていれば、閲覧用データに含めて相手にも見せる
   const selectedId = document.getElementById('save-slot')?.value;
-  if (selectedId) {
+  if (selectedId && mode === 'server') {
     const sheets = getSavedSheets();
     if (sheets[selectedId] && sheets[selectedId].image) {
       data.shareImage = sheets[selectedId].image;
@@ -355,12 +361,16 @@ async function exportViewURL() {
   }
 
   let url;
-  try {
-    const token = await saveCharacterToSupabase(encoded, true);
-    recordShare(token, data.name, true);
-    url = location.origin + location.pathname + '#tok=' + token;
-  } catch (err) {
+  if (mode === 'inline') {
     url = location.origin + location.pathname + '#view=' + encoded;
+  } else {
+    try {
+      const token = await saveCharacterToSupabase(encoded, true);
+      recordShare(token, data.name, true);
+      url = location.origin + location.pathname + '#tok=' + token;
+    } catch (err) {
+      url = location.origin + location.pathname + '#view=' + encoded;
+    }
   }
 
   const shareTitle = (data.name || 'ドール') + ' のキャラクターシート（閲覧用）';
@@ -1137,8 +1147,27 @@ function recordShare(token, name, viewOnly) {
 function shareUrlOf(token) { return location.origin + location.pathname + '#tok=' + token; }
 
 // URLを作る前の確認（作ったURLは取り消せないため）
+// 発行方法を選ぶ。'server'＝サーバーに保存（短い・取り消せない） / 'inline'＝保存しない（URLにデータを埋め込む・長い） / null＝やめる
 function confirmIssueShare(isView) {
-  return confirm(`${isView ? '閲覧用' : '共有'}URLを作ります。\n\n・このURLを知っている人は、誰でもキャラクターを読み込めます。\n・作ったURLは、あとから取り消せません。\n\n作りますか？`);
+  return new Promise(resolve => {
+    const kind = isView ? '閲覧用' : '共有';
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;color:#222;max-width:420px;width:100%;border-radius:10px;padding:16px;font-size:.86rem;line-height:1.6;max-height:90vh;overflow:auto;';
+    box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;margin-bottom:6px;">${kind}URLの作り方を選んでください</div>
+      <div style="margin-bottom:10px;">どちらも、URLを知っている人は誰でもキャラクターを読み込めます。</div>
+      <button type="button" data-k="server" style="display:block;width:100%;text-align:left;margin:0 0 8px;padding:10px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;">
+        <b>サーバーに保存する（短いURL）</b><br><span style="font-size:.78rem;">データを外部サーバーに保存します。作ったURLは取り消せません。一覧に控えが残ります。</span></button>
+      <button type="button" data-k="inline" style="display:block;width:100%;text-align:left;margin:0 0 8px;padding:10px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;">
+        <b>サーバーに保存しない（長いURL）</b><br><span style="font-size:.78rem;">データはURLの中に入れるだけで、どこにも保存しません。URLが数千文字になり、SNSなどに貼ると途中で切れて開けないことがあります。${isView ? 'サムネイル画像は含みません。' : ''}</span></button>
+      <button type="button" data-k="" style="display:block;width:100%;padding:8px;border:1px solid #bbb;border-radius:8px;background:#fff;color:#444;">やめる</button>`;
+    ov.appendChild(box); document.body.appendChild(ov);
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button[data-k]'); if (!b) return;
+      ov.remove(); resolve(b.dataset.k || null);
+    });
+  });
 }
 
 function renderShareList() {
