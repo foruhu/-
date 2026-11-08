@@ -74,6 +74,6 @@
 
 『永い後日談のネクロニカ』 Copyright © 2011 Patch Works / Copyright © 2011 Kamiya Ryo / Tsugihagi honpo All Rights Reserved.
 
-権利者の方からの削除・修正のご要請があった場合は、速やかに対応します。ご連絡は、GitHubのこのリポジトリ（foruhu/-）からお願いします。
+権利者の方からの削除・修正のご要請があった場合は、速やかに対応します。ご連絡は、X（旧Twitter）の「ドール設計図館」（@dollsekkeizukan）からお願いします。
 
 本ツールの制作には、AIアシスタント Claude（Anthropic）の支援を受けています。
