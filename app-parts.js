@@ -648,10 +648,7 @@ function updatePartCounts() {
     allTotal += rows.length; allBroken += broken;
     rows.forEach(tr => {
       const ty = tr.querySelector('.p-type')?.value;
-      // 分類が「たからもの」、または効果メモ・名前に「たからもの」と書かれているパーツは、宝として数える
-      const memoText = (tr.querySelector('.p-memo')?.value || '') + (tr.nextElementSibling?.classList.contains('part-memo-row') ? (tr.nextElementSibling.querySelector('textarea')?.value || '') : '') + (tr.querySelector('.p-name')?.value || '');
-      const isTre = ty === 'たからもの' || memoText.includes('たからもの');
-      const g = isTre ? grp.tre : (ty === '基本' ? grp.base : grp.ext);
+      const g = ty === '基本' ? grp.base : (ty === 'たからもの' ? grp.tre : grp.ext);
       g.n++;
       if (tr.querySelector('.p-broken')?.checked) g.b++;
     });
@@ -700,8 +697,3 @@ function toggleFreeMemo(force) {
   try { localStorage.setItem('necro_memo_fold', fold ? '1' : '0'); } catch (e) {}
 }
 window.addEventListener('load', () => { try { if (localStorage.getItem('necro_memo_fold') === '1') toggleFreeMemo(true); } catch (e) {} });
-
-// 効果メモ・名前に「たからもの」と書き足した／消したとき、固定バーの宝の数も更新する
-document.addEventListener('input', e => {
-  if (e.target && e.target.matches && e.target.matches('.p-memo, .p-name, .p-type')) updatePartCounts();
-});

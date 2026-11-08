@@ -876,6 +876,8 @@ function applyHokanshoParsed(p) {
           assumed: type === 'たからもの' ? '種別を「たからもの」として配置' : '種別を仮に「武装」・Lvを空欄で配置（種別とLvを確認してください）'
         });
       }
+      // 効果メモや名前に「たからもの」と書かれているマニューバは、分類を「たからもの」にする
+      if (type !== 'たからもの' && /たからもの/.test((pt.memo || '') + (pt.name || ''))) { type = 'たからもの'; level = ''; }
       data.parts.push({
         isBroken: false, isUsed: false, location: HK_SEC_TO_LOC[pt.sec], name: pt.name, type: type, level: String(level),
         timing: pt.timing, cost: pt.cost, range: pt.range, memo: pt.memo, isEditable: editable, tag: detectCategoryFromMemo(pt.memo)
