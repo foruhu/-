@@ -76,4 +76,6 @@
 
 権利者の方からの削除・修正のご要請があった場合は、速やかに対応します。ご連絡は、X（旧Twitter）の「ドール設計図館」（@dollsekkeizukan）からお願いします。
 
+不具合報告・更新情報：X @dollsekkeizukan（https://x.com/dollsekkeizukan）
+
 本ツールの制作には、AIアシスタント Claude（Anthropic）の支援を受けています。
