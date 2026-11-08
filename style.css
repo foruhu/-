@@ -250,3 +250,26 @@ body.view-mode .miren-mad-row.empty { display: none; }
 /* サイト名の下のサブタイトル */
 .site-subtitle { text-align: center; text-wrap: balance; font-size: .66rem; color: #999; margin: -4px 0 10px; line-height: 1.4; }
 @media print { .site-subtitle { color: #000 !important; } }
+
+/* --- 固定バーのツール行・目次・折りたたみ --- */
+.bar-tools { display: flex; gap: 6px; justify-content: flex-end; }
+.bar-tools button, .toc-row button { background: #22222a; color: #ddd; border: 1px solid #555; border-radius: 12px; padding: 2px 10px; font-size: .7rem; cursor: pointer; font-family: sans-serif; }
+.toc-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 2px; }
+.sticky-top-bar.bar-collapsed .bar-detail { display: none; }
+body.view-mode .bar-tools { justify-content: space-between; }
+@media print { .bar-tools, .toc-row { display: none !important; } .sticky-top-bar.bar-collapsed .bar-detail { display: block !important; } }
+
+/* --- 文字サイズ（小・中・大）：rem で書かれた大きさがまとめて変わる --- */
+html.fs-small { font-size: 14px; }
+html.fs-large { font-size: 18px; }
+
+/* --- iPhone：入力欄が16px未満だと、タップした時に画面が勝手に拡大されるので、編集中だけ16pxにする --- */
+/* マニューバ・スキル表の1行目の欄は、16pxにすると列が窮屈で名前が読めなくなるので、今の大きさのままにする */
+@media (pointer: coarse) {
+  body:not(.view-mode) input:not([type="checkbox"]):not([type="radio"]):not(.maneuver-table input),
+  body:not(.view-mode) select:not(.maneuver-table select),
+  body:not(.view-mode) textarea { font-size: 16px !important; }
+}
+
+/* --- データ未登録のパーツ（効果メモを足せる印） --- */
+.add-memo-btn.unregistered { border-style: dashed; color: #c9a8a8; }

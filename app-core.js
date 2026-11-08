@@ -189,7 +189,9 @@ function renderSaveCards(selectedId = '') {
     const thumbHtml = s.image
       ? `<img src="${s.image}" class="save-card-thumb" alt="">`
       : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
-    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    const sub = (id === 'autosave_draft' && s.draftOfName)
+      ? '元: ' + s.draftOfName
+      : [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
     return `
       <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard('${id}')" data-id="${id}">
         ${thumbHtml}
@@ -254,7 +256,9 @@ function renderCharSwitcherCards() {
     const thumbHtml = s.image
       ? `<img src="${s.image}" class="save-card-thumb" alt="">`
       : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
-    const sub = [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
+    const sub = (id === 'autosave_draft' && s.draftOfName)
+      ? '元: ' + s.draftOfName
+      : [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
     return `
       <div class="save-card ${isCurrent ? 'selected' : ''}" onclick="quickSwitchToCharacter('${id}')">
         ${thumbHtml}

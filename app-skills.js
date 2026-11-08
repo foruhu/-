@@ -160,6 +160,7 @@ function updateSkillOptions() {
     }
     select.innerHTML = optionsHtml;
   });
+  if (typeof refreshUnregisteredHints === 'function') refreshUnregisteredHints();
 }
 
 // スキルDBのメモ文字列「【名前】 タイミング/コスト/射程\n効果...」をタイミング・コスト・射程・効果本文に分解する
@@ -415,3 +416,21 @@ function calcChouaiTotals() {
 }
 
 // --- 保存・読込 ---
+
+
+// スキル一覧にあるのに効果データが入っていないスキルは、効果メモ欄に「データ未登録」と出す（ルール上の空欄ではないと分かるように）
+function refreshUnregisteredHints() {
+  document.querySelectorAll('#skill-tbody tr:not(.skill-memo-row)').forEach(tr => {
+    const memoTr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('skill-memo-row') ? tr.nextElementSibling : null;
+    const ta = memoTr ? memoTr.querySelector('.skill-memo') : null;
+    if (!ta) return;
+    const name = tr.querySelector('.skill-name-select')?.value || '';
+    const category = tr.querySelector('.skill-category')?.value || '';
+    let unregistered = false;
+    if (name && typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category]) {
+      const found = SKILL_DATABASE[category].find(s => s.name === name);
+      unregistered = !!found && !found.memo;
+    }
+    ta.placeholder = unregistered ? 'データ未登録（ルルブを見て、手入力できます）' : '効果メモ';
+  });
+}

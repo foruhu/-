@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=41">
+<link rel="stylesheet" href="style.css?v=42">
 </head>
 <body>
 
@@ -33,6 +33,19 @@
       <span style="color:#f0a0a0; font-weight:bold;">損傷</span>
       <span>基本 <b id="bar-broken-base" style="color:#ffd0d0;">0</b>/<span id="bar-parts-base">0</span> | 強化 <b id="bar-broken-ext" style="color:#ffd0d0;">0</b>/<span id="bar-parts-ext">0</span> | 宝 <b id="bar-broken-tre" style="color:#ffd0d0;">0</b>/<span id="bar-parts-tre">0</span></span>
     </div>
+    <div class="bar-tools">
+      <button type="button" id="bar-fold-btn" onclick="toggleBarFold()">▲ 閉じる</button>
+      <button type="button" id="fs-btn" onclick="cycleFontSize()">文字：中</button>
+    </div>
+    <div class="bar-detail">
+    <div class="toc-row">
+      <button type="button" onclick="jumpToSection('sec-basic')">基本</button>
+      <button type="button" onclick="jumpToSection('sec-miren')">未練</button>
+      <button type="button" onclick="jumpToSection('sec-skill')">スキル</button>
+      <button type="button" onclick="jumpToSection('sec-parts')">マニューバ</button>
+      <button type="button" class="non-battle" onclick="jumpToSection('sec-history')">履歴</button>
+      <button type="button" class="non-battle" onclick="jumpToSection('sec-memo')">メモ</button>
+    </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#ff6b6b; font-weight:bold;">武装</span>
       <span>
@@ -56,6 +69,7 @@
         Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> | 
         Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
       </span>
+    </div>
     </div>
   </div>
 </div>
@@ -81,7 +95,7 @@
   </div>
 </details>
 
-<div class="card">
+<div class="card" id="sec-basic">
   <div class="title">基本情報・強化値計算</div>
   <div class="kv-grid">
     <div class="kv kv-wide"><label>PL名</label><input type="text" id="pl"></div>
@@ -183,7 +197,7 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card" id="sec-miren">
   <div class="title">たからもの・未練（姉妹への感情）</div>
   <div style="margin-bottom:6px">
     <label>たからもの（入手した数だけ追加できます）</label>
@@ -209,7 +223,7 @@
   <button type="button" class="sec edit-only" onclick="addRow()" style="width:100%;margin-top:4px;padding:4px">+ 未練枠を追加</button>
 </div>
 
-<div class="card">
+<div class="card" id="sec-skill">
   <div class="title">習得スキル</div>
   <div class="table-scroll">
     <table class="sheet-table maneuver-table">
@@ -235,18 +249,18 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card" id="sec-parts">
   <div class="title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
     <span>マニューバ</span>
     <span style="display:flex;gap:4px;">
-      <button type="button" class="sec edit-only" onclick="resetPartUsedFlags()" style="font-size:.7rem;padding:2px 6px">使用チェックを一括解除</button>
+      <button type="button" class="sec" onclick="resetPartUsedFlags()" style="font-size:.7rem;padding:2px 6px">使用チェックを一括解除</button>
       <button type="button" class="sec edit-only" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
     </span>
   </div>
   <div id="parts-container"></div>
 </div>
 
-<div class="non-battle">
+<div class="non-battle" id="sec-history">
 <!-- 寵愛点サマリー -->
 <div style="background: #25252e; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #444;">
   <h3 style="margin-top: 0; color: #8ff; font-size: 1rem; border-bottom: 1px solid #555; padding-bottom: 4px;">寵愛点サマリー</h3>
@@ -291,7 +305,7 @@
 
 </div>
 
-<div class="card non-battle" style="margin-top:14px;">
+<div class="card non-battle" id="sec-memo" style="margin-top:14px;">
   <div class="title">メモ</div>
   <div style="font-size:0.72rem; color:#888; margin-bottom:4px;">自由に書けるメモ欄です。保管所テキストの読み込みで読み込めなかった行は、ここに追記されます。</div>
   <textarea id="free-memo" rows="4" oninput="autoResizeTextarea(this)" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="メモ" style="min-height:90px; resize:none; overflow-y:hidden;"></textarea>
@@ -539,11 +553,13 @@
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 保存・切り替え</h4>
     <ul style="margin:0; padding-left:1.2em;">
       <li>データはこのブラウザの中に保存されます。「💾 保存」で保存し、カードを選んで保存すると上書きになります。</li>
-      <li>未保存の変更は一定時間ごとに自動保存されますが、下書き枠にだけ保存されます。選択中のキャラクターは「💾 保存」を押すまで変わりません。「↩️ 元に戻す」で直前の削除などを戻せます。</li>
+      <li>未保存の変更は一定時間ごとに自動保存されますが、下書き枠にだけ保存されます。選択中のキャラクターは「💾 保存」を押すまで変わりません。「↩️ 元に戻す」で戻せるのは、行の削除・読み込み・新規作成・一括解除などの大きな操作です(文字の入力は戻せません)。</li>
       <li>「🔄 切替」で保存済みキャラを一覧から切り替えられます。</li>
       <li>「🆕 新規作成(白紙に戻す)」で、今の入力をすべて白紙に戻せます。保存済みのキャラは消えず、「↩️ 元に戻す」で今の入力も戻せます。</li>
       <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
       <li>表示モードの「⚔️ 戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。</li>
+      <li>画面上部の固定バーは、「▲ 閉じる」で武装・変異・改造の表を畳めます。「基本」「未練」などのボタンで、その項目へ飛べます。「文字：中」を押すと、文字の大きさが 小→中→大 と切り替わります。</li>
+      <li>表示モードでも、「使用チェックを一括解除」は押せます(セッション終了時などに)。</li>
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
       <li>「🖨 印刷」で、白地・黒文字で全項目を印刷できます(長い文章も折り返して出ます)。</li>
     </ul>
@@ -576,12 +592,12 @@
   </div>
 </div>
 
-<script src="data.js?v=41"></script>
-<script src="app-core.js?v=41"></script>
-<script src="app-parts.js?v=41"></script>
-<script src="app-skills.js?v=41"></script>
-<script src="app-save.js?v=41"></script>
-<script src="app-share.js?v=41"></script>
-<script src="app-main.js?v=41"></script>
+<script src="data.js?v=42"></script>
+<script src="app-core.js?v=42"></script>
+<script src="app-parts.js?v=42"></script>
+<script src="app-skills.js?v=42"></script>
+<script src="app-save.js?v=42"></script>
+<script src="app-share.js?v=42"></script>
+<script src="app-main.js?v=42"></script>
 </body>
 </html>

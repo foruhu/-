@@ -399,7 +399,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   // 押した時だけ入力欄を出す（完全に隠すと後から書き足せなくなるため）
   if (!isEditable && !memoHasContent) {
     memoTr.innerHTML = `<td colspan="11">
-      <button type="button" class="add-memo-btn edit-only" onclick="revealPartMemo(this)">+ 効果メモを追加</button>
+      <button type="button" class="add-memo-btn unregistered edit-only" onclick="revealPartMemo(this)">データ未登録：+ 効果メモを追加</button>
       <textarea class="p-memo" style="display:none;" oninput="onManeuverMemoInput(this, '.p-tag')" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="効果メモ"></textarea>
     </td>`;
     tr.classList.add('standalone-row'); // 2段目が畳まれている間は、1段目の下線を通常通り出す
@@ -535,6 +535,8 @@ function resetUsed() {
 }
 
 function resetPartUsedFlags() {
+  // 表示モードには「元に戻す」ボタンが出ないので、押し間違いを防ぐために確認する
+  if (document.body.classList.contains('view-mode') && !confirm('使用チェックをすべて外します。よろしいですか？')) return;
   pushUndoSnapshot();
   document.querySelectorAll('#parts-container tr input.p-used').forEach(cb => {
     cb.checked = false;

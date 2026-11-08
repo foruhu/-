@@ -74,6 +74,55 @@ function restoreAfterPrint() {
 }
 window.addEventListener('afterprint', restoreAfterPrint);
 
+// 固定バーの折りたたみ（武装・変異・改造の表と目次を畳む）
+function applyBarFold(collapsed) {
+  const bar = document.querySelector('.sticky-top-bar');
+  if (bar) bar.classList.toggle('bar-collapsed', collapsed);
+  const b = document.getElementById('bar-fold-btn');
+  if (b) b.textContent = collapsed ? '▼ 開く' : '▲ 閉じる';
+}
+function toggleBarFold() {
+  const collapsed = !document.querySelector('.sticky-top-bar').classList.contains('bar-collapsed');
+  applyBarFold(collapsed);
+  try { localStorage.setItem('necro_bar_fold', collapsed ? '1' : '0'); } catch (e) {}
+}
+
+// 文字サイズ（小→中→大）
+const FONT_SIZES = ['small', 'medium', 'large'];
+const FONT_SIZE_LABEL = { small: '小', medium: '中', large: '大' };
+function applyFontSize(size) {
+  if (!FONT_SIZES.includes(size)) size = 'medium';
+  const root = document.documentElement;
+  root.classList.remove('fs-small', 'fs-large');
+  if (size === 'small') root.classList.add('fs-small');
+  if (size === 'large') root.classList.add('fs-large');
+  const b = document.getElementById('fs-btn');
+  if (b) b.textContent = '文字：' + FONT_SIZE_LABEL[size];
+  if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
+}
+function cycleFontSize() {
+  let cur = 'medium';
+  try { cur = localStorage.getItem('necro_font_size') || 'medium'; } catch (e) {}
+  const next = FONT_SIZES[(FONT_SIZES.indexOf(cur) + 1) % FONT_SIZES.length];
+  applyFontSize(next);
+  try { localStorage.setItem('necro_font_size', next); } catch (e) {}
+}
+function initBarAndFont() {
+  let fold = false, fs = 'medium';
+  try { fold = localStorage.getItem('necro_bar_fold') === '1'; fs = localStorage.getItem('necro_font_size') || 'medium'; } catch (e) {}
+  applyBarFold(fold);
+  applyFontSize(fs);
+}
+
+// ページ内の移動（固定バーに隠れないよう、バーの高さ分だけ手前で止める）
+function jumpToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const bar = document.querySelector('.sticky-top-bar');
+  const offset = (bar ? bar.offsetHeight : 0) + 8;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+}
+
 function toggleViewMode() {
   const isView = !document.body.classList.contains('view-mode');
   applyViewModeUI(isView);
@@ -89,6 +138,7 @@ function toggleViewMode() {
 
 window.onload = async function() {
   initBattleView();
+  initBarAndFont();
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
   if (typeof captureBlankSheet === 'function') captureBlankSheet();
