@@ -460,3 +460,8 @@ body.battle-view #sec-miren table td { padding: 1px 2px; }
 body.battle-view #sec-miren table input,
 body.battle-view #sec-miren table select { padding: 1px; font-size: .74rem; }
 body.battle-view #sec-miren table textarea { font-size: .7rem; line-height: 1.25; min-height: 0; padding: 0 2px; }
+/* 戦闘用ON：発狂の効果文は、スキルの効果文と同じように、表の幅いっぱいに1行下げて出す */
+body.battle-view .miren-mad-box { flex-wrap: wrap; row-gap: 0; }
+body.battle-view .miren-mad-box .miren-madname { flex: 1 1 0; }
+body.battle-view .miren-mad-box .miren-madeffect { flex: 1 0 100%; padding: 0 3px; }
+body.battle-view .miren-mad-row td { padding: 0 2px 3px; }
