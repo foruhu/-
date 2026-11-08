@@ -258,3 +258,56 @@ function restoreUiState() {
   window.addEventListener('pagehide', saveUiState);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveUiState(); });
 }
+
+// ==========================================================
+// 表の中の文字（スキル名・パーツ名・タイミング・コスト・射程など）が枠からはみ出すときは、文字を小さくして枠に収める
+// ==========================================================
+let fitTimer = null;
+function fitCellTexts() {
+  const cv = fitCellTexts._cv || (fitCellTexts._cv = document.createElement('canvas'));
+  const ctx = cv.getContext('2d');
+  const els = document.querySelectorAll('.maneuver-table select, .maneuver-table input:not([type="checkbox"]):not([type="radio"]):not([type="number"]), #sec-miren table input:not([type="checkbox"]):not([type="radio"]):not([type="number"])');
+  // まず全部の指定を外して元の大きさにし、そのあと測る（読み取りと書き込みを分けて、再描画を減らす）
+  els.forEach(el => { if (el.style.fontSize) el.style.fontSize = ''; });
+  const jobs = [];
+  els.forEach(el => {
+    const w = el.clientWidth;
+    if (!w) return;
+    let text = el.tagName === 'SELECT' ? (el.selectedIndex >= 0 ? el.options[el.selectedIndex].text : '') : el.value;
+    if (!text) return;
+    const cs = getComputedStyle(el);
+    const avail = w - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0) - (el.tagName === 'SELECT' ? 6 : 3);
+    const base = parseFloat(cs.fontSize);
+    jobs.push({ el, text, avail: avail * 0.96, base, font: `${cs.fontWeight} {S}px ${cs.fontFamily}` });
+  });
+  jobs.forEach(j => {
+    let size = j.base;
+    const measure = s => { ctx.font = j.font.replace('{S}', s); return ctx.measureText(j.text).width; };
+    if (measure(size) <= j.avail) return;
+    while (size > j.base * 0.55 && measure(size) > j.avail) size -= 0.5;
+    j.el.style.fontSize = size + 'px';
+  });
+}
+function scheduleFitCellTexts() {
+  // 値の読み込み（入力欄の中身の書き換え）は変化として検知できないため、少し間を置いてもう一度測る
+  if (!fitTimer) fitTimer = setTimeout(() => { fitTimer = null; fitCellTexts(); }, 80);
+  if (!fitTimer2) fitTimer2 = setTimeout(() => { fitTimer2 = null; fitCellTexts(); }, 600);
+}
+let fitTimer2 = null;
+(function () {
+  window.addEventListener('load', () => {
+    setTimeout(fitCellTexts, 300);
+    ['skill-tbody', 'parts-container', 'list'].forEach(id => {
+      const t = document.getElementById(id);
+      // 行の追加・削除のときだけ測り直す（カウント表示などの書き換えでは動かさない）
+      if (t) new MutationObserver(recs => {
+        if (recs.some(r => Array.from(r.addedNodes).concat(Array.from(r.removedNodes)).some(n => n.nodeType === 1 && (n.tagName === 'TR' || (n.querySelector && n.querySelector('tr')))))) scheduleFitCellTexts();
+      }).observe(t, { childList: true, subtree: true });
+    });
+    new MutationObserver(scheduleFitCellTexts).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    new MutationObserver(scheduleFitCellTexts).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  });
+  document.addEventListener('input', e => { if (e.target && e.target.closest && e.target.closest('.maneuver-table, #sec-miren')) scheduleFitCellTexts(); });
+  document.addEventListener('change', e => { if (e.target && e.target.closest && e.target.closest('.maneuver-table, #sec-miren')) scheduleFitCellTexts(); });
+  window.addEventListener('resize', scheduleFitCellTexts);
+})();
