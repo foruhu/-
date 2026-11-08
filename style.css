@@ -310,3 +310,52 @@ body.print-mode .memory-entry .memory-detail { max-height: none; overflow: visib
 .memory-entry .memory-preview { display: none; font-size: .72rem; color: #9a8a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 3px; cursor: pointer; }
 .memory-entry.collapsed .memory-preview:not(:empty) { display: block; }
 body.print-mode .memory-preview { display: none !important; }
+
+/* --- 設計図風の印刷（A4縦2枚） --- */
+#sheet-print { display: none; }
+@page { size: A4 portrait; margin: 7mm; }
+@media print {
+  body.sheet-print-mode > *:not(#sheet-print) { display: none !important; }
+  body.sheet-print-mode { background: #fff !important; padding: 0 !important; }
+  body.sheet-print-mode #sheet-print { display: block; color: #000; font-family: sans-serif; font-size: 8.5pt; }
+  .sp-page { page-break-after: always; break-after: page; }
+  .sp-page:last-child { page-break-after: auto; break-after: auto; }
+  .sp-top { display: flex; gap: 6mm; margin-bottom: 3mm; }
+  .sp-left { flex: 1; } .sp-right { width: 52mm; }
+  .sp-title { font-size: 15pt; font-weight: bold; letter-spacing: .1em; border-bottom: 2px solid #000; margin-bottom: 2mm; }
+  .sp-line { display: flex; gap: 2mm; align-items: baseline; border-bottom: 1px solid #000; min-height: 7mm; padding: 1mm 0 0; }
+  .sp-line span { font-size: 6.5pt; color: #333; flex: none; }
+  .sp-line b { font-weight: normal; font-size: 10pt; flex: 1; }
+  .sp-half b { flex: 1 1 0; }
+  .sp-t { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
+  .sp-t th, .sp-t td { border: 1px solid #000 !important; padding: 0.8mm 1.2mm; vertical-align: middle; word-break: break-all; line-height: 1.25; background: #fff !important; color: #000 !important; }
+  .sp-t thead th { background: #e8e8e8 !important; font-size: 6.5pt; font-weight: bold; }
+  .sp-t tbody tr { height: 6.4mm; break-inside: avoid; }
+  .sp-c { text-align: center; }
+  .sp-class { margin-top: 2mm; } .sp-class th { width: 28mm; background: #222 !important; color: #fff !important; font-size: 8pt; }
+  .sp-stat th { background: #222 !important; color: #fff !important; width: 14mm; } .sp-stat td { text-align: center; font-size: 11pt; font-weight: bold; }
+  .sp-chouai { border: 1px solid #000; text-align: center; margin-top: 2mm; padding: 1mm; font-size: 7pt; } .sp-chouai b { font-size: 11pt; }
+  .sp-body { font-size: 7pt; margin-top: 1.5mm; color: #222; }
+  .sp-sec { margin-top: 3mm; }
+  .sp-bar { background: #222; color: #fff; font-weight: bold; font-size: 10pt; padding: 0.6mm 2mm; display: flex; justify-content: space-between; align-items: baseline; }
+  .sp-bar span { font-size: 7.5pt; font-weight: normal; }
+  .sp-skills th:nth-child(1), .sp-parts th:nth-child(1), .sp-parts th:nth-child(2) { width: 5mm; }
+  .sp-skills th:nth-child(2) { width: 24%; } .sp-skills th:nth-child(3) { width: 12mm; } .sp-skills th:nth-child(4), .sp-skills th:nth-child(5) { width: 10mm; }
+  .sp-parts th:nth-child(3) { width: 26%; } .sp-parts th:nth-child(4) { width: 13mm; } .sp-parts th:nth-child(5), .sp-parts th:nth-child(6) { width: 10mm; }
+  .sp-miren th:nth-child(1), .sp-miren th:nth-child(2) { width: 22%; } .sp-miren th:nth-child(3) { width: 17mm; }
+  .sp-t td { font-size: 8pt; } .sp-parts td:last-child, .sp-skills td:last-child, .sp-t td:last-child { font-size: 7.5pt; }
+  tr.sp-broken td { background: #ddd !important; text-decoration: line-through; }
+  .sp-act { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2mm; }
+  .sp-actbox { background: #222; color: #fff; padding: 2mm 4mm; font-size: 10pt; } .sp-actbox span { font-weight: bold; margin-right: 3mm; } .sp-actbox b { background: #fff; color: #000; padding: 0 3mm; margin: 0 1mm; font-weight: normal; } .sp-big { font-size: 14pt; font-weight: bold !important; }
+  .sp-ps { border: 1px solid #000; padding: 1.5mm 3mm; display: flex; gap: 3mm; align-items: center; font-size: 8pt; } .sp-ps span { font-weight: bold; } .sp-ps i { font-style: normal; }
+}
+@media print {
+  .sp-t td { text-align: left; } .sp-t td.sp-c { text-align: center; }
+  .sp-t tbody tr { height: 6.1mm; }
+  .sp-t th, .sp-t td { padding: 0.5mm 1mm; }
+  .sp-skills th:nth-child(3), .sp-parts th:nth-child(4) { width: 17mm; }
+  .sp-skills th:nth-child(4), .sp-skills th:nth-child(5), .sp-parts th:nth-child(5), .sp-parts th:nth-child(6) { width: 11mm; }
+  .sp-parts th:nth-child(3) { width: 30%; } .sp-skills th:nth-child(2) { width: 22%; }
+  .sp-sec { margin-top: 2.2mm; }
+  .sp-bar { padding: 0.3mm 2mm; font-size: 9pt; }
+}
