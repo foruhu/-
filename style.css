@@ -305,3 +305,8 @@ body.print-mode .memory-entry .memory-detail { max-height: none; overflow: visib
 #memory-list .memory-head input.memory-num { width: 2.8em; padding-left: 2px; padding-right: 2px; }
 #memory-list .memory-head .memory-toggle { width: 1.8em; }
 #memory-list .memory-head .del { padding: 5px 7px !important; margin-left: 0; }
+
+/* 折りたたんでいる間は、詳細の書き出しを1行だけ薄く見せる（押すと開く） */
+.memory-entry .memory-preview { display: none; font-size: .72rem; color: #9a8a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 3px; cursor: pointer; }
+.memory-entry.collapsed .memory-preview:not(:empty) { display: block; }
+body.print-mode .memory-preview { display: none !important; }

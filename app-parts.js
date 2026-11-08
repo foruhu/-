@@ -273,6 +273,14 @@ function memoryToText(m) {
   return x.detail ? `${head}：${x.detail}` : head;
 }
 
+// 折りたたんでいる間、詳細の書き出し(1行目)を薄く見せる
+function updateMemoryPreview(row) {
+  const pv = row.querySelector('.memory-preview');
+  if (!pv) return;
+  const t = (row.querySelector('.memory-detail')?.value || '').trim();
+  pv.textContent = t;
+  pv.title = t;
+}
 // 記憶のカケラの詳細を折りたたむ/開く（1件ずつ。force=true/falseで指定）
 function toggleMemoryDetail(btn, force) {
   const row = btn.closest('.memory-entry');
@@ -280,6 +288,7 @@ function toggleMemoryDetail(btn, force) {
   const collapsed = force === undefined ? !row.classList.contains('collapsed') : !!force;
   row.classList.toggle('collapsed', collapsed);
   btn.textContent = collapsed ? '▸' : '▾';
+  updateMemoryPreview(row);
   if (!collapsed) autoResizeTextarea(row.querySelector('.memory-detail'));
 }
 // すべて折りたたむ／すべて開く（1つでも開いていれば、すべて折りたたむ）
@@ -306,9 +315,11 @@ function addMemoryEntry(value = '') {
       <input type="text" class="memory-name" value="${escapeHtml(m.name)}" placeholder="名前" aria-label="名前">
       <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
     </div>
-    <textarea class="memory-detail" rows="1" placeholder="詳細" aria-label="詳細" oninput="autoResizeTextarea(this)">${escapeHtml(m.detail)}</textarea>
+    <div class="memory-preview" onclick="toggleMemoryDetail(this.closest('.memory-entry').querySelector('.memory-toggle'), false)"></div>
+    <textarea class="memory-detail" rows="1" placeholder="詳細" aria-label="詳細" oninput="autoResizeTextarea(this);updateMemoryPreview(this.closest('.memory-entry'))">${escapeHtml(m.detail)}</textarea>
   `;
   container.appendChild(row);
+  updateMemoryPreview(row);
   const ta = row.querySelector('.memory-detail');
   if (ta && typeof autoResizeTextarea === 'function') autoResizeTextarea(ta);
   markDirty();
