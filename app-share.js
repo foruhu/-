@@ -9,26 +9,46 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-// ココフォリアのチャットパレット用の文章（スキル・マニューバの一覧）を作る
+// ココフォリアのチャットパレット用の文章を作る
+//  1) ネクロニカ用のダイスコマンド（ルームのシステムを「ネクロニカ」にしたとき使える NC=判定 / NA=攻撃判定）
+//  2) 部位ごとのマニューバ（損傷中は【損傷】と付ける）  3) スキル
+// 1行を押すとその文章がチャットに出るので、1件1行にまとめる
 function buildCcfoliaCommandLines(data) {
-  const commandLines = [];
-  commandLines.push('■スキル');
-  (data.skills || []).forEach(s => {
-    if (!s.name) return;
-    const spec = [s.timing, s.cost && `コスト${s.cost}`, s.range && `射程${s.range}`].filter(Boolean).join('/');
-    const memo = (s.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`);
+  const one = t => String(t || '').replace(/\s*\n\s*/g, ' ').trim();
+  const specOf = x => [x.timing, x.cost && `コスト${x.cost}`, x.range && `射程${x.range}`].filter(Boolean).join('/');
+  const lines = [];
+
+  lines.push('■判定（システム：ネクロニカ）');
+  lines.push('NC 判定');
+  lines.push('NA 攻撃判定');
+  lines.push('2NC 判定(2個)');
+  lines.push('');
+
+  const locOrder = ['頭', '腕', '胴', '脚'];
+  const parts = (data.parts || []).filter(p => p.name);
+  const groups = {};
+  parts.forEach(p => { const k = p.location || 'その他'; (groups[k] = groups[k] || []).push(p); });
+  const keys = Object.keys(groups).sort((x, y) => { const i = locOrder.findIndex(l => x.startsWith(l)), j = locOrder.findIndex(l => y.startsWith(l)); return (i < 0 ? 9 : i) - (j < 0 ? 9 : j); });
+  keys.forEach(k => {
+    lines.push(`■${k}`);
+    groups[k].forEach(p => {
+      const spec = specOf(p);
+      const memo = one(p.memo);
+      lines.push(`${p.isBroken ? '【損傷】' : ''}【${p.name}】(${p.type}${p.level && p.level !== '1' ? ' Lv' + p.level : ''}) ${spec}${memo ? ' ' + memo : ''}`.trim());
+    });
+    lines.push('');
   });
 
-  commandLines.push('');
-  commandLines.push('■マニューバ');
-  (data.parts || []).forEach(p => {
-    if (!p.name) return;
-    const spec = [p.timing, p.cost && `コスト${p.cost}`, p.range && `射程${p.range}`].filter(Boolean).join('/');
-    const memo = (p.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${p.name}】(${p.type}Lv${p.level}) ${spec}${memo ? ' ' + memo : ''}`);
-  });
-  return commandLines;
+  const skills = (data.skills || []).filter(s => s.name);
+  if (skills.length) {
+    lines.push('■スキル');
+    skills.forEach(s => {
+      const spec = specOf(s), memo = one(s.memo);
+      lines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`.trim());
+    });
+  }
+  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+  return lines;
 }
 
 function exportCcfolia() {
@@ -38,16 +58,28 @@ function exportCcfolia() {
   const currentChouaiEl = document.getElementById('current-chouai');
   const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
 
+  // ステータス欄：行動値・寵愛点・損傷（壊れた数/パーツ数）・未練ごとの狂気点（0〜4）
+  const partList = (data.parts || []).filter(p => p.name);
+  const brokenCount = partList.filter(p => p.isBroken).length;
   const status = [
     { label: '行動値', value: actValue, max: actValue },
-    { label: '寵愛点', value: currentChouai, max: currentChouai }
+    { label: '寵愛点', value: currentChouai, max: currentChouai },
+    { label: '損傷', value: brokenCount, max: partList.length }
   ];
+  (data.list || []).forEach(l => {
+    const name = (l.target || '').trim();
+    if (!name && !l.emotion) return;
+    status.push({ label: `狂気:${name || '未練'}`, value: Math.max(0, Math.min(4, parseInt(l.madness, 10) || 0)), max: 4 });
+  });
 
   const params = [
     { label: 'PL名', value: data.pl || '' },
     { label: 'ポジション', value: data.pos || '' },
     { label: 'メインクラス', value: data.mc || '' },
     { label: 'サブクラス', value: data.sc || '' },
+    { label: '武装', value: String(parseInt(document.getElementById('total-wep')?.textContent, 10) || 0) },
+    { label: '変異', value: String(parseInt(document.getElementById('total-mut')?.textContent, 10) || 0) },
+    { label: '改造', value: String(parseInt(document.getElementById('total-cyb')?.textContent, 10) || 0) },
     { label: '享年/外見', value: data.age || '' },
     { label: '初期配置', value: data.ps || '' },
     { label: '暗示', value: data.hint || '' },
