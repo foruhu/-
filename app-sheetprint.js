@@ -92,42 +92,31 @@ function printSheetLayout() {
   wrap.id = 'sheet-print';
   wrap.innerHTML = html;
   document.body.appendChild(wrap);
-  // 1枚目（基本情報・記憶のカケラ・未練）も、文章が長くて収まらないときは縮小する
+  // 各ページが用紙1枚に収まるよう、画面の外で実際に組んで高さを測り、はみ出すときだけ縮小する
+  // （印刷用のCSSを一時的に画面用に写して測るので、iPhoneでも実際の文字の大きさで測れる）
   try {
-    const pg1 = wrap.querySelectorAll('.sp-page')[0];
-    if (pg1) {
-      let est = 72; // 上段（題字・名前・クラス・強化値）と帯・見出し・フッター
-      const rowH = (tr, cols) => {
-        let lines = 1;
-        cols.forEach(([i, per]) => { const c = tr.children[i]; if (c) lines = Math.max(lines, Math.ceil((c.textContent || '').length / per)); });
-        return Math.max(6.6, lines * 3.1 + 1.2);
-      };
-      pg1.querySelectorAll('.sp-t').forEach(t => {
-        if (t.classList.contains('sp-class') || t.classList.contains('sp-stat')) return;
-        const cols = t.classList.contains('sp-miren') ? [[0, 14], [1, 14], [3, 30]] : [[2, 52]];
-        t.querySelectorAll('tbody tr').forEach(tr => { est += rowH(tr, cols); });
-        est += 5;
-      });
-      const room = 250;
-      if (est > room) pg1.style.zoom = String(Math.max(0.5, room / est).toFixed(3));
+    const css = [];
+    for (const sh of Array.from(document.styleSheets)) {
+      let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+      for (const r of Array.from(rules || [])) {
+        if (r.type === 4 && /print/.test(r.media.mediaText)) {
+          for (const x of Array.from(r.cssRules)) { if (x.selectorText) css.push(x.cssText); }
+        }
+      }
     }
-  } catch (e) {}
-  // 2枚目（スキル＋マニューバ）が1枚に収まるよう、行数と効果文の長さから高さを見積もって縮小する
-  try {
-    const pg2 = wrap.querySelectorAll('.sp-page')[1];
-    if (pg2) {
-      let est = 14;
-      pg2.querySelectorAll('.sp-t').forEach(t => {
-        est += 12; // 見出しの帯
-        t.querySelectorAll('tbody tr').forEach(tr => {
-          const txt = (tr.lastElementChild ? tr.lastElementChild.textContent : '') || '';
-          const lines = Math.max(1, Math.ceil(txt.length / 42));
-          est += Math.max(4.6, lines * 3.1 + 1.2);
-        });
-      });
-      const room = 270;
-      if (est > room) pg2.style.zoom = String(Math.max(0.5, room / est).toFixed(3));
-    }
+    if (!css.length) throw new Error('no-css'); // ファイルを直接開いた場合などは測れないので縮小しない
+    const st = document.createElement('style');
+    st.textContent = css.join('\n') + '\n#sheet-print.sp-measure{display:block !important;position:absolute;left:-9999px;top:0;width:198mm;color:#000;font-family:sans-serif;font-size:8.5pt;}\n.sp-measure .sp-page{page-break-after:auto;}';
+    document.head.appendChild(st);
+    wrap.classList.add('sp-measure');
+    const mmPx = 96 / 25.4;
+    const room = 279 * mmPx; // 用紙の高さ297mm − 余白12mm − 余裕
+    wrap.querySelectorAll('.sp-page').forEach(pg => {
+      const h = pg.scrollHeight;
+      if (h > room) pg.style.zoom = String(Math.max(0.45, room / h).toFixed(3));
+    });
+    wrap.classList.remove('sp-measure');
+    st.remove();
   } catch (e) {}
   document.body.classList.add('sheet-print-mode');
   // 画面には出ない（印刷のときだけ表示される）ので、印刷が終わるまで消さずに置いておく。
