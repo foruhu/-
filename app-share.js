@@ -72,15 +72,8 @@ function exportCcfolia() {
     status.push({ label: `${name || '○○'}への未練`, value: Math.max(0, Math.min(4, parseInt(l.madness, 10) || 0)), max: 4 });
   });
 
-  const params = [
-    { label: 'PL名', value: data.pl || '' },
-    { label: '武装', value: String(parseInt(document.getElementById('total-wep')?.textContent, 10) || 0) },
-    { label: '変異', value: String(parseInt(document.getElementById('total-mut')?.textContent, 10) || 0) },
-    { label: '改造', value: String(parseInt(document.getElementById('total-cyb')?.textContent, 10) || 0) },
-    { label: '享年/外見', value: data.age || '' },
-    { label: '初期配置', value: data.ps || '' },
-    { label: '暗示', value: data.hint || '' }
-  ].filter(p => p.value);
+  // パラメータ欄は使わない（情報はメモ欄に入れる）
+  const params = [];
 
   const commandLines = buildCcfoliaCommandLines(data);
 
