@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=95">
+<link rel="stylesheet" href="style.css?v=96">
 </head>
 <body>
 
@@ -186,7 +186,7 @@
     <div class="kv"><label>瞳の色</label><input type="text" id="eye"></div>
     <div class="kv"><label>肌の色</label><input type="text" id="skin"></div>
   </div>
-  <div style="margin-bottom:6px;">
+  <div class="non-battle" style="margin-bottom:6px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
       <label style="margin:0;">記憶のカケラ（入手した数だけ追加できます）</label>
       <button type="button" class="sec" id="memory-all-toggle" onclick="toggleAllMemoryDetails()" style="font-size:.7rem;padding:2px 6px;white-space:nowrap;">詳細をすべて折りたたむ</button>
@@ -213,7 +213,7 @@
     <label>たからもの（入手した数だけ追加できます）</label>
     <div id="treasure-list"></div>
     <button type="button" class="sec edit-only" onclick="addTreasureEntry()" style="width:100%;margin-top:2px;padding:4px;">+ たからもの枠を追加</button>
-    <div style="font-size:0.68rem;color:#888;margin-top:4px;">
+    <div class="non-battle" style="font-size:0.68rem;color:#888;margin-top:4px;">
       オート／バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除かれます。
     </div>
   </div>
@@ -564,7 +564,7 @@
       <li>「🔄 切替」で保存済みキャラを一覧から切り替えられます。</li>
       <li>「🆕 新規作成(白紙に戻す)」で、今の入力をすべて白紙に戻せます。保存済みのキャラは消えず、「↩️ 元に戻す」で今の入力も戻せます。</li>
       <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
-      <li>表示モードの「⚔️ 戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。スキルの表は、区分の列と色の凡例を省いて行を詰めるので、1画面でたくさん見られます。</li>
+      <li>表示モードの「⚔️ 戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。記憶のカケラは表示せず、スキルの表は、区分の列と色の凡例を省いて行を詰めます(未練の表も同じように詰めます)。そのため、1画面でたくさん見られます。</li>
       <li>画面上部の固定バーは、「▲ 閉じる」で武装・変異・改造の表を畳めます。「基本」「未練」などのボタンで、その項目へ飛べます。「文字：中」を押すと、文字の大きさが 小→中→大 と切り替わります。</li>
       <li>固定バーの「表：標準/ゆったり」で、スキル・マニューバの表の文字と余白を広げられます。「配色：暗/明」で、画面を白地にもできます。スキル・マニューバの見出しの下には、種別の色の意味が出ます。損傷した行は灰色(左端が赤)、使用済みの行は左端が黄色で見分けられます。</li>
       <li>表示モードでも、「使用チェックを一括解除」は押せます(セッション終了時などに)。</li>
@@ -609,16 +609,16 @@
   </div>
 </div>
 
-<script src="data.js?v=95"></script>
-<script src="app-core.js?v=95"></script>
-<script src="app-parts.js?v=95"></script>
-<script src="app-skills.js?v=95"></script>
-<script src="app-save.js?v=95"></script>
-<script src="app-dict.js?v=95"></script>
-<script src="app-image.js?v=95"></script>
-<script src="app-look.js?v=95"></script>
-<script src="app-sheetprint.js?v=95"></script>
-<script src="app-share.js?v=95"></script>
-<script src="app-main.js?v=95"></script>
+<script src="data.js?v=96"></script>
+<script src="app-core.js?v=96"></script>
+<script src="app-parts.js?v=96"></script>
+<script src="app-skills.js?v=96"></script>
+<script src="app-save.js?v=96"></script>
+<script src="app-dict.js?v=96"></script>
+<script src="app-image.js?v=96"></script>
+<script src="app-look.js?v=96"></script>
+<script src="app-sheetprint.js?v=96"></script>
+<script src="app-share.js?v=96"></script>
+<script src="app-main.js?v=96"></script>
 </body>
 </html>

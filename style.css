@@ -452,3 +452,11 @@ body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #vie
 
 /* 固定バーの行動値・損傷は、表示画面だけに出す（編集画面では隠す） */
 body:not(.view-mode) .edit-hide { display: none !important; }
+
+/* 戦闘用ON：未練の表もスキルの表と同じように詰める */
+body.battle-view #sec-miren .title { margin-bottom: 4px; }
+body.battle-view #sec-miren table th { padding: 2px 1px; font-size: .68rem; }
+body.battle-view #sec-miren table td { padding: 1px 2px; }
+body.battle-view #sec-miren table input,
+body.battle-view #sec-miren table select { padding: 1px; font-size: .74rem; }
+body.battle-view #sec-miren table textarea { font-size: .7rem; line-height: 1.25; min-height: 0; padding: 0 2px; }
