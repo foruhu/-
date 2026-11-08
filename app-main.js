@@ -184,7 +184,10 @@ window.onload = async function() {
   if (typeof updateUndoButtonState === 'function') updateUndoButtonState();
 
   // URLに共有データ（#share=...）が含まれていれば自動で読み込む（完了を待ってから続ける）
+  const hadHash = !!(location.hash && /^#(tok|share|view)/.test(location.hash));
   if (typeof checkForSharedURLOnLoad === 'function') await checkForSharedURLOnLoad();
+  // 共有URLでなければ、更新前に編集していた内容に戻す
+  if (!hadHash && typeof restoreWorkOnLoad === 'function') restoreWorkOnLoad();
 
   // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく
   const memoryListEl = document.getElementById('memory-list');

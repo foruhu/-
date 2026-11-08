@@ -173,6 +173,7 @@ function updateViewModeImage(selectedId) {
 }
 
 function renderSaveCards(selectedId = '') {
+  try { if (selectedIdForMemo(arguments[0]) && arguments[0]) localStorage.setItem('necro_last_slot', arguments[0]); } catch (e) {}
   const container = document.getElementById('save-cards');
   if (!container) return;
 
@@ -401,3 +402,30 @@ function clearSelectedThumbnail() {
   alert('画像を削除しました');
 }
 
+
+
+// 「選択中のキャラ」を覚えておく対象か（下書きは対象外）
+function selectedIdForMemo(id) { return typeof id === 'string' && id !== 'autosave_draft'; }
+
+// ページを開き直したとき（更新ボタン・再読み込み）、直前まで編集していた内容に戻す。
+//  ・下書き（自動保存）が、元のキャラの保存内容より新しければ、下書きを復元する
+//  ・そうでなければ、最後に選んでいたキャラを読み込む
+function restoreWorkOnLoad() {
+  try {
+    const sheets = getSavedSheets();
+    const draft = sheets['autosave_draft'];
+    let lastId = '';
+    try { lastId = localStorage.getItem('necro_last_slot') || ''; } catch (e) {}
+    const hasDraftId = draft && draft.draftOf && sheets[draft.draftOf];
+    if (draft && draft.data && (!draft.draftOf || !hasDraftId || (sheets[draft.draftOf].savedAt || '') <= (draft.savedAt || ''))) {
+      applyData(draft.data);
+      refreshSaveSlotOptions(hasDraftId ? draft.draftOf : '');
+      updateAutosaveStatusText('下書きを復元しました');
+      return;
+    }
+    if (lastId && sheets[lastId] && sheets[lastId].data) {
+      applyData(sheets[lastId].data);
+      refreshSaveSlotOptions(lastId);
+    }
+  } catch (e) {}
+}
