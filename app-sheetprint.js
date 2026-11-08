@@ -92,6 +92,26 @@ function printSheetLayout() {
   wrap.id = 'sheet-print';
   wrap.innerHTML = html;
   document.body.appendChild(wrap);
+  // 1枚目（基本情報・記憶のカケラ・未練）も、文章が長くて収まらないときは縮小する
+  try {
+    const pg1 = wrap.querySelectorAll('.sp-page')[0];
+    if (pg1) {
+      let est = 72; // 上段（題字・名前・クラス・強化値）と帯・見出し・フッター
+      const rowH = (tr, cols) => {
+        let lines = 1;
+        cols.forEach(([i, per]) => { const c = tr.children[i]; if (c) lines = Math.max(lines, Math.ceil((c.textContent || '').length / per)); });
+        return Math.max(6.6, lines * 3.1 + 1.2);
+      };
+      pg1.querySelectorAll('.sp-t').forEach(t => {
+        if (t.classList.contains('sp-class') || t.classList.contains('sp-stat')) return;
+        const cols = t.classList.contains('sp-miren') ? [[0, 14], [1, 14], [3, 30]] : [[2, 52]];
+        t.querySelectorAll('tbody tr').forEach(tr => { est += rowH(tr, cols); });
+        est += 5;
+      });
+      const room = 250;
+      if (est > room) pg1.style.zoom = String(Math.max(0.5, room / est).toFixed(3));
+    }
+  } catch (e) {}
   // 2枚目（スキル＋マニューバ）が1枚に収まるよう、行数と効果文の長さから高さを見積もって縮小する
   try {
     const pg2 = wrap.querySelectorAll('.sp-page')[1];
@@ -105,7 +125,7 @@ function printSheetLayout() {
           est += Math.max(4.6, lines * 3.1 + 1.2);
         });
       });
-      const room = 282;
+      const room = 270;
       if (est > room) pg2.style.zoom = String(Math.max(0.5, room / est).toFixed(3));
     }
   } catch (e) {}
