@@ -273,6 +273,24 @@ function memoryToText(m) {
   return x.detail ? `${head}：${x.detail}` : head;
 }
 
+// 記憶のカケラの詳細を折りたたむ/開く（1件ずつ。force=true/falseで指定）
+function toggleMemoryDetail(btn, force) {
+  const row = btn.closest('.memory-entry');
+  if (!row) return;
+  const collapsed = force === undefined ? !row.classList.contains('collapsed') : !!force;
+  row.classList.toggle('collapsed', collapsed);
+  btn.textContent = collapsed ? '▸' : '▾';
+  if (!collapsed) autoResizeTextarea(row.querySelector('.memory-detail'));
+}
+// すべて折りたたむ／すべて開く（1つでも開いていれば、すべて折りたたむ）
+function toggleAllMemoryDetails() {
+  const rows = Array.from(document.querySelectorAll('#memory-list .memory-entry'));
+  const anyOpen = rows.some(r => !r.classList.contains('collapsed'));
+  rows.forEach(r => toggleMemoryDetail(r.querySelector('.memory-toggle'), anyOpen));
+  const b = document.getElementById('memory-all-toggle');
+  if (b) b.textContent = anyOpen ? '詳細をすべて開く' : '詳細をすべて折りたたむ';
+}
+
 // 「記憶のカケラ」の1枠（数字・名前・詳細＋削除）を作成する
 function addMemoryEntry(value = '') {
   const container = document.getElementById('memory-list');
@@ -284,6 +302,7 @@ function addMemoryEntry(value = '') {
   row.innerHTML = `
     <div class="memory-head">
       <input type="text" class="memory-num" value="${escapeHtml(m.num)}" placeholder="数字" inputmode="numeric" aria-label="数字">
+      <button type="button" class="memory-toggle" onclick="toggleMemoryDetail(this)" title="詳細を折りたたむ/開く" aria-label="詳細を折りたたむ/開く">▾</button>
       <input type="text" class="memory-name" value="${escapeHtml(m.name)}" placeholder="名前" aria-label="名前">
       <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
     </div>

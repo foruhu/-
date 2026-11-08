@@ -286,3 +286,8 @@ html.fs-large { font-size: 18px; }
 .memory-entry .memory-head input.memory-num { width: 3.6em; flex: none; text-align: center; }
 .memory-entry .memory-head input.memory-name { width: auto; flex: 1; min-width: 0; text-align: left; }
 .memory-entry .memory-detail { width: 100%; box-sizing: border-box; min-height: 34px; resize: none; overflow: hidden; }
+
+.memory-head .memory-toggle { flex: none; width: 2em; padding: 4px 0; background: #2a1e1e; border: 1px solid var(--border); color: #ccc; border-radius: 3px; cursor: pointer; }
+.memory-entry.collapsed .memory-detail { display: none; }
+body.print-mode .memory-entry.collapsed .memory-detail { display: block; }
+body.print-mode .memory-toggle, body.print-mode #memory-all-toggle { display: none; }
