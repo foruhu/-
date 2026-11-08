@@ -103,6 +103,22 @@ function calcTotals() {
   if (typeof calcActionValue === 'function') calcActionValue();
 }
 
+// 狂気点は 0〜4。4/4 になったら赤くして、発狂が近い（到達した）ことが分かるようにする
+function updateMadnessFull(input) {
+  const v = parseInt(input.value, 10) || 0;
+  const wrap = input.closest('.mad-pt');
+  if (wrap) wrap.classList.toggle('full', v >= 4);
+}
+function stepMadness(btn, d) {
+  const input = btn.closest('.mad-pt').querySelector('.mad-input');
+  const v = Math.max(0, Math.min(4, (parseInt(input.value, 10) || 0) + d));
+  if (String(v) === input.value) return;
+  if (typeof pushUndoSnapshot === 'function') pushUndoSnapshot();
+  input.value = v;
+  updateMadnessFull(input);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 // 未練の1件は2行で表す：1行目＝対象・未練・狂気点、2行目＝発狂（発狂時の名前と効果）
 function addRow(target = '', emotion = '', madness = 0, madName = '', madEffect = '') {
   const tbody = document.getElementById('list');
@@ -112,7 +128,14 @@ function addRow(target = '', emotion = '', madness = 0, madName = '', madEffect 
   tr.innerHTML = `
     <td><input type="text" value="${escapeHtml(target)}"></td>
     <td><input type="text" value="${escapeHtml(emotion)}"></td>
-    <td><input type="number" value="${escapeHtml(madness)}" min="0"></td>
+    <td>
+      <div class="mad-pt">
+        <button type="button" class="mad-step edit-only" onclick="stepMadness(this, -1)" aria-label="狂気点を1減らす">−</button>
+        <input type="number" class="mad-input" value="${Math.max(0, Math.min(4, parseInt(madness, 10) || 0))}" min="0" max="4" inputmode="numeric" oninput="updateMadnessFull(this)">
+        <span class="mad-max">/4</span>
+        <button type="button" class="mad-step edit-only" onclick="stepMadness(this, 1)" aria-label="狂気点を1増やす">＋</button>
+      </div>
+    </td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this)">X</button></td>
   `;
   const mad = document.createElement('tr');
@@ -128,6 +151,7 @@ function addRow(target = '', emotion = '', madness = 0, madName = '', madEffect 
   `;
   tbody.appendChild(tr);
   tbody.appendChild(mad);
+  updateMadnessFull(tr.querySelector('.mad-input'));
   const sync = () => mad.classList.toggle('empty', !mad.querySelector('.miren-madname').value.trim() && !mad.querySelector('.miren-madeffect').value.trim());
   mad.addEventListener('input', sync);
   sync();

@@ -431,3 +431,14 @@ body.battle-view #sec-skill .title { margin-bottom: 4px; }
 body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #view-mode-toggle { display: none !important; }
 .view-btn-row { flex-wrap: wrap; }
 .view-btn-row .char-switch-btn { flex: 1 1 28%; }
+
+/* 狂気点：0/4 の形（4/4で赤く） */
+.mad-pt { display: flex; align-items: center; justify-content: center; gap: 2px; min-width: 0; }
+.mad-pt .mad-input { width: 2.4em; min-width: 0; flex: none; text-align: center; padding: 4px 1px; }
+.mad-pt .mad-max { color: #aaa; font-size: .85rem; white-space: nowrap; }
+.mad-pt .mad-step { flex: none; width: 1.7em; height: 1.7em; padding: 0; font-size: .8rem; background: #2a2a32; color: #ddd; border: 1px solid #555; border-radius: 6px; cursor: pointer; line-height: 1; }
+.mad-pt.full .mad-input, .mad-pt.full .mad-max { color: #ff6b6b; font-weight: bold; }
+.mad-pt.full .mad-input { border-color: #c0392b; }
+@media print { .mad-step { display: none !important; } }
+.mad-pt input.mad-input { width: 2.6em !important; min-width: 0; flex: none; text-align: center; padding: 4px 1px; }
+@media (pointer: coarse) { body:not(.view-mode) .mad-pt input.mad-input { font-size: 16px !important; } }
