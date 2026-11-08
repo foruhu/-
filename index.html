@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=91">
+<link rel="stylesheet" href="style.css?v=92">
 </head>
 <body>
 
@@ -399,9 +399,6 @@
       <button type="button" class="action-btn c-yellow" onclick="exportShareURL()">
         <span class="icon">🔗</span><span>共有URLを<br>作成</span>
       </button>
-      <button type="button" class="action-btn c-teal" onclick="exportViewURL()">
-        <span class="icon">👀</span><span>閲覧用URLを<br>作成</span>
-      </button>
     </div>
     <details class="emergency-fold share-manage">
       <summary>🔗 発行した共有URLの控え</summary>
@@ -410,17 +407,6 @@
       <div class="action-btn-row" style="margin-top:6px;">
         <button type="button" class="sec" onclick="addShareByURL()">URLを貼って加える</button>
       </div>
-    </details>
-    <details class="emergency-fold">
-      <summary>🚨 緊急用：共有コード（URLが使えない時）</summary>
-    <div class="action-btn-row">
-      <button type="button" class="action-btn c-cyan" onclick="exportShareCode()">
-        <span class="icon">📤</span><span>共有コードを作成<br>（URL不可時の緊急用）</span>
-      </button>
-      <button type="button" class="action-btn c-purple" onclick="importShareCode()">
-        <span class="icon">📥</span><span>共有コードから<br>読み込む（緊急用）</span>
-      </button>
-    </div>
     </details>
     <div class="action-btn-row">
       <button type="button" class="action-btn c-green" onclick="exportAllCharactersBackup()">
@@ -432,7 +418,7 @@
     </div>
     <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none" onchange="onBackupFileSelected(event)">
     <div style="font-size:0.7rem; color:#888; margin-top:4px;">
-      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。「閲覧用URL」は開くと自動的に表示モード(編集不可)になる専用のリンクです(相手のブラウザには保存されません)。「共有コード」は文字列をコピー&貼り付けする方式です。「全キャラをバックアップ」は、保存済みの全キャラクターをまとめて1つのファイルに書き出します(機種変更やブラウザデータが消えた時の保険用です)。
+      ※他のブラウザ・端末に移したい場合は「JSON出力」→別端末で「JSONを読み込む」、または「共有URLを作成」してURLを送り、相手がそのURLを開くと自動で読み込まれます。上のバーの「閲覧用URL」は開くと自動的に表示モード(編集不可)になる専用のリンクです(相手のブラウザには保存されません)。「全キャラをバックアップ」は、保存済みの全キャラクターをまとめて1つのファイルに書き出します(機種変更やブラウザデータが消えた時の保険用です)。
     </div>
   </div>
 
@@ -594,10 +580,10 @@
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 共有・バックアップ</h4>
     <ul style="margin:0; padding-left:1.2em;">
-      <li>「共有URLを作成」: 相手が開くとキャラが読み込まれます。「閲覧用URLを作成」: 相手の画面に表示するだけのリンクで、開いた人は編集に切り替えられません(損傷・使用のチェックだけ操作でき、保存もされません)。開いた直後は全項目が表示され、「戦闘用」で絞り込めます。</li>
+      <li>「共有URLを作成」(出力・共有の中): 相手が開くとキャラが読み込まれます。上のバーの「閲覧用URL」: 相手の画面に表示するだけのリンクで、開いた人は編集に切り替えられません(損傷・使用のチェックだけ操作でき、保存もされません)。開いた直後は全項目が表示され、「戦闘用」で絞り込めます。</li>
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「🔗 発行した共有URLの控え」(出力・共有の中)に、この端末で作った共有URL・閲覧用URLが並び、「コピー」でもう一度URLを取り出せます。作ったURLは取り消せないため、URLを作る前に確認が出ます。以前作ったURLは「URLを貼って加える」で控えに入れられます。</li>
-      <li>「共有コード」は、URLが使えない時の緊急用です(普段は折りたたまれていて、「🚨 緊急用」を押すと開きます。外部に保存せず、文字列だけをコピー&貼り付けで渡せます)。「JSON出力」は、ファイルで別端末に移す方法です。上のバーの「🎲 ココフォリアコマ」で駒用のデータを、「💬 チャパレ」でチャットパレットに貼る文章をコピーできます(コマのメモ欄には名前・クラス・行動値・記憶のかけら・部位ごとのパーツ名が、ステータス欄には行動値・「○○への未練」ごとの狂気点(0〜4)と、「せぼね」など貯めて使うパーツのストック欄(0/0)が入ります。チャパレは先頭に判定コマンド、続けてポジション・クラスのスキルと頭・腕・胴・脚のマニューバが「【名前】\n《T:タイミング／C:コスト／R:射程》\n効果」の形で並び、攻撃マニューバには行頭に 1na が付きます。ココフォリアのルームのシステムは「ネクロニカ」にしてください)。</li>
+      <li>「JSON出力」は、ファイルで別端末に移す方法です。上のバーの「🎲 ココフォリアコマ」で駒用のデータを、「💬 チャパレ」でチャットパレットに貼る文章をコピーできます(コマのメモ欄には名前・クラス・行動値・記憶のかけら・部位ごとのパーツ名が、ステータス欄には行動値・「○○への未練」ごとの狂気点(0〜4)と、「せぼね」など貯めて使うパーツのストック欄(0/0)が入ります。チャパレは先頭に判定コマンド、続けてポジション・クラスのスキルと頭・腕・胴・脚のマニューバが「【名前】\n《T:タイミング／C:コスト／R:射程》\n効果」の形で並び、攻撃マニューバには行頭に 1na が付きます。ココフォリアのルームのシステムは「ネクロニカ」にしてください)。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。最後に取ってからの日数が、キャラクター管理に表示されます(14日以上たつと色が変わります)。</li>
       <li>データ未登録のスキル・パーツに自分で書いた効果は、このブラウザに覚えられます。次からは、同じスキル・パーツを選ぶと自動で入ります(「全キャラをバックアップ」にも一緒に入ります)。</li>
       <li>「保管所テキストから読み込む」(キャラクター管理の「削除したキャラを復元」の隣)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
@@ -623,16 +609,16 @@
   </div>
 </div>
 
-<script src="data.js?v=91"></script>
-<script src="app-core.js?v=91"></script>
-<script src="app-parts.js?v=91"></script>
-<script src="app-skills.js?v=91"></script>
-<script src="app-save.js?v=91"></script>
-<script src="app-dict.js?v=91"></script>
-<script src="app-image.js?v=91"></script>
-<script src="app-look.js?v=91"></script>
-<script src="app-sheetprint.js?v=91"></script>
-<script src="app-share.js?v=91"></script>
-<script src="app-main.js?v=91"></script>
+<script src="data.js?v=92"></script>
+<script src="app-core.js?v=92"></script>
+<script src="app-parts.js?v=92"></script>
+<script src="app-skills.js?v=92"></script>
+<script src="app-save.js?v=92"></script>
+<script src="app-dict.js?v=92"></script>
+<script src="app-image.js?v=92"></script>
+<script src="app-look.js?v=92"></script>
+<script src="app-sheetprint.js?v=92"></script>
+<script src="app-share.js?v=92"></script>
+<script src="app-main.js?v=92"></script>
 </body>
 </html>
