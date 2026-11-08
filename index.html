@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=94">
+<link rel="stylesheet" href="style.css?v=95">
 </head>
 <body>
 
@@ -30,11 +30,11 @@
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
     </div>
-    <div style="display: none; justify-content: space-between; align-items: center;">
+    <div class="edit-hide" style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#f0a0a0; font-weight:bold;">行動値</span>
       <span>最大 <b id="bar-act" style="color:#ffd0d0;">0</b></span>
     </div>
-    <div style="display: none; justify-content: space-between; align-items: center;">
+    <div class="edit-hide" style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#f0a0a0; font-weight:bold;">損傷</span>
       <span>基本 <b id="bar-broken-base" style="color:#ffd0d0;">0</b>/<span id="bar-parts-base">0</span> | 強化 <b id="bar-broken-ext" style="color:#ffd0d0;">0</b>/<span id="bar-parts-ext">0</span> | 宝 <b id="bar-broken-tre" style="color:#ffd0d0;">0</b>/<span id="bar-parts-tre">0</span></span>
     </div>
@@ -529,7 +529,7 @@
       <li>ポジション・メインクラス・サブクラスを選ぶと、武装・変異・改造のパーツ配置上限が自動計算されます。</li>
       <li>「ボーナス」は武装・変異・改造のいずれか1つに+1です。寵愛による修正は手入力で加算します。</li>
       <li>最大行動値は「基本行動値＋損傷していないパーツの『最大行動値+N』」で自動計算されます(内訳も表示)。</li>
-      <li>画面上部の固定バーには、武装・変異・改造のレベル別の使用数が出ます。</li>
+      <li>画面上部の固定バーには、武装・変異・改造のレベル別の使用数が出ます。表示画面(「🔒 表示」)では、最大行動値と損傷数(基本・強化・宝＝たからもの)も出ます。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ スキル</h4>
@@ -609,16 +609,16 @@
   </div>
 </div>
 
-<script src="data.js?v=94"></script>
-<script src="app-core.js?v=94"></script>
-<script src="app-parts.js?v=94"></script>
-<script src="app-skills.js?v=94"></script>
-<script src="app-save.js?v=94"></script>
-<script src="app-dict.js?v=94"></script>
-<script src="app-image.js?v=94"></script>
-<script src="app-look.js?v=94"></script>
-<script src="app-sheetprint.js?v=94"></script>
-<script src="app-share.js?v=94"></script>
-<script src="app-main.js?v=94"></script>
+<script src="data.js?v=95"></script>
+<script src="app-core.js?v=95"></script>
+<script src="app-parts.js?v=95"></script>
+<script src="app-skills.js?v=95"></script>
+<script src="app-save.js?v=95"></script>
+<script src="app-dict.js?v=95"></script>
+<script src="app-image.js?v=95"></script>
+<script src="app-look.js?v=95"></script>
+<script src="app-sheetprint.js?v=95"></script>
+<script src="app-share.js?v=95"></script>
+<script src="app-main.js?v=95"></script>
 </body>
 </html>

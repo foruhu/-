@@ -449,3 +449,6 @@ body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #vie
 .share-info span { font-size:.7rem; color:#999; }
 .share-btns { display:flex; gap:6px; flex:none; }
 .share-btns button { padding:4px 8px; font-size:.74rem; white-space:nowrap; }
+
+/* 固定バーの行動値・損傷は、表示画面だけに出す（編集画面では隠す） */
+body:not(.view-mode) .edit-hide { display: none !important; }
