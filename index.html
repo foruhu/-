@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
 
@@ -37,6 +37,8 @@
     <div class="bar-tools">
       <button type="button" id="bar-fold-btn" onclick="toggleBarFold()">▲ 閉じる</button>
       <button type="button" id="fs-btn" onclick="cycleFontSize()">文字：中</button>
+      <button type="button" id="roomy-btn" onclick="toggleRoomy()">表：標準</button>
+      <button type="button" id="theme-btn" onclick="toggleTheme()">配色：暗</button>
     </div>
     <div class="bar-detail">
     <div class="toc-row">
@@ -571,6 +573,7 @@
       <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
       <li>表示モードの「⚔️ 戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。</li>
       <li>画面上部の固定バーは、「▲ 閉じる」で武装・変異・改造の表を畳めます。「基本」「未練」などのボタンで、その項目へ飛べます。「文字：中」を押すと、文字の大きさが 小→中→大 と切り替わります。</li>
+      <li>固定バーの「表：標準/ゆったり」で、スキル・マニューバの表の文字と余白を広げられます。「配色：暗/明」で、画面を白地にもできます。スキル・マニューバの見出しの下には、種別の色の意味が出ます。損傷した行は灰色(左端が赤)、使用済みの行は左端が黄色で見分けられます。</li>
       <li>表示モードでも、「使用チェックを一括解除」は押せます(セッション終了時などに)。</li>
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
       <li>ブラウザの保存領域(約5MB)がいっぱいになると保存できません。使用量が8割を超えると保存時に知らせるので、その前に「全キャラをバックアップ」で書き出してください。いっぱいで保存できないときは、削除したキャラのゴミ箱を空にして保存し直します。</li>
@@ -612,15 +615,16 @@
   </div>
 </div>
 
-<script src="data.js?v=66"></script>
-<script src="app-core.js?v=66"></script>
-<script src="app-parts.js?v=66"></script>
-<script src="app-skills.js?v=66"></script>
-<script src="app-save.js?v=66"></script>
-<script src="app-dict.js?v=66"></script>
-<script src="app-image.js?v=66"></script>
-<script src="app-sheetprint.js?v=66"></script>
-<script src="app-share.js?v=66"></script>
-<script src="app-main.js?v=66"></script>
+<script src="data.js?v=67"></script>
+<script src="app-core.js?v=67"></script>
+<script src="app-parts.js?v=67"></script>
+<script src="app-skills.js?v=67"></script>
+<script src="app-save.js?v=67"></script>
+<script src="app-dict.js?v=67"></script>
+<script src="app-image.js?v=67"></script>
+<script src="app-look.js?v=67"></script>
+<script src="app-sheetprint.js?v=67"></script>
+<script src="app-share.js?v=67"></script>
+<script src="app-main.js?v=67"></script>
 </body>
 </html>

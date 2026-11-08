@@ -161,6 +161,7 @@ function toggleViewMode() {
 window.onload = async function() {
   initBattleView();
   initBarAndFont();
+  if (typeof initLook === 'function') initLook();
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
   if (typeof captureBlankSheet === 'function') captureBlankSheet();
