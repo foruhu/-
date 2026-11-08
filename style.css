@@ -279,3 +279,10 @@ html.fs-large { font-size: 18px; }
 
 .emergency-fold { margin: 6px 0; }
 .emergency-fold > summary { cursor: pointer; font-size: 0.78rem; color: #aaa; padding: 4px 2px; }
+
+/* 記憶のカケラ：数字・名前・詳細 */
+.memory-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #3a2a2a; }
+.memory-head { display: flex; gap: 6px; align-items: center; margin-bottom: 3px; }
+.memory-entry .memory-head input.memory-num { width: 3.6em; flex: none; text-align: center; }
+.memory-entry .memory-head input.memory-name { width: auto; flex: 1; min-width: 0; text-align: left; }
+.memory-entry .memory-detail { width: 100%; box-sizing: border-box; min-height: 34px; resize: none; overflow: hidden; }

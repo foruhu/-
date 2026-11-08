@@ -66,7 +66,7 @@ function exportSheetImage(opts) {
       if (m.madName || m.madEffect) text(`発狂時 ${m.madName}${m.madEffect ? '：' + m.madEffect : ''}`, PAD + 22, 13, C.sub);
     });
   }
-  const mem = battle ? [] : nonEmpty(d.memories);
+  const mem = battle ? [] : nonEmpty(d.memories.map(memoryToText));
   if (mem.length) { heading('記憶のカケラ'); mem.forEach(m => text('・' + m, PAD + 6, 14, C.text)); }
 
   // スキル

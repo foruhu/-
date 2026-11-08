@@ -71,7 +71,7 @@ function autoResizeTextarea(el) {
 
 // 画面の回転や横幅変更で列幅が変わると、必要な高さも変わるため全てのメモ欄を再計算する
 function autoResizeAllMemoTextareas() {
-  document.querySelectorAll('#parts-container .p-memo, #skill-tbody .skill-memo, #free-memo, #list .miren-madeffect').forEach(autoResizeTextarea);
+  document.querySelectorAll('#parts-container .p-memo, #skill-tbody .skill-memo, #free-memo, #list .miren-madeffect, #memory-list .memory-detail').forEach(autoResizeTextarea);
 }
 window.addEventListener('resize', () => {
   clearTimeout(window.__memoResizeTimer);
@@ -258,19 +258,40 @@ function isPartAlreadyExists(partName) {
   return Array.from(document.querySelectorAll('#parts-container .p-name')).some(input => input.value.trim() === partName.trim());
 }
 
-// 「記憶のカケラ」の1枠（テキスト入力＋削除）を作成する
+// 記憶のカケラ1件を {num, name, detail} にそろえる（旧形式の文字列「名前：詳細」も読める）
+function normalizeMemory(m) {
+  if (m && typeof m === 'object') return { num: String(m.num ?? ''), name: String(m.name ?? ''), detail: String(m.detail ?? '') };
+  const s = String(m ?? '');
+  const i = s.search(/[：:]/);
+  if (i > 0 && i <= 20) return { num: '', name: s.slice(0, i).trim(), detail: s.slice(i + 1).trim() };
+  return { num: '', name: s, detail: '' };
+}
+// 記憶のカケラ1件を、読みやすい1行の文字列にする（画像・ココフォリア用）
+function memoryToText(m) {
+  const x = normalizeMemory(m);
+  const head = (x.num ? x.num + ' ' : '') + x.name;
+  return x.detail ? `${head}：${x.detail}` : head;
+}
+
+// 「記憶のカケラ」の1枠（数字・名前・詳細＋削除）を作成する
 function addMemoryEntry(value = '') {
   const container = document.getElementById('memory-list');
   if (!container) return;
+  const m = normalizeMemory(value);
 
   const row = document.createElement('div');
   row.className = 'memory-entry';
-  row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center;';
   row.innerHTML = `
-    <input type="text" class="memory-value" value="${escapeHtml(value)}" style="flex:1;">
-    <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
+    <div class="memory-head">
+      <input type="text" class="memory-num" value="${escapeHtml(m.num)}" placeholder="数字" inputmode="numeric" aria-label="数字">
+      <input type="text" class="memory-name" value="${escapeHtml(m.name)}" placeholder="名前" aria-label="名前">
+      <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
+    </div>
+    <textarea class="memory-detail" rows="1" placeholder="詳細" aria-label="詳細" oninput="autoResizeTextarea(this)">${escapeHtml(m.detail)}</textarea>
   `;
   container.appendChild(row);
+  const ta = row.querySelector('.memory-detail');
+  if (ta && typeof autoResizeTextarea === 'function') autoResizeTextarea(ta);
   markDirty();
 }
 

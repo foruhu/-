@@ -81,8 +81,12 @@ function getFullData() {
   });
 
   // 記憶のカケラ（複数）
-  document.querySelectorAll('#memory-list .memory-value').forEach(input => {
-    data.memories.push(input.value || '');
+  document.querySelectorAll('#memory-list .memory-entry').forEach(row => {
+    data.memories.push({
+      num: row.querySelector('.memory-num')?.value || '',
+      name: row.querySelector('.memory-name')?.value || '',
+      detail: row.querySelector('.memory-detail')?.value || ''
+    });
   });
 
   // 未練
@@ -475,7 +479,7 @@ let BLANK_SHEET_DATA = null;
 function captureBlankSheet() {
   try {
     BLANK_SHEET_DATA = JSON.parse(JSON.stringify(getFullData()));
-    BLANK_SHEET_DATA.memories = ['', ''];
+    BLANK_SHEET_DATA.memories = [{ num: '', name: '', detail: '' }, { num: '', name: '', detail: '' }];
   } catch (e) {
     BLANK_SHEET_DATA = null;
   }
