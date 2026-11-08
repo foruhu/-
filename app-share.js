@@ -307,6 +307,7 @@ async function exportShareURL() {
       recordShare(token, data.name, false);
       url = location.origin + location.pathname + '#tok=' + token;
     } catch (err) {
+      if (!confirm('サーバーに保存できませんでした。\n（' + (err && err.message ? err.message : err) + '）\n\n代わりに、保存しない長いURLで作りますか？')) return;
       url = location.origin + location.pathname + '#share=' + encoded;
     }
   }
@@ -369,6 +370,7 @@ async function exportViewURL() {
       recordShare(token, data.name, true);
       url = location.origin + location.pathname + '#tok=' + token;
     } catch (err) {
+      if (!confirm('サーバーに保存できませんでした。\n（' + (err && err.message ? err.message : err) + '）\n\n代わりに、保存しない長いURLで作りますか？')) return;
       url = location.origin + location.pathname + '#view=' + encoded;
     }
   }
