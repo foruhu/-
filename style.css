@@ -297,3 +297,11 @@ body.print-mode .memory-entry .memory-detail { max-height: none; overflow: visib
 /* 記憶のカケラの名前欄：行いっぱいに伸ばさず、短めにする（削除ボタンは右端） */
 .memory-entry .memory-head input.memory-name { flex: 0 1 12em; }
 .memory-entry .memory-head .del { margin-left: auto; }
+/* 記憶のカケラ：複数あるときは、体重・髪の色のように横に並べる（幅に合わせて2列〜） */
+#memory-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(165px, 47%), 1fr)); gap: 6px 8px; }
+#memory-list .memory-entry { margin: 0; min-width: 0; }
+#memory-list .memory-entry .memory-head input.memory-name { flex: 1 1 0; width: auto; min-width: 0; }
+#memory-list .memory-head { gap: 3px; }
+#memory-list .memory-head input.memory-num { width: 2.8em; padding-left: 2px; padding-right: 2px; }
+#memory-list .memory-head .memory-toggle { width: 1.8em; }
+#memory-list .memory-head .del { padding: 5px 7px !important; margin-left: 0; }
