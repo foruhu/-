@@ -390,7 +390,7 @@ tr.used td:first-child { box-shadow: inset 4px 0 0 #e0b040; }
 tr.used input:not([type="checkbox"]), tr.used textarea, tr.used select { opacity: .5; }
 
 /* 戦闘用表示：部位の見出しを太く区切り、行動値を大きく */
-body.battle-view .part-header { font-size: 1.05rem; border-left: 6px solid #e05050; padding: 6px 10px; margin-top: 16px; }
+body.battle-view .part-header { border-left: 6px solid #e05050; }
 body.battle-view #bar-act { font-size: 1.5rem; }
 
 /* 種別の色の凡例 */
@@ -409,3 +409,15 @@ html.theme-light { filter: invert(1) hue-rotate(180deg); background: #fff; }
 html.theme-light img, html.theme-light video, html.theme-light canvas { filter: invert(1) hue-rotate(180deg); }
 @media print { html.theme-light { filter: none; } }
 .bar-tools { flex-wrap: wrap; }
+
+/* 戦闘用表示：スキルを1画面にたくさん見られるよう、凡例・区分の列を省き、行を詰める */
+body.battle-view .cat-legend { display: none; }
+body.battle-view #sec-skill .maneuver-table th:nth-child(2),
+body.battle-view #sec-skill .maneuver-table tr.skill-row > td:nth-child(2) { display: none; }
+body.battle-view #sec-skill .maneuver-table th { padding: 2px 1px; font-size: .68rem; }
+body.battle-view #sec-skill .maneuver-table td { padding: 1px 2px; }
+body.battle-view #sec-skill .maneuver-table input,
+body.battle-view #sec-skill .maneuver-table select { padding: 1px; font-size: .74rem; }
+body.battle-view #sec-skill .maneuver-table tr.skill-memo-row td { padding: 0 3px 2px; }
+body.battle-view #sec-skill .maneuver-table tr.skill-memo-row textarea { font-size: .7rem; line-height: 1.25; min-height: 0; padding: 0 2px; }
+body.battle-view #sec-skill .title { margin-bottom: 4px; }
