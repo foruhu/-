@@ -421,3 +421,8 @@ body.battle-view #sec-skill .maneuver-table select { padding: 1px; font-size: .7
 body.battle-view #sec-skill .maneuver-table tr.skill-memo-row td { padding: 0 3px 2px; }
 body.battle-view #sec-skill .maneuver-table tr.skill-memo-row textarea { font-size: .7rem; line-height: 1.25; min-height: 0; padding: 0 2px; }
 body.battle-view #sec-skill .title { margin-bottom: 4px; }
+
+/* 記憶のカケラの開閉ボタン：枠なしの細い矢じるし（▾/▸ の文字はやめた） */
+#memory-list .memory-head .memory-toggle { background: transparent; border: none; width: 1.8em; height: 1.8em; padding: 0; position: relative; color: #9a8a8a; }
+#memory-list .memory-head .memory-toggle::before { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translate(-50%, -70%) rotate(45deg); transition: transform .15s; }
+#memory-list .memory-entry.collapsed .memory-toggle::before { transform: translate(-70%, -50%) rotate(-45deg); }

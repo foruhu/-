@@ -287,7 +287,6 @@ function toggleMemoryDetail(btn, force) {
   if (!row) return;
   const collapsed = force === undefined ? !row.classList.contains('collapsed') : !!force;
   row.classList.toggle('collapsed', collapsed);
-  btn.textContent = collapsed ? '▸' : '▾';
   updateMemoryPreview(row);
   if (!collapsed) autoResizeTextarea(row.querySelector('.memory-detail'));
 }
@@ -311,7 +310,7 @@ function addMemoryEntry(value = '') {
   row.innerHTML = `
     <div class="memory-head">
       <input type="text" class="memory-num" value="${escapeHtml(m.num)}" placeholder="数字" inputmode="numeric" aria-label="数字">
-      <button type="button" class="memory-toggle" onclick="toggleMemoryDetail(this)" title="詳細を折りたたむ/開く" aria-label="詳細を折りたたむ/開く">▾</button>
+      <button type="button" class="memory-toggle" onclick="toggleMemoryDetail(this)" title="詳細を折りたたむ/開く" aria-label="詳細を折りたたむ/開く"></button>
       <input type="text" class="memory-name" value="${escapeHtml(m.name)}" placeholder="名前" aria-label="名前">
       <button type="button" class="del edit-only" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">X</button>
     </div>
