@@ -108,7 +108,7 @@ const EXTRA_PARTS_DB = {
     { name: 'よだれじた', type: '変異', level: 2, timing: '', cost: '', range: '' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可、任意の未練から狂気点を1減少させてよい' },
-    { name: 'リフレックス', type: '改造', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'リフレックス', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: 'アドレナリン', type: '改造', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
     { name: 'セイバートゥース', type: '改造', level: 1, timing: '', cost: '', range: '' },
     { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
