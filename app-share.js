@@ -869,11 +869,13 @@ function applyHokanshoParsed(p) {
       } else {
         // 見つからないもの：「狂気点を回復」とあれば たからもの、それ以外は種別・Lvが分からないので仮置きにして知らせる
         editable = true;
-        if (/狂気点.{0,6}回復/.test(pt.memo)) { type = 'たからもの'; level = ''; }
+        const none = v => /^\s*(なし|無し|無|-|ー|－|—)?\s*$/.test(v || '');
+        // 「狂気点を回復」とある、または タイミングがオート・コストなし・射程なしの思い出の品のようなパーツは、たからものとみなす
+        if (/狂気点.{0,6}回復/.test(pt.memo) || (/^\s*オート\s*$/.test(pt.timing || '') && none(pt.cost) && none(pt.range))) { type = 'たからもの'; level = ''; }
         else { type = '武装'; level = ''; }
         rep.unmatchedParts.push({
           loc: HK_SEC_TO_LOC[pt.sec], name: pt.name,
-          assumed: type === 'たからもの' ? '種別を「たからもの」として配置' : '種別を仮に「武装」・Lvを空欄で配置（種別とLvを確認してください）'
+          assumed: type === 'たからもの' ? '種別を「たからもの」として配置（オート・コストなし・射程なし、または狂気点の回復効果のため。違う場合は分類を直してください）' : '種別を仮に「武装」・Lvを空欄で配置（種別とLvを確認してください）'
         });
       }
       // 効果メモや名前に「たからもの」と書かれているマニューバは、分類を「たからもの」にする
