@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=74">
+<link rel="stylesheet" href="style.css?v=75">
 </head>
 <body>
 
@@ -14,15 +14,18 @@
 
 <div id="view-mode-image-container" style="display:none;"></div>
 
+<div class="card view-only" id="view-tools-card" style="padding:6px;">
+  <div class="view-only view-btn-row">
+    <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
+    <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
+    <button type="button" class="char-switch-btn" onclick="printSheetLayout()" style="border-color:#6a4a8a; color:#c9a8f0;">🖨 印刷</button>
+    <button type="button" class="char-switch-btn" onclick="exportCcfolia()" style="border-color:#2e8a6a; color:#7af0c4;">🎲 ココフォリアコマ</button>
+    <button type="button" class="char-switch-btn" onclick="exportChatPalette()" style="border-color:#8a8a2e; color:#f0f07a;">💬 チャパレ</button>
+  </div>
+</div>
+
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
-    <div class="view-only view-btn-row">
-      <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
-      <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
-      <button type="button" class="char-switch-btn" onclick="printSheetLayout()" style="border-color:#6a4a8a; color:#c9a8f0;">🖨 印刷</button>
-      <button type="button" class="char-switch-btn" onclick="exportCcfolia()" style="border-color:#2e8a6a; color:#7af0c4;">🎲 ココフォリアコマ</button>
-      <button type="button" class="char-switch-btn" onclick="exportChatPalette()" style="border-color:#8a8a2e; color:#f0f07a;">💬 チャパレ</button>
-    </div>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
       <span id="autosave-status"></span>
@@ -608,16 +611,16 @@
   </div>
 </div>
 
-<script src="data.js?v=74"></script>
-<script src="app-core.js?v=74"></script>
-<script src="app-parts.js?v=74"></script>
-<script src="app-skills.js?v=74"></script>
-<script src="app-save.js?v=74"></script>
-<script src="app-dict.js?v=74"></script>
-<script src="app-image.js?v=74"></script>
-<script src="app-look.js?v=74"></script>
-<script src="app-sheetprint.js?v=74"></script>
-<script src="app-share.js?v=74"></script>
-<script src="app-main.js?v=74"></script>
+<script src="data.js?v=75"></script>
+<script src="app-core.js?v=75"></script>
+<script src="app-parts.js?v=75"></script>
+<script src="app-skills.js?v=75"></script>
+<script src="app-save.js?v=75"></script>
+<script src="app-dict.js?v=75"></script>
+<script src="app-image.js?v=75"></script>
+<script src="app-look.js?v=75"></script>
+<script src="app-sheetprint.js?v=75"></script>
+<script src="app-share.js?v=75"></script>
+<script src="app-main.js?v=75"></script>
 </body>
 </html>
