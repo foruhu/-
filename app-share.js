@@ -56,9 +56,7 @@ function exportCcfolia() {
   const partList = (data.parts || []).filter(p => p.name);
   const brokenCount = partList.filter(p => p.isBroken).length;
   const status = [
-    { label: '行動値', value: actValue, max: actValue },
-    { label: '寵愛点', value: currentChouai, max: currentChouai },
-    { label: '損傷', value: brokenCount, max: partList.length }
+    { label: '行動値', value: actValue, max: actValue }
   ];
   // 「せぼね」など貯めて使うパーツは、ストック数を数えるための欄（0/0）を作る
   const stocked = [];
