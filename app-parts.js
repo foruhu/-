@@ -561,6 +561,8 @@ function resetPartUsedFlags() {
 // --- 部位ごとの残りパーツ数と、固定バーの行動値・損傷数 ---
 function updatePartCounts() {
   let allTotal = 0, allBroken = 0;
+  // 固定バーの損傷数：基本パーツ（分類が「基本」）、たからもの（分類が「たからもの」）、強化パーツ（それ以外）に分けて数える
+  const grp = { base: { n: 0, b: 0 }, ext: { n: 0, b: 0 }, tre: { n: 0, b: 0 } };
   ['head', 'arm', 'body', 'leg'].forEach(id => {
     const tbody = document.getElementById(`parts-tbody-${id}`);
     const el = document.getElementById(`part-count-${id}`);
@@ -569,12 +571,19 @@ function updatePartCounts() {
     const broken = Array.from(rows).filter(tr => tr.querySelector('.p-broken')?.checked).length;
     const alive = rows.length - broken;
     allTotal += rows.length; allBroken += broken;
+    rows.forEach(tr => {
+      const ty = tr.querySelector('.p-type')?.value;
+      const g = ty === '基本' ? grp.base : (ty === 'たからもの' ? grp.tre : grp.ext);
+      g.n++;
+      if (tr.querySelector('.p-broken')?.checked) g.b++;
+    });
     el.textContent = `残り ${alive}/${rows.length}`;
     el.classList.toggle('low', rows.length > 0 && alive === 0);
   });
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-  set('bar-broken', allBroken);
-  set('bar-parts', allTotal);
+  set('bar-broken-base', grp.base.b); set('bar-parts-base', grp.base.n);
+  set('bar-broken-ext', grp.ext.b); set('bar-parts-ext', grp.ext.n);
+  set('bar-broken-tre', grp.tre.b); set('bar-parts-tre', grp.tre.n);
   set('bar-act', document.getElementById('act')?.value || '0');
 }
 
