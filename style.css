@@ -246,3 +246,7 @@ body.view-mode .miren-mad-row.empty { display: none; }
   .print-clone { display: block; flex: 1 1 auto; min-width: 0; white-space: pre-wrap; word-break: break-all; text-align: left; padding: 2px 4px; color: #000; }
   input.print-hidden { display: none !important; }
 }
+
+/* サイト名の下のサブタイトル */
+.site-subtitle { text-align: center; text-wrap: balance; font-size: .66rem; color: #999; margin: -4px 0 10px; line-height: 1.4; }
+@media print { .site-subtitle { color: #000 !important; } }
