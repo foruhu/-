@@ -60,6 +60,14 @@ function exportCcfolia() {
     { label: '寵愛点', value: currentChouai, max: currentChouai },
     { label: '損傷', value: brokenCount, max: partList.length }
   ];
+  // 「せぼね」など貯めて使うパーツは、ストック数を数えるための欄（0/0）を作る
+  const stocked = [];
+  partList.forEach(p => {
+    if ((p.name === 'せぼね' || /貯め|ストック/.test(p.memo || '')) && !stocked.includes(p.name)) {
+      stocked.push(p.name);
+      status.push({ label: p.name, value: 0, max: 0 });
+    }
+  });
   (data.list || []).forEach(l => {
     const name = (l.target || '').trim();
     if (!name && !l.emotion) return;
