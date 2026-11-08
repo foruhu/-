@@ -69,7 +69,7 @@ function exportCcfolia() {
   (data.list || []).forEach(l => {
     const name = (l.target || '').trim();
     if (!name && !l.emotion) return;
-    status.push({ label: `狂気:${name || '未練'}`, value: Math.max(0, Math.min(4, parseInt(l.madness, 10) || 0)), max: 4 });
+    status.push({ label: `${name || '○○'}への未練`, value: Math.max(0, Math.min(4, parseInt(l.madness, 10) || 0)), max: 4 });
   });
 
   const params = [
