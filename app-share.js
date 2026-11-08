@@ -88,7 +88,26 @@ function exportCcfolia() {
 
   const commandLines = buildCcfoliaCommandLines(data);
 
+  // メモ欄：基本情報 → 記憶のかけら → 部位ごとのパーツ一覧（【名前】を並べる）
   const memoLines = [];
+  memoLines.push(`名前: ${data.name || ''}`);
+  memoLines.push(`ポジション: ${data.pos || ''}`);
+  memoLines.push(`クラス： ${[data.mc, data.sc].filter(Boolean).join(' / ')}`);
+  memoLines.push(`行動値: ${actValue}`);
+  memoLines.push('');
+  memoLines.push('記憶のかけら');
+  const memTexts = (data.memories || []).map(memoryToText).filter(Boolean);
+  if (memTexts.length) memTexts.forEach(t => memoLines.push(t)); else memoLines.push('記憶のカケラなし');
+  memoLines.push('');
+  const names = arr => arr.filter(x => x.name).map(x => `【${x.name}】`).join('');
+  const skillsOf = c => c ? (data.skills || []).filter(x => x.category === c) : [];
+  memoLines.push(`--ポジション--${names(skillsOf(data.pos))}`);
+  memoLines.push(`--メインクラス--${names(skillsOf(data.mc))}`);
+  memoLines.push(`--サブクラス--${names(skillsOf(data.sc))}`);
+  [['頭', '頭部'], ['腕', '腕部'], ['胴', '胴部'], ['脚', '脚部']].forEach(([label, loc]) => {
+    memoLines.push(`--${label}--${names((data.parts || []).filter(p => p.location === loc))}`);
+  });
+  memoLines.push('');
   (data.treasures || []).forEach(t => {
     if (t.name) memoLines.push(`たからもの: ${t.name}${t.content ? '（' + t.content + '）' : ''}`);
   });
