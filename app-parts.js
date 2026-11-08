@@ -561,7 +561,7 @@ function updatePartUsedCheckboxVisibility(tr) {
   if (!timingInput || !usedCell || !usedCb) return;
 
   const shouldHide = PART_USED_HIDE_TIMINGS.includes((timingInput.value || '').trim());
-  usedCell.style.visibility = shouldHide ? 'hidden' : 'visible';
+  usedCb.style.visibility = shouldHide ? 'hidden' : 'visible';
   if (shouldHide && usedCb.checked) {
     usedCb.checked = false;
     togglePartUsed(usedCb);

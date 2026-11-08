@@ -213,7 +213,7 @@ function updateSkillUsedCheckboxVisibility(tr) {
   if (!timingInput || !usedCell || !usedCb) return;
 
   const shouldShow = SKILL_USED_CHECK_TIMINGS.includes((timingInput.value || '').trim());
-  usedCell.style.visibility = shouldShow ? 'visible' : 'hidden';
+  usedCb.style.visibility = shouldShow ? 'visible' : 'hidden';
   if (!shouldShow && usedCb.checked) {
     usedCb.checked = false;
     toggleSkillUsed(usedCb);
