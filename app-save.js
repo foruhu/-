@@ -86,13 +86,16 @@ function getFullData() {
   });
 
   // 未練
-  document.querySelectorAll('#list tr').forEach(tr => {
+  document.querySelectorAll('#list tr.miren-row').forEach(tr => {
     const inputs = tr.querySelectorAll('input');
     if (inputs.length >= 3) {
+      const mad = tr.nextElementSibling && tr.nextElementSibling.classList.contains('miren-mad-row') ? tr.nextElementSibling : null;
       data.list.push({
         target: inputs[0].value,
         emotion: inputs[1].value,
-        madness: inputs[2].value
+        madness: inputs[2].value,
+        madName: mad ? (mad.querySelector('.miren-madname')?.value || '') : '',
+        madEffect: mad ? (mad.querySelector('.miren-madeffect')?.value || '') : ''
       });
     }
   });
@@ -487,7 +490,7 @@ function applyData(data) {
   if (listTbody) {
     listTbody.innerHTML = '';
     if (data.list) {
-      data.list.forEach(l => addRow(l.target, l.emotion, l.madness));
+      data.list.forEach(l => addRow(l.target, l.emotion, l.madness, l.madName || '', l.madEffect || ''));
     }
   }
 

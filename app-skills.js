@@ -103,17 +103,35 @@ function calcTotals() {
   if (typeof calcActionValue === 'function') calcActionValue();
 }
 
-function addRow(target = '', emotion = '', madness = 0) {
+// 未練の1件は2行で表す：1行目＝対象・未練・狂気点、2行目＝発狂（発狂時の名前と効果）
+function addRow(target = '', emotion = '', madness = 0, madName = '', madEffect = '') {
   const tbody = document.getElementById('list');
   if (!tbody) return;
   const tr = document.createElement('tr');
+  tr.className = 'miren-row';
   tr.innerHTML = `
     <td><input type="text" value="${escapeHtml(target)}"></td>
     <td><input type="text" value="${escapeHtml(emotion)}"></td>
     <td><input type="number" value="${escapeHtml(madness)}" min="0"></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this)">X</button></td>
   `;
+  const mad = document.createElement('tr');
+  mad.className = 'miren-mad-row';
+  mad.innerHTML = `
+    <td colspan="4">
+      <div class="miren-mad-box">
+        <span class="miren-mad-label">発狂</span>
+        <input type="text" class="miren-madname" value="${escapeHtml(madName)}" placeholder="発狂名（例: 幼児退行）">
+        <textarea class="miren-madeffect" rows="1" placeholder="発狂時の効果" oninput="autoResizeTextarea(this)" onfocus="setTimeout(() => autoResizeTextarea(this), 80)">${escapeHtml(madEffect)}</textarea>
+      </div>
+    </td>
+  `;
   tbody.appendChild(tr);
+  tbody.appendChild(mad);
+  const sync = () => mad.classList.toggle('empty', !mad.querySelector('.miren-madname').value.trim() && !mad.querySelector('.miren-madeffect').value.trim());
+  mad.addEventListener('input', sync);
+  sync();
+  if (typeof autoResizeTextarea === 'function') autoResizeTextarea(mad.querySelector('.miren-madeffect'));
   markDirty();
 }
 

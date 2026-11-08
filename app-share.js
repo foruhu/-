@@ -56,7 +56,7 @@ function exportCcfolia() {
   });
   (data.list || []).forEach(l => {
     if (l.target || l.emotion) {
-      memoLines.push(`未練[${l.target || '?'}] ${l.emotion || ''}（狂気点${l.madness || 0}）`);
+      memoLines.push(`未練[${l.target || '?'}] ${l.emotion || ''}（狂気点${l.madness || 0}）` + (l.madName ? ` 発狂：${l.madName}${l.madEffect ? '（' + l.madEffect + '）' : ''}` : ''));
     }
   });
 
@@ -496,7 +496,11 @@ function hkParseMirenRow(text) {
   if (!m) return null;
   const target = m[1].trim(), emotion = m[2].trim();
   const note = /^[()（）\s]*$/.test(m[4]) ? '' : m[4].trim();
-  return { target: target, emotion: emotion, madness: (m[3].match(/■/g) || []).length, note: note, blank: !target && !emotion };
+  // 発狂時「幼児退行(最大行動値減少(-2))」を、名前と効果に分ける。かっこが無ければ全部を名前にする
+  let madName = note, madEffect = '';
+  const pm = note.match(/^([^()（）]*?)\s*[(（]([\s\S]*)[)）]\s*$/);
+  if (pm) { madName = pm[1].trim(); madEffect = pm[2].trim(); }
+  return { target: target, emotion: emotion, madness: (m[3].match(/■/g) || []).length, note: note, madName: madName, madEffect: madEffect, blank: !target && !emotion };
 }
 
 // テキストを解析する（画面には触らない）
@@ -516,8 +520,7 @@ function parseHokanshoText(raw) {
   // 未練の1行を結果に入れる（空の行は数えるだけ）
   const addMirenRow = row => {
     if (row.blank) { r.blankMirenRows++; return; }
-    r.list.push({ target: row.target, emotion: row.emotion, madness: row.madness });
-    if (row.note) r.madnessNotes.push(`${row.target || '（対象なし）'}：${row.note}`);
+    r.list.push({ target: row.target, emotion: row.emotion, madness: row.madness, madName: row.madName, madEffect: row.madEffect });
     r.recognized++;
   };
 
@@ -762,12 +765,12 @@ function applyHokanshoParsed(p) {
     rep.memoAdded = res.added; rep.memoSkipped = res.skipped;
   }
 
-  // このシートに欄が無い「発狂時」の効果と「成長履歴」の文章も、結果画面を閉じると消えてしまうので、メモ欄に追記する
+  // このシートに欄が無い「成長履歴」の文章も、結果画面を閉じると消えてしまうので、メモ欄に追記する
+  // （発狂時の名前・効果は、未練の表の「発狂」欄に入る）
   const extraLines = [];
-  p.madnessNotes.forEach(n => extraLines.push('【発狂時】' + n));
   if (p.growth) extraLines.push('【成長履歴】' + p.growth);
   if (extraLines.length) {
-    const res = appendToMemo('■ 保管所テキストの発狂時・成長履歴', extraLines);
+    const res = appendToMemo('■ 保管所テキストの成長履歴', extraLines);
     rep.extraMemoAdded = res.added;
   }
   const selectHas = (id, v) => Array.from(document.getElementById(id).options).some(o => o.value === v);
@@ -829,7 +832,7 @@ function applyHokanshoParsed(p) {
   }
 
   if (plan.memories) { data.memories = p.memories.slice(); rep.memories = p.memories.length; }
-  if (plan.list) { data.list = p.list.map(x => ({ target: x.target, emotion: x.emotion, madness: String(x.madness) })); rep.list = p.list.length; }
+  if (plan.list) { data.list = p.list.map(x => ({ target: x.target, emotion: x.emotion, madness: String(x.madness), madName: x.madName || '', madEffect: x.madEffect || '' })); rep.list = p.list.length; }
 
   // 強化値の数字が1つだけで列が決められないとき、合計−メイン−サブの差から決められるなら決める
   (function () {
@@ -978,10 +981,6 @@ function hkRenderReport(rep) {
   if (rep.growth) {
     html += h('■ 成長履歴の文章（メモ欄に追記しました）');
     html += li([e(rep.growth)]);
-  }
-  if (rep.madnessNotes.length) {
-    html += h('■ 発狂の情報（メモ欄に追記しました）');
-    html += li(rep.madnessNotes.map(e));
   }
   if (rep.notes.length) { html += h('■ 注意'); html += li(rep.notes.map(e)); }
   if (rep.unrecognized.length) {

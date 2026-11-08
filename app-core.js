@@ -45,7 +45,7 @@ function removeRowWithUndo(button, afterFn) {
   if (el) {
     // パーツ／スキルの本体行を消す場合は、直後の効果メモ行も一緒に消す
     const nextEl = el.nextElementSibling;
-    if (nextEl && (nextEl.classList.contains('part-memo-row') || nextEl.classList.contains('skill-memo-row'))) {
+    if (nextEl && (nextEl.classList.contains('part-memo-row') || nextEl.classList.contains('skill-memo-row') || nextEl.classList.contains('miren-mad-row'))) {
       nextEl.remove();
     }
     el.remove();

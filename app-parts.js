@@ -71,7 +71,7 @@ function autoResizeTextarea(el) {
 
 // 画面の回転や横幅変更で列幅が変わると、必要な高さも変わるため全てのメモ欄を再計算する
 function autoResizeAllMemoTextareas() {
-  document.querySelectorAll('#parts-container .p-memo, #skill-tbody .skill-memo, #free-memo').forEach(autoResizeTextarea);
+  document.querySelectorAll('#parts-container .p-memo, #skill-tbody .skill-memo, #free-memo, #list .miren-madeffect').forEach(autoResizeTextarea);
 }
 window.addEventListener('resize', () => {
   clearTimeout(window.__memoResizeTimer);
