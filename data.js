@@ -140,7 +140,6 @@ const EXTRA_PARTS_DB = {
     { name: 'ランチャー', type: '武装', level: 3, timing: 'アクション', cost: '4', range: '' },
     { name: 'かぎづめ', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'よぶんなうで', type: '変異', level: 2, timing: 'ラピッド', cost: '0', range: '自身', memo: '望む「アクション」マニューバ1つを「ラピッド」として使用する。' },
-    { name: 'よだれじた', type: '変異', level: 2, timing: '', cost: '', range: '' },
     { name: 'シザーハンズ', type: '改造', level: 1, timing: '', cost: '', range: '' },
     { name: 'ガントレット', type: '改造', level: 3, timing: '', cost: '', range: '' },
     { name: 'アームバイス', type: '改造', level: 3, timing: '', cost: '', range: '' }
@@ -154,10 +153,9 @@ const EXTRA_PARTS_DB = {
     { name: 'うろこ', type: '変異', level: 2, timing: '', cost: '', range: '' },
     { name: 'やせきず', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'だるま', type: '変異', level: 3, timing: '', cost: '', range: '' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '0', range: '' },
+    { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '', range: '' },
     { name: 'アーマースキン', type: '改造', level: 1, timing: '', cost: '0', range: '' },
     { name: 'スチールボーン', type: '改造', level: 1, timing: '', cost: '1', range: '' },
-    { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '', range: '' },
     { name: 'オートセパレート', type: '改造', level: 3, timing: '', cost: '', range: '' }
   ],
   leg: [
