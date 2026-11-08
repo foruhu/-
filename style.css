@@ -273,3 +273,6 @@ html.fs-large { font-size: 18px; }
 
 /* --- データ未登録のパーツ（効果メモを足せる印） --- */
 .add-memo-btn.unregistered { border-style: dashed; color: #c9a8a8; }
+
+.emergency-fold { margin: 6px 0; }
+.emergency-fold > summary { cursor: pointer; font-size: 0.78rem; color: #aaa; padding: 4px 2px; }
