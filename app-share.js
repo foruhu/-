@@ -1030,7 +1030,7 @@ function hkRenderReport(rep) {
 
   if (rep.mismatches.length) { html += h('■ 計算結果が違う項目'); html += li(rep.mismatches.map(e)); }
   if (rep.unmatchedParts.length) {
-    html += h('■ data.js に無かったパーツ');
+    html += h('■ パーツ一覧に無かったパーツ');
     html += li(rep.unmatchedParts.map(u => `${e(u.loc)}「${e(u.name)}」：${e(u.assumed)}`));
   }
   if (rep.customSkills.length) {
