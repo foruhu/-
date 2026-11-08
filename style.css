@@ -442,3 +442,12 @@ body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #vie
 @media print { .mad-step { display: none !important; } }
 .mad-pt input.mad-input { width: 2.6em !important; min-width: 0; flex: none; text-align: center; padding: 4px 1px; }
 @media (pointer: coarse) { body:not(.view-mode) .mad-pt input.mad-input { font-size: 16px !important; } }
+
+.share-row { display:flex; gap:8px; align-items:center; justify-content:space-between; padding:6px 4px; border-bottom:1px solid #333; }
+.share-row.gone { opacity:.55; }
+.share-info { display:flex; flex-direction:column; min-width:0; }
+.share-info b { font-size:.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.share-info span { font-size:.7rem; color:#999; }
+.share-btns { display:flex; gap:6px; flex:none; }
+.share-btns button { padding:4px 8px; font-size:.74rem; white-space:nowrap; }
+.share-btns .danger { border-color:#a44; color:#f99; }

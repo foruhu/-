@@ -299,6 +299,7 @@ async function exportShareURL() {
   let url;
   try {
     const token = await saveCharacterToSupabase(encoded, false);
+    recordShare(token, data.name, false);
     url = location.origin + location.pathname + '#tok=' + token;
   } catch (err) {
     url = location.origin + location.pathname + '#share=' + encoded;
@@ -354,6 +355,7 @@ async function exportViewURL() {
   let url;
   try {
     const token = await saveCharacterToSupabase(encoded, true);
+    recordShare(token, data.name, true);
     url = location.origin + location.pathname + '#tok=' + token;
   } catch (err) {
     url = location.origin + location.pathname + '#view=' + encoded;
@@ -1105,3 +1107,98 @@ function exportChatPalette() {
     prompt('以下の文章をコピーして、ココフォリアのチャットパレット欄に貼り付けてください：', text);
   }
 }
+
+
+// ==========================================================
+// 発行した共有URLの一覧・取り消し
+//  ・発行したURL（#tok=…）をこの端末に控えておき、一覧から「URLをコピー」「取り消し」ができる
+//  ・取り消しは、サーバー（Supabase）のデータを消す。消すと、そのURLを開いても読み込めなくなる
+// ==========================================================
+const SHARES_KEY = 'necro_shares';
+function getShares() { try { const a = JSON.parse(localStorage.getItem(SHARES_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function setShares(a) { try { localStorage.setItem(SHARES_KEY, JSON.stringify(a)); } catch (e) {} }
+function recordShare(token, name, viewOnly) {
+  try {
+    const a = getShares().filter(x => x.token !== token);
+    a.unshift({ token, name: name || '(無名)', viewOnly: !!viewOnly, createdAt: new Date().toISOString(), gone: false });
+    setShares(a.slice(0, 100));
+    renderShareList();
+  } catch (e) {}
+}
+function shareUrlOf(token) { return location.origin + location.pathname + '#tok=' + token; }
+
+function renderShareList() {
+  const box = document.getElementById('share-list');
+  if (!box) return;
+  const a = getShares();
+  if (!a.length) { box.innerHTML = '<div style="font-size:.78rem;color:#888;">まだ控えがありません。共有URL・閲覧用URLを作ると、ここに並びます。</div>'; return; }
+  box.innerHTML = a.map(x => {
+    const d = new Date(x.createdAt); const ds = isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `<div class="share-row${x.gone ? ' gone' : ''}">
+      <div class="share-info"><b>${escapeHtml(x.name)}</b><span>${x.viewOnly ? '閲覧用' : '編集可'} ・ ${ds}${x.gone ? ' ・取り消し済み' : ''}</span></div>
+      <div class="share-btns">
+        ${x.gone ? '' : `<button type="button" class="sec" onclick="copyShareURL('${x.token}')">コピー</button>`}
+        <button type="button" class="sec danger" onclick="deleteShare('${x.token}')">${x.gone ? '一覧から消す' : '取り消す'}</button>
+      </div></div>`;
+  }).join('');
+}
+
+function copyShareURL(token) {
+  const url = shareUrlOf(token);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => alert('URLをコピーしました')).catch(() => prompt('URLをコピーしてください：', url));
+  else prompt('URLをコピーしてください：', url);
+}
+
+async function deleteCharacterFromSupabase(token) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_character_by_token`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_token: token })
+  });
+  if (res.status === 404) { const e = new Error('no-function'); e.code = 'no-function'; throw e; }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+}
+
+async function deleteShare(token) {
+  const a = getShares();
+  const item = a.find(x => x.token === token);
+  if (!item) return;
+  if (item.gone) { setShares(a.filter(x => x.token !== token)); renderShareList(); return; }
+  if (!confirm(`「${item.name}」の${item.viewOnly ? '閲覧用' : '共有'}URLを取り消します。\n\nこのURLを開いても、読み込めなくなります（元に戻せません）。よろしいですか？`)) return;
+  try {
+    await deleteCharacterFromSupabase(token);
+    item.gone = true; setShares(a); renderShareList();
+    alert('取り消しました。このURLは、もう開けません。');
+  } catch (err) {
+    if (err.code === 'no-function') {
+      if (confirm('サーバー側に「取り消し」の仕組みがまだありません（準備が必要です）。\n\n今回は、この一覧からだけ消しますか？\n（URLはまだ開ける状態のままです）')) { setShares(a.filter(x => x.token !== token)); renderShareList(); }
+    } else {
+      alert('取り消しに失敗しました。通信状態を確かめて、もう一度お試しください。\n(' + err.message + ')');
+    }
+  }
+}
+
+// 以前に作ったURLを、貼り付けて一覧に加える（このURLが、まだ読み込めるかも確かめる）
+async function addShareByURL() {
+  const t = prompt('一覧に加えるURLを貼り付けてください（…#tok=… の形のURL）');
+  if (!t) return;
+  const m = t.match(/#tok=([A-Za-z0-9]+)/);
+  if (!m) return alert('このURLは、一覧に加えられません（短い共有URL「#tok=…」のみ対応です）');
+  try {
+    const row = await loadCharacterFromSupabase(m[1]);
+    let name = '(無名)';
+    try { name = JSON.parse(await decodeShareString(row.payload)).name || name; } catch (e) {}
+    recordShare(m[1], name, !!row.view_only);
+  } catch (err) { alert('読み込めませんでした。\n' + err.message); }
+}
+
+// 一覧の各URLが、まだ読み込めるかを確かめる
+async function checkShares() {
+  const a = getShares();
+  for (const x of a) {
+    if (x.gone) continue;
+    try { await loadCharacterFromSupabase(x.token); } catch (e) { if (/見つかりませんでした/.test(e.message)) x.gone = true; }
+  }
+  setShares(a); renderShareList();
+}
+window.addEventListener('load', () => setTimeout(renderShareList, 0));
