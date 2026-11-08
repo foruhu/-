@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=44">
+<link rel="stylesheet" href="style.css?v=45">
 </head>
 <body>
 
@@ -316,6 +316,7 @@
 
   <label style="margin-bottom:4px;">保存済みキャラクター（タップで選択）</label>
   <div class="save-cards-row" id="save-cards"></div>
+  <div id="backup-reminder" style="display:none; font-size:0.75rem; margin:2px 0 6px 2px;"></div>
   <select id="save-slot" style="display:none">
     <option value="">-- 新規保存 --</option>
   </select>
@@ -326,6 +327,9 @@
     </button>
     <button type="button" class="action-btn c-purple" onclick="printSheet()">
       <span class="icon">🖨</span><span>印刷</span>
+    </button>
+    <button type="button" class="action-btn c-blue" onclick="exportSheetImage()">
+      <span class="icon">🖼</span><span>画像で保存</span>
     </button>
   </div>
 
@@ -563,6 +567,7 @@
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
       <li>ブラウザの保存領域(約5MB)がいっぱいになると保存できません。使用量が8割を超えると保存時に知らせるので、その前に「全キャラをバックアップ」で書き出してください。いっぱいで保存できないときは、削除したキャラのゴミ箱を空にして保存し直します。</li>
       <li>「🖨 印刷」で、白地・黒文字で全項目を印刷できます(長い文章も折り返して出ます)。</li>
+      <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。iPhoneでは画像が開くので、長押しで保存します。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 共有・バックアップ</h4>
@@ -570,7 +575,7 @@
       <li>「共有URLを作成」: 相手が開くとキャラが読み込まれます。「閲覧用URLを作成」: 相手の画面に編集不可で表示するだけのリンクです。開いた直後は全項目が表示され、「⚔️ 戦闘用」で絞り込めます。</li>
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」「JSON出力」は、文字列やファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
-      <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。</li>
+      <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。最後に取ってからの日数が、キャラクター管理に表示されます(14日以上たつと色が変わります)。</li>
       <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
     </ul>
 
@@ -593,12 +598,13 @@
   </div>
 </div>
 
-<script src="data.js?v=44"></script>
-<script src="app-core.js?v=44"></script>
-<script src="app-parts.js?v=44"></script>
-<script src="app-skills.js?v=44"></script>
-<script src="app-save.js?v=44"></script>
-<script src="app-share.js?v=44"></script>
-<script src="app-main.js?v=44"></script>
+<script src="data.js?v=45"></script>
+<script src="app-core.js?v=45"></script>
+<script src="app-parts.js?v=45"></script>
+<script src="app-skills.js?v=45"></script>
+<script src="app-save.js?v=45"></script>
+<script src="app-image.js?v=45"></script>
+<script src="app-share.js?v=45"></script>
+<script src="app-main.js?v=45"></script>
 </body>
 </html>

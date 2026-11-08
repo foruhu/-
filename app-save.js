@@ -229,6 +229,7 @@ function restoreDeletedSave() {
 }
 
 function refreshSaveSlotOptions(selectedId = '') {
+  if (typeof updateBackupReminder === 'function') setTimeout(updateBackupReminder, 0);
   const select = document.getElementById('save-slot');
   if (!select) return;
   const sheets = getSavedSheets();
@@ -380,8 +381,30 @@ function exportAllCharactersBackup() {
   a.download = `necronica_backup_${dateStr}.json`;
   a.click();
   URL.revokeObjectURL(url);
+  try { localStorage.setItem('necro_last_backup', String(Date.now())); } catch (e) {}
+  updateBackupReminder();
 
   alert(`${ids.length}件のキャラクターをバックアップファイルとして書き出しました`);
+}
+
+// 最後にバックアップを取ってからの日数を表示する（未バックアップ・14日以上は注意色）
+function updateBackupReminder() {
+  const el = document.getElementById('backup-reminder');
+  if (!el) return;
+  const n = Object.keys(getSavedSheets()).length;
+  if (n === 0) { el.style.display = 'none'; return; }
+  let last = 0;
+  try { last = parseInt(localStorage.getItem('necro_last_backup') || '0', 10) || 0; } catch (e) {}
+  let msg, warn;
+  if (!last) { msg = 'バックアップはまだ取っていません'; warn = true; }
+  else {
+    const days = Math.floor((Date.now() - last) / 86400000);
+    msg = days <= 0 ? '最後のバックアップ：今日' : `最後のバックアップ：${days}日前`;
+    warn = days >= 14;
+  }
+  el.style.display = '';
+  el.style.color = warn ? '#ffcf70' : '#9a9';
+  el.innerHTML = `${warn ? '⚠ ' : ''}${msg} <button type="button" class="char-switch-btn" style="margin-left:6px;" onclick="exportAllCharactersBackup()">バックアップを取る</button>`;
 }
 
 function onBackupFileSelected(event) {
