@@ -679,3 +679,21 @@ function updatePartCounts() {
     schedule();
   });
 })();
+
+
+// 自由メモの折りたたみ
+function toggleFreeMemo(force) {
+  const body = document.getElementById('free-memo-body');
+  if (!body) return;
+  const fold = (typeof force === 'boolean') ? force : body.style.display !== 'none';
+  body.style.display = fold ? 'none' : '';
+  const chev = document.getElementById('free-memo-chev');
+  if (chev) chev.textContent = fold ? '▸' : '▾';
+  const pv = document.getElementById('free-memo-preview');
+  if (pv) {
+    const t = (document.getElementById('free-memo').value || '').replace(/\s+/g, ' ').trim();
+    pv.textContent = fold && t ? '— ' + (t.length > 24 ? t.slice(0, 24) + '…' : t) : '';
+  }
+  try { localStorage.setItem('necro_memo_fold', fold ? '1' : '0'); } catch (e) {}
+}
+window.addEventListener('load', () => { try { if (localStorage.getItem('necro_memo_fold') === '1') toggleFreeMemo(true); } catch (e) {} });

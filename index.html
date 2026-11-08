@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=77">
+<link rel="stylesheet" href="style.css?v=78">
 </head>
 <body>
 
@@ -317,9 +317,11 @@
 </div>
 
 <div class="card non-battle" id="sec-memo" style="margin-top:14px;">
-  <div class="title">メモ</div>
+  <div class="title" style="cursor:pointer;" onclick="toggleFreeMemo()"><span id="free-memo-chev" style="display:inline-block;width:1em;">▾</span>メモ <span id="free-memo-preview" style="font-size:.72rem;color:#888;font-weight:normal;"></span></div>
+  <div id="free-memo-body">
   <div style="font-size:0.72rem; color:#888; margin-bottom:4px;">自由に書けるメモ欄です。保管所テキストの読み込みで読み込めなかった行は、ここに追記されます。</div>
   <textarea id="free-memo" rows="4" oninput="autoResizeTextarea(this)" onfocus="setTimeout(() => autoResizeTextarea(this), 80)" placeholder="メモ" style="min-height:90px; resize:none; overflow-y:hidden;"></textarea>
+  </div>
 </div>
 
 <div class="card edit-only">
@@ -548,6 +550,7 @@
       <li>各部位の「+ パーツを選択して追加」から選びます。上限に達した種別・レベルは候補に出ません。</li>
       <li>「損」を付けるとそのパーツの『最大行動値+N』が行動値から引かれます。「使」は使用済みの目印です(タイミングが「オート」「アクション」のパーツには出ません)。</li>
       <li>「色」でカテゴリを選ぶと行が色分けされます。効果メモの内容から自動で判定もします。</li>
+      <li>「メモ」欄は、タイトルを押すと折りたためます(折りたたむと冒頭の一部が見えます)。</li>
       <li>効果メモが空のパーツは「+ 効果メモを追加」で書き足せます。</li>
       <li>各部位の見出しには、損傷していない残りパーツ数が出ます。損傷したパーツは灰色で、名前に取り消し線が付きます。</li>
       <li>「たからもの」を損傷にすると、所持パーツから取り除かれます。</li>
@@ -611,16 +614,16 @@
   </div>
 </div>
 
-<script src="data.js?v=77"></script>
-<script src="app-core.js?v=77"></script>
-<script src="app-parts.js?v=77"></script>
-<script src="app-skills.js?v=77"></script>
-<script src="app-save.js?v=77"></script>
-<script src="app-dict.js?v=77"></script>
-<script src="app-image.js?v=77"></script>
-<script src="app-look.js?v=77"></script>
-<script src="app-sheetprint.js?v=77"></script>
-<script src="app-share.js?v=77"></script>
-<script src="app-main.js?v=77"></script>
+<script src="data.js?v=78"></script>
+<script src="app-core.js?v=78"></script>
+<script src="app-parts.js?v=78"></script>
+<script src="app-skills.js?v=78"></script>
+<script src="app-save.js?v=78"></script>
+<script src="app-dict.js?v=78"></script>
+<script src="app-image.js?v=78"></script>
+<script src="app-look.js?v=78"></script>
+<script src="app-sheetprint.js?v=78"></script>
+<script src="app-share.js?v=78"></script>
+<script src="app-main.js?v=78"></script>
 </body>
 </html>
