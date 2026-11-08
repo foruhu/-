@@ -429,9 +429,5 @@ body.battle-view #sec-skill .title { margin-bottom: 4px; }
 
 /* 閲覧用URLで開いたとき：保存・切替・編集切替のボタンと、編集用の部品を出さない */
 body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #view-mode-toggle { display: none !important; }
-
-/* 上のバーの操作ボタン：枠なし、アイコンの下に文字（線画アイコン） */
-.view-btn-row .tb-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: transparent; border: none; color: #d8d8e0; font-size: .68rem; padding: 3px 2px; cursor: pointer; font-family: sans-serif; }
-.view-btn-row .tb-btn svg { display: block; }
-.view-btn-row .tb-btn.on { color: #f0a0a0; }
-.view-btn-row .tb-btn:active { background: rgba(255,255,255,.08); border-radius: 6px; }
+.view-btn-row { flex-wrap: wrap; }
+.view-btn-row .char-switch-btn { flex: 1 1 28%; }

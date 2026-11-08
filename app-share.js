@@ -9,6 +9,28 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
+// ココフォリアのチャットパレット用の文章（スキル・マニューバの一覧）を作る
+function buildCcfoliaCommandLines(data) {
+  const commandLines = [];
+  commandLines.push('■スキル');
+  (data.skills || []).forEach(s => {
+    if (!s.name) return;
+    const spec = [s.timing, s.cost && `コスト${s.cost}`, s.range && `射程${s.range}`].filter(Boolean).join('/');
+    const memo = (s.memo || '').replace(/\n/g, ' ');
+    commandLines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`);
+  });
+
+  commandLines.push('');
+  commandLines.push('■マニューバ');
+  (data.parts || []).forEach(p => {
+    if (!p.name) return;
+    const spec = [p.timing, p.cost && `コスト${p.cost}`, p.range && `射程${p.range}`].filter(Boolean).join('/');
+    const memo = (p.memo || '').replace(/\n/g, ' ');
+    commandLines.push(`【${p.name}】(${p.type}Lv${p.level}) ${spec}${memo ? ' ' + memo : ''}`);
+  });
+  return commandLines;
+}
+
 function exportCcfolia() {
   const data = getFullData();
 
@@ -32,23 +54,7 @@ function exportCcfolia() {
     { label: '記憶のカケラ', value: (data.memories || []).map(memoryToText).filter(Boolean).join('、') }
   ].filter(p => p.value);
 
-  const commandLines = [];
-  commandLines.push('■スキル');
-  (data.skills || []).forEach(s => {
-    if (!s.name) return;
-    const spec = [s.timing, s.cost && `コスト${s.cost}`, s.range && `射程${s.range}`].filter(Boolean).join('/');
-    const memo = (s.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`);
-  });
-
-  commandLines.push('');
-  commandLines.push('■マニューバ');
-  (data.parts || []).forEach(p => {
-    if (!p.name) return;
-    const spec = [p.timing, p.cost && `コスト${p.cost}`, p.range && `射程${p.range}`].filter(Boolean).join('/');
-    const memo = (p.memo || '').replace(/\n/g, ' ');
-    commandLines.push(`【${p.name}】(${p.type}Lv${p.level}) ${spec}${memo ? ' ' + memo : ''}`);
-  });
+  const commandLines = buildCcfoliaCommandLines(data);
 
   const memoLines = [];
   (data.treasures || []).forEach(t => {
@@ -1047,4 +1053,15 @@ function runHokanshoImport() {
   }
   markDirty();
   showResult(hkRenderReport(rep));
+}
+
+// チャパレ：ココフォリアのチャットパレットに貼り付ける文章だけをコピーする
+function exportChatPalette() {
+  const text = buildCcfoliaCommandLines(getFullData()).join('\n');
+  const done = () => alert('チャットパレット用の文章をコピーしました。\nココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => prompt('自動コピーに失敗しました。以下の文章を手動でコピーしてください：', text));
+  } else {
+    prompt('以下の文章をコピーして、ココフォリアのチャットパレット欄に貼り付けてください：', text);
+  }
 }
