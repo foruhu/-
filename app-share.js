@@ -286,6 +286,7 @@ async function loadCharacterFromSupabase(token) {
 // キャラクターデータをURLに埋め込んだ「共有URL」を作成する（対応端末ならOSの共有シートも使う）
 // まずSupabaseに保存して短いトークン付きURLを作り、失敗した場合は従来のURL埋め込み方式にフォールバックする
 async function exportShareURL() {
+  if (!confirmIssueShare(false)) return;
   const data = getFullData();
   const json = JSON.stringify(data);
   let encoded;
@@ -332,6 +333,7 @@ async function exportShareURL() {
 // キャラクターデータを「閲覧専用」で開けるURLを作成する。
 // 開いた相手の画面では自動的に表示モードになり、保存確認も出ない（見るだけの共有用）
 async function exportViewURL() {
+  if (!confirmIssueShare(true)) return;
   const data = getFullData();
 
   // 選択中キャラクターにサムネイル画像が設定されていれば、閲覧用データに含めて相手にも見せる
@@ -1110,9 +1112,9 @@ function exportChatPalette() {
 
 
 // ==========================================================
-// 発行した共有URLの一覧・取り消し
-//  ・発行したURL（#tok=…）をこの端末に控えておき、一覧から「URLをコピー」「取り消し」ができる
-//  ・取り消しは、サーバー（Supabase）のデータを消す。消すと、そのURLを開いても読み込めなくなる
+// 発行した共有URLの控え（この端末の中だけの一覧）
+//  ・発行したURL（#tok=…）を控えておき、あとから「コピー」で取り出せる
+//  ・サーバーのデータを消す仕組みは無いので、一覧から消しても、URL自体は開けるまま
 // ==========================================================
 const SHARES_KEY = 'necro_shares';
 function getShares() { try { const a = JSON.parse(localStorage.getItem(SHARES_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
@@ -1120,12 +1122,17 @@ function setShares(a) { try { localStorage.setItem(SHARES_KEY, JSON.stringify(a)
 function recordShare(token, name, viewOnly) {
   try {
     const a = getShares().filter(x => x.token !== token);
-    a.unshift({ token, name: name || '(無名)', viewOnly: !!viewOnly, createdAt: new Date().toISOString(), gone: false });
+    a.unshift({ token, name: name || '(無名)', viewOnly: !!viewOnly, createdAt: new Date().toISOString() });
     setShares(a.slice(0, 100));
     renderShareList();
   } catch (e) {}
 }
 function shareUrlOf(token) { return location.origin + location.pathname + '#tok=' + token; }
+
+// URLを作る前の確認（作ったURLは取り消せないため）
+function confirmIssueShare(isView) {
+  return confirm(`${isView ? '閲覧用' : '共有'}URLを作ります。\n\n・このURLを知っている人は、誰でもキャラクターを読み込めます。\n・作ったURLは、あとから取り消せません。\n\n作りますか？`);
+}
 
 function renderShareList() {
   const box = document.getElementById('share-list');
@@ -1134,11 +1141,11 @@ function renderShareList() {
   if (!a.length) { box.innerHTML = '<div style="font-size:.78rem;color:#888;">まだ控えがありません。共有URL・閲覧用URLを作ると、ここに並びます。</div>'; return; }
   box.innerHTML = a.map(x => {
     const d = new Date(x.createdAt); const ds = isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    return `<div class="share-row${x.gone ? ' gone' : ''}">
-      <div class="share-info"><b>${escapeHtml(x.name)}</b><span>${x.viewOnly ? '閲覧用' : '編集可'} ・ ${ds}${x.gone ? ' ・取り消し済み' : ''}</span></div>
+    return `<div class="share-row">
+      <div class="share-info"><b>${escapeHtml(x.name)}</b><span>${x.viewOnly ? '閲覧用' : '編集可'} ・ ${ds}</span></div>
       <div class="share-btns">
-        ${x.gone ? '' : `<button type="button" class="sec" onclick="copyShareURL('${x.token}')">コピー</button>`}
-        <button type="button" class="sec danger" onclick="deleteShare('${x.token}')">${x.gone ? '一覧から消す' : '取り消す'}</button>
+        <button type="button" class="sec" onclick="copyShareURL('${x.token}')">コピー</button>
+        <button type="button" class="sec" onclick="removeShareRecord('${x.token}')">控えを消す</button>
       </div></div>`;
   }).join('');
 }
@@ -1149,56 +1156,23 @@ function copyShareURL(token) {
   else prompt('URLをコピーしてください：', url);
 }
 
-async function deleteCharacterFromSupabase(token) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_character_by_token`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_token: token })
-  });
-  if (res.status === 404) { const e = new Error('no-function'); e.code = 'no-function'; throw e; }
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+function removeShareRecord(token) {
+  if (!confirm('この控えを一覧から消します。\n\n※URL自体は取り消されず、知っている人は開けるままです。')) return;
+  setShares(getShares().filter(x => x.token !== token));
+  renderShareList();
 }
 
-async function deleteShare(token) {
-  const a = getShares();
-  const item = a.find(x => x.token === token);
-  if (!item) return;
-  if (item.gone) { setShares(a.filter(x => x.token !== token)); renderShareList(); return; }
-  if (!confirm(`「${item.name}」の${item.viewOnly ? '閲覧用' : '共有'}URLを取り消します。\n\nこのURLを開いても、読み込めなくなります（元に戻せません）。よろしいですか？`)) return;
-  try {
-    await deleteCharacterFromSupabase(token);
-    item.gone = true; setShares(a); renderShareList();
-    alert('取り消しました。このURLは、もう開けません。');
-  } catch (err) {
-    if (err.code === 'no-function') {
-      if (confirm('サーバー側に「取り消し」の仕組みがまだありません（準備が必要です）。\n\n今回は、この一覧からだけ消しますか？\n（URLはまだ開ける状態のままです）')) { setShares(a.filter(x => x.token !== token)); renderShareList(); }
-    } else {
-      alert('取り消しに失敗しました。通信状態を確かめて、もう一度お試しください。\n(' + err.message + ')');
-    }
-  }
-}
-
-// 以前に作ったURLを、貼り付けて一覧に加える（このURLが、まだ読み込めるかも確かめる）
+// 以前に作ったURLを、貼り付けて控えに加える
 async function addShareByURL() {
-  const t = prompt('一覧に加えるURLを貼り付けてください（…#tok=… の形のURL）');
+  const t = prompt('控えに加えるURLを貼り付けてください（…#tok=… の形のURL）');
   if (!t) return;
   const m = t.match(/#tok=([A-Za-z0-9]+)/);
-  if (!m) return alert('このURLは、一覧に加えられません（短い共有URL「#tok=…」のみ対応です）');
+  if (!m) return alert('このURLは、控えに加えられません（短い共有URL「#tok=…」のみ対応です）');
   try {
     const row = await loadCharacterFromSupabase(m[1]);
     let name = '(無名)';
     try { name = JSON.parse(await decodeShareString(row.payload)).name || name; } catch (e) {}
     recordShare(m[1], name, !!row.view_only);
   } catch (err) { alert('読み込めませんでした。\n' + err.message); }
-}
-
-// 一覧の各URLが、まだ読み込めるかを確かめる
-async function checkShares() {
-  const a = getShares();
-  for (const x of a) {
-    if (x.gone) continue;
-    try { await loadCharacterFromSupabase(x.token); } catch (e) { if (/見つかりませんでした/.test(e.message)) x.gone = true; }
-  }
-  setShares(a); renderShareList();
 }
 window.addEventListener('load', () => setTimeout(renderShareList, 0));
