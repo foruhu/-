@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=70">
+<link rel="stylesheet" href="style.css?v=71">
 </head>
 <body>
 
@@ -17,10 +17,9 @@
 <div class="card sticky-top-bar">
   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; padding: 2px;">
     <div class="view-only view-btn-row">
-      <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
-      <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
-      <button type="button" class="char-switch-btn" onclick="endBattle()" style="border-color:#8a6a2e; color:#f0d080;">🏁 戦闘終了</button>
-      <button type="button" class="char-switch-btn" onclick="printSheetLayout()" style="border-color:#6a4a8a; color:#c9a8f0;">🖨 印刷</button>
+      <button type="button" class="tb-btn" id="battle-toggle" onclick="toggleBattleView()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="M9.5 6.5 21 18v3h-3L6.5 9.5"/></svg><span class="tb-label">戦闘用：ON</span></button>
+      <button type="button" class="tb-btn" onclick="exportViewURL()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="tb-label">閲覧用URL</span></button>
+      <button type="button" class="tb-btn" onclick="printSheetLayout()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M6 14h12v7H6z"/></svg><span class="tb-label">印刷</span></button>
     </div>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
@@ -571,15 +570,15 @@
       <li>「🔄 切替」で保存済みキャラを一覧から切り替えられます。</li>
       <li>「🆕 新規作成(白紙に戻す)」で、今の入力をすべて白紙に戻せます。保存済みのキャラは消えず、「↩️ 元に戻す」で今の入力も戻せます。</li>
       <li>「🔒 表示 / ✏️ 編集」で、セッション中に見る用の表示モード(編集不可・損傷チェックのみ操作可)に切り替えます。</li>
-      <li>表示モードの「⚔️ 戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。スキルの表は、区分の列と色の凡例を省いて行を詰めるので、1画面でたくさん見られます。</li>
+      <li>表示モードの「戦闘用」は、パーツ・スキル・未練・行動値だけに絞る表示です(押すと全項目を表示)。スキルの表は、区分の列と色の凡例を省いて行を詰めるので、1画面でたくさん見られます。</li>
       <li>画面上部の固定バーは、「▲ 閉じる」で武装・変異・改造の表を畳めます。「基本」「未練」などのボタンで、その項目へ飛べます。「文字：中」を押すと、文字の大きさが 小→中→大 と切り替わります。</li>
       <li>固定バーの「表：標準/ゆったり」で、スキル・マニューバの表の文字と余白を広げられます。「配色：暗/明」で、画面を白地にもできます。スキル・マニューバの見出しの下には、種別の色の意味が出ます。損傷した行は灰色(左端が赤)、使用済みの行は左端が黄色で見分けられます。</li>
       <li>表示モードでも、「使用チェックを一括解除」は押せます(セッション終了時などに)。</li>
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
       <li>ブラウザの保存領域(約5MB)がいっぱいになると保存できません。使用量が8割を超えると保存時に知らせるので、その前に「全キャラをバックアップ」で書き出してください。いっぱいで保存できないときは、削除したキャラのゴミ箱を空にして保存し直します。</li>
-      <li>「🖨 印刷」で、公式のキャラクターシートに近い並びで、A4縦2枚(1枚目＝基本情報、用紙の一番下に記憶のカケラ・未練、2枚目＝最大行動値・スキル・頭腕胴脚のマニューバ(戦闘で使うものが1枚にまとまります))に印刷できます。空欄の行も残るので、印刷してから手書きで書き足せます(履歴やメモは出ません。全部を残したいときは、「画像で保存」か「JSON出力」を使います)。</li>
+      <li>「印刷」で、公式のキャラクターシートに近い並びで、A4縦2枚(1枚目＝基本情報、用紙の一番下に記憶のカケラ・未練、2枚目＝最大行動値・スキル・頭腕胴脚のマニューバ(戦闘で使うものが1枚にまとまります))に印刷できます。空欄の行も残るので、印刷してから手書きで書き足せます(履歴やメモは出ません。全部を残したいときは、「画像で保存」か「JSON出力」を使います)。</li>
       <li>印刷には、ページの最後に「Printed by ドール設計図館, (サイトのURL)」と小さく入ります。</li>
-      <li>「🏁 戦闘終了」で、使用チェックをまとめて外せます。続けて「損傷しているパーツも修復するか」を聞かれます(「↩️ 元に戻す」で戻せます)。固定バーと、マニューバの見出しにあります。</li>
+      <li>「🏁 戦闘終了」で、使用チェックをまとめて外せます。続けて「損傷しているパーツも修復するか」を聞かれます(「↩️ 元に戻す」で戻せます)。マニューバの見出しにあります。</li>
       <li>記憶のカケラは、数字・名前・詳細を分けて書けます。複数あるときは、体重や髪の色のように横に並びます(スマホでは2列)(以前に「名前：詳細」の1行で入れていたデータは、自動で名前と詳細に分かれます)。</li>
       <li>記憶のカケラの詳細は、長くなっても4行ぶんで止まり、中でスクロールできます(右下の角を引くと広げられます)。また、▾ボタンで1件ずつ、または「詳細をすべて折りたたむ」でまとめて折りたためます(折りたたんでいる間は、詳細の書き出しが1行だけ薄く出ます。押すと開きます。折りたたみの状態は保存されません。印刷では、すべて開いた状態で出ます)。</li>
       <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。保存前に、配色(暗い背景/白い背景)と内容(すべて/戦闘用)を選べます。iPhoneでは画像が開くので、長押しで保存します。</li>
@@ -587,7 +586,7 @@
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 共有・バックアップ</h4>
     <ul style="margin:0; padding-left:1.2em;">
-      <li>「共有URLを作成」: 相手が開くとキャラが読み込まれます。「閲覧用URLを作成」: 相手の画面に表示するだけのリンクで、開いた人は編集に切り替えられません(損傷・使用のチェックだけ操作でき、保存もされません)。開いた直後は全項目が表示され、「⚔️ 戦闘用」で絞り込めます。</li>
+      <li>「共有URLを作成」: 相手が開くとキャラが読み込まれます。「閲覧用URLを作成」: 相手の画面に表示するだけのリンクで、開いた人は編集に切り替えられません(損傷・使用のチェックだけ操作でき、保存もされません)。開いた直後は全項目が表示され、「戦闘用」で絞り込めます。</li>
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」は、URLが使えない時の緊急用です(普段は折りたたまれていて、「🚨 緊急用」を押すと開きます。外部に保存せず、文字列だけをコピー&貼り付けで渡せます)。「JSON出力」は、ファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。最後に取ってからの日数が、キャラクター管理に表示されます(14日以上たつと色が変わります)。</li>
@@ -615,16 +614,16 @@
   </div>
 </div>
 
-<script src="data.js?v=70"></script>
-<script src="app-core.js?v=70"></script>
-<script src="app-parts.js?v=70"></script>
-<script src="app-skills.js?v=70"></script>
-<script src="app-save.js?v=70"></script>
-<script src="app-dict.js?v=70"></script>
-<script src="app-image.js?v=70"></script>
-<script src="app-look.js?v=70"></script>
-<script src="app-sheetprint.js?v=70"></script>
-<script src="app-share.js?v=70"></script>
-<script src="app-main.js?v=70"></script>
+<script src="data.js?v=71"></script>
+<script src="app-core.js?v=71"></script>
+<script src="app-parts.js?v=71"></script>
+<script src="app-skills.js?v=71"></script>
+<script src="app-save.js?v=71"></script>
+<script src="app-dict.js?v=71"></script>
+<script src="app-image.js?v=71"></script>
+<script src="app-look.js?v=71"></script>
+<script src="app-sheetprint.js?v=71"></script>
+<script src="app-share.js?v=71"></script>
+<script src="app-main.js?v=71"></script>
 </body>
 </html>
