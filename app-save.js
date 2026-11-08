@@ -370,7 +370,8 @@ function exportAllCharactersBackup() {
     type: 'necronica_backup',
     version: 1,
     exportedAt: new Date().toISOString(),
-    sheets: sheets
+    sheets: sheets,
+    effectDict: (typeof getEffectDict === 'function') ? getEffectDict() : {}
   };
 
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
@@ -451,6 +452,7 @@ function onBackupFileSelected(event) {
       });
 
       if (!setSavedSheets(sheets)) return;
+      if (backup && backup.effectDict && typeof mergeEffectDict === 'function') mergeEffectDict(backup.effectDict);
       refreshSaveSlotOptions();
       alert(`${importIds.length}件のキャラクターを読み込みました`);
     } catch (err) {

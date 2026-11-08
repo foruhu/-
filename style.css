@@ -269,6 +269,9 @@ html.fs-large { font-size: 18px; }
   body:not(.view-mode) input:not([type="checkbox"]):not([type="radio"]):not(.maneuver-table input),
   body:not(.view-mode) select:not(.maneuver-table select),
   body:not(.view-mode) textarea { font-size: 16px !important; }
+  /* 表の欄は、押して入力している間だけ16pxにして、拡大されないようにする */
+  body:not(.view-mode) .maneuver-table input:focus,
+  body:not(.view-mode) .maneuver-table select:focus { font-size: 16px !important; }
 }
 
 /* --- データ未登録のパーツ（効果メモを足せる印） --- */

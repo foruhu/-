@@ -1,9 +1,13 @@
 // 画像で保存：キャラクターシートを1枚のPNG画像として書き出す（外部ライブラリなし・canvasで直接描画）
-function exportSheetImage() {
+function exportSheetImage(opts) {
+  opts = opts || {};
+  const light = opts.theme === 'light', battle = !!opts.battle;
   const d = getFullData();
   const W = 900, PAD = 28, SC = 2, IW = W - PAD * 2;
   const F = 'sans-serif';
-  const C = { bg: '#161212', card: '#231a1a', line: '#7a2a2a', title: '#f0a0a0', text: '#eee', sub: '#aaa', broken: '#777', accent: '#8ff' };
+  const C = light
+    ? { bg: '#ffffff', card: '#ffffff', line: '#b04040', title: '#a02020', text: '#111', sub: '#555', broken: '#999', accent: '#0a6a8a' }
+    : { bg: '#161212', card: '#231a1a', line: '#7a2a2a', title: '#f0a0a0', text: '#eee', sub: '#aaa', broken: '#777', accent: '#8ff' };
   const selText = id => { const e = document.getElementById(id); return e && e.selectedIndex >= 0 && e.value ? e.options[e.selectedIndex].text : ''; };
   const txt = id => (document.getElementById(id)?.textContent || '').trim();
   const mc = selText('mc'), sc = selText('sc'), pos = selText('pos');
@@ -44,11 +48,11 @@ function exportSheetImage() {
   text(d.name || '(名前未入力)', PAD, 30, C.text, { bold: true });
   text([d.pl ? 'PL: ' + d.pl : '', pos ? '配置: ' + pos : '', mc || sc ? 'クラス: ' + [mc, sc].filter(Boolean).join(' / ') : ''].filter(Boolean).join('    '), PAD, 15, C.sub);
   const body = [d.age && '年齢 ' + d.age, d.height && '身長 ' + d.height, d.weight && '体重 ' + d.weight, d.hair && '髪 ' + d.hair, d.eye && '瞳 ' + d.eye, d.skin && '肌 ' + d.skin].filter(Boolean).join('   ');
-  if (body) text(body, PAD, 14, C.sub);
+  if (body && !battle) text(body, PAD, 14, C.sub);
   y += 6;
   text(`最大行動値 ${d.act}    損傷  基本 ${txt('bar-broken-base')}/${txt('bar-parts-base')}  強化 ${txt('bar-broken-ext')}/${txt('bar-parts-ext')}  宝 ${txt('bar-broken-tre')}/${txt('bar-parts-tre')}`, PAD, 16, C.title, { bold: true });
   text(`強化値(武装/変異/改造)  ${txt('total-wep')} / ${txt('total-mut')} / ${txt('total-cyb')}`, PAD, 14, C.text);
-  if (d.ps) text('寵愛/PS: ' + selText('ps'), PAD, 13, C.sub);
+  if (d.ps && !battle) text('寵愛/PS: ' + selText('ps'), PAD, 13, C.sub);
   if (d.hint) text('暗示: ' + d.hint, PAD, 14, C.text);
 
   // 未練
@@ -62,7 +66,7 @@ function exportSheetImage() {
       if (m.madName || m.madEffect) text(`発狂時 ${m.madName}${m.madEffect ? '：' + m.madEffect : ''}`, PAD + 22, 13, C.sub);
     });
   }
-  const mem = nonEmpty(d.memories);
+  const mem = battle ? [] : nonEmpty(d.memories);
   if (mem.length) { heading('記憶のカケラ'); mem.forEach(m => text('・' + m, PAD + 6, 14, C.text)); }
 
   // スキル
@@ -91,7 +95,7 @@ function exportSheetImage() {
       });
     });
   }
-  if (d.freeMemo && d.freeMemo.trim()) { heading('メモ'); text(d.freeMemo, PAD + 6, 13, C.sub); }
+  if (!battle && d.freeMemo && d.freeMemo.trim()) { heading('メモ'); text(d.freeMemo, PAD + 6, 13, C.sub); }
   y += 14;
   text('ドール設計図館', PAD, 11, C.broken);
   const H = y + PAD - 10;
@@ -109,7 +113,7 @@ function exportSheetImage() {
     if (o.strike) { const w = ctx.measureText(o.s).width; ctx.strokeStyle = o.color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(o.x, o.y - 5); ctx.lineTo(o.x + w, o.y - 5); ctx.stroke(); }
   });
 
-  const fname = (d.name || 'character').replace(/[\\/:*?"<>|]/g, '_') + '.png';
+  const fname = (d.name || 'character') + (battle ? '_戦闘用' : '').replace(/[\\/:*?"<>|]/g, '_') + '.png';
   cv.toBlob(blob => {
     if (!blob) { alert('画像を作れませんでした'); return; }
     const url = URL.createObjectURL(blob);
@@ -126,4 +130,35 @@ function exportSheetImage() {
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
   }, 'image/png');
+}
+
+// 画像の書き出し方（配色・内容）を選ぶ小さなダイアログ
+function openImageOptions() {
+  if (document.getElementById('img-opt-overlay')) return;
+  const ov = document.createElement('div');
+  ov.id = 'img-opt-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10001;padding:16px;overflow-y:auto;';
+  const battleOn = document.body.classList.contains('battle-view');
+  ov.innerHTML = `<div style="max-width:380px;margin:60px auto;background:#18181c;border:1.5px solid #8b0000;border-radius:10px;padding:14px;color:#eee;">
+    <div style="color:#f0a0a0;font-weight:bold;margin-bottom:10px;">🖼 画像で保存</div>
+    <div style="font-size:.8rem;color:#aaa;margin-bottom:4px;">配色</div>
+    <label style="display:block;margin:2px 0;"><input type="radio" name="img-theme" value="dark" checked> 暗い背景（画面と同じ）</label>
+    <label style="display:block;margin:2px 0;"><input type="radio" name="img-theme" value="light"> 白い背景（印刷・資料向け）</label>
+    <div style="font-size:.8rem;color:#aaa;margin:10px 0 4px;">内容</div>
+    <label style="display:block;margin:2px 0;"><input type="radio" name="img-content" value="all" ${battleOn ? '' : 'checked'}> すべて</label>
+    <label style="display:block;margin:2px 0;"><input type="radio" name="img-content" value="battle" ${battleOn ? 'checked' : ''}> 戦闘用（記憶のカケラ・メモなどを除く）</label>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button type="button" class="sec" id="img-opt-cancel">やめる</button>
+      <button type="button" id="img-opt-ok">保存する</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.getElementById('img-opt-cancel').onclick = close;
+  document.getElementById('img-opt-ok').onclick = () => {
+    const theme = ov.querySelector('input[name="img-theme"]:checked').value;
+    const battle = ov.querySelector('input[name="img-content"]:checked').value === 'battle';
+    close();
+    exportSheetImage({ theme, battle });
+  };
 }

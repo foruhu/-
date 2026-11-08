@@ -353,6 +353,11 @@ function onExtraPartSelect(secId, selectElem) {
   }
 
   if (partData) {
+    // データ未登録のパーツは、前に自分で書いた効果があれば入れる
+    if (!partData.memo && partData.name !== '新規パーツ' && typeof getEffectDict === 'function') {
+      const mine = getEffectDict()[effectKeyPart(partData.name)];
+      if (mine && mine.memo) partData = { ...partData, memo: mine.memo, timing: partData.timing || mine.timing, cost: partData.cost || mine.cost, range: partData.range || mine.range };
+    }
     if (partData.name !== '新規パーツ' && isPartAlreadyExists(partData.name)) {
       alert(`「${partData.name}」はすでに配置されています。重複して取得することはできません。`);
       selectElem.value = '';
@@ -534,9 +539,27 @@ function resetUsed() {
   calcActionValue();
 }
 
-function resetPartUsedFlags() {
+// 戦闘終了：使用チェックを外し、希望すれば損傷も直す（「元に戻す」で戻せる）
+function endBattle() {
+  if (!confirm('戦闘終了：使用チェックをすべて外します。\nよろしいですか？')) return;
+  const hasBroken = document.querySelector('#parts-container input.p-broken:checked');
+  const repair = hasBroken && confirm('損傷しているパーツも、すべて修復しますか？\n（OK＝修復する／キャンセル＝損傷はそのまま）');
+  resetPartUsedFlags(true);
+  if (repair) {
+    document.querySelectorAll('#parts-container tr input.p-broken').forEach(cb => {
+      cb.checked = false;
+      const tr = cb.closest('tr');
+      tr.classList.remove('broken');
+      if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('part-memo-row')) tr.nextElementSibling.classList.remove('broken');
+    });
+    markDirty();
+    calcActionValue();
+  }
+}
+
+function resetPartUsedFlags(skipConfirm) {
   // 表示モードには「元に戻す」ボタンが出ないので、押し間違いを防ぐために確認する
-  if (document.body.classList.contains('view-mode') && !confirm('使用チェックをすべて外します。よろしいですか？')) return;
+  if (skipConfirm !== true && document.body.classList.contains('view-mode') && !confirm('使用チェックをすべて外します。よろしいですか？')) return;
   pushUndoSnapshot();
   document.querySelectorAll('#parts-container tr input.p-used').forEach(cb => {
     cb.checked = false;

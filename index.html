@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=47">
+<link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -19,6 +19,7 @@
     <div class="view-only view-btn-row">
       <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
       <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
+      <button type="button" class="char-switch-btn" onclick="endBattle()" style="border-color:#8a6a2e; color:#f0d080;">🏁 戦闘終了</button>
       <button type="button" class="char-switch-btn" onclick="printSheet()" style="border-color:#6a4a8a; color:#c9a8f0;">🖨 印刷</button>
     </div>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
@@ -253,6 +254,7 @@
   <div class="title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
     <span>マニューバ</span>
     <span style="display:flex;gap:4px;">
+      <button type="button" class="sec" onclick="endBattle()" style="font-size:.7rem;padding:2px 6px">🏁 戦闘終了</button>
       <button type="button" class="sec" onclick="resetPartUsedFlags()" style="font-size:.7rem;padding:2px 6px">使用チェックを一括解除</button>
       <button type="button" class="sec edit-only" onclick="resetUsed()" style="font-size:.7rem;padding:2px 6px">破損チェックを一括解除</button>
     </span>
@@ -328,7 +330,7 @@
     <button type="button" class="action-btn c-purple" onclick="printSheet()">
       <span class="icon">🖨</span><span>印刷</span>
     </button>
-    <button type="button" class="action-btn c-blue" onclick="exportSheetImage()">
+    <button type="button" class="action-btn c-blue" onclick="openImageOptions()">
       <span class="icon">🖼</span><span>画像で保存</span>
     </button>
   </div>
@@ -570,7 +572,8 @@
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
       <li>ブラウザの保存領域(約5MB)がいっぱいになると保存できません。使用量が8割を超えると保存時に知らせるので、その前に「全キャラをバックアップ」で書き出してください。いっぱいで保存できないときは、削除したキャラのゴミ箱を空にして保存し直します。</li>
       <li>「🖨 印刷」で、白地・黒文字で全項目を印刷できます(長い文章も折り返して出ます)。</li>
-      <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。iPhoneでは画像が開くので、長押しで保存します。</li>
+      <li>「🏁 戦闘終了」で、使用チェックをまとめて外せます。続けて「損傷しているパーツも修復するか」を聞かれます(「↩️ 元に戻す」で戻せます)。固定バーと、マニューバの見出しにあります。</li>
+      <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。保存前に、配色(暗い背景/白い背景)と内容(すべて/戦闘用)を選べます。iPhoneでは画像が開くので、長押しで保存します。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 共有・バックアップ</h4>
@@ -579,6 +582,7 @@
       <li>共有URL・閲覧用URLを作ると、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。接続できない時は、データをURLに埋め込む方式に自動で切り替わります。</li>
       <li>「共有コード」は、URLが使えない時の緊急用です(普段は折りたたまれていて、「🚨 緊急用」を押すと開きます。外部に保存せず、文字列だけをコピー&貼り付けで渡せます)。「JSON出力」は、ファイルで別端末に移す方法です。「ココフォリア出力」で駒用のデータをコピーできます。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。最後に取ってからの日数が、キャラクター管理に表示されます(14日以上たつと色が変わります)。</li>
+      <li>データ未登録のスキル・パーツに自分で書いた効果は、このブラウザに覚えられます。次からは、同じスキル・パーツを選ぶと自動で入ります(「全キャラをバックアップ」にも一緒に入ります)。</li>
       <li>「保管所テキストから読み込む」で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
     </ul>
 
@@ -602,13 +606,14 @@
   </div>
 </div>
 
-<script src="data.js?v=47"></script>
-<script src="app-core.js?v=47"></script>
-<script src="app-parts.js?v=47"></script>
-<script src="app-skills.js?v=47"></script>
-<script src="app-save.js?v=47"></script>
-<script src="app-image.js?v=47"></script>
-<script src="app-share.js?v=47"></script>
-<script src="app-main.js?v=47"></script>
+<script src="data.js?v=48"></script>
+<script src="app-core.js?v=48"></script>
+<script src="app-parts.js?v=48"></script>
+<script src="app-skills.js?v=48"></script>
+<script src="app-save.js?v=48"></script>
+<script src="app-dict.js?v=48"></script>
+<script src="app-image.js?v=48"></script>
+<script src="app-share.js?v=48"></script>
+<script src="app-main.js?v=48"></script>
 </body>
 </html>

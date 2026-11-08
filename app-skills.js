@@ -306,6 +306,11 @@ function onSkillSelect(selectElem) {
     const found = SKILL_DATABASE[category].find(s => s.name === skillName);
     if (found) {
       const parsed = parseSkillMemo(found.memo);
+      // データ未登録のスキルは、前に自分で書いた効果があれば入れる
+      if (!found.memo && typeof getEffectDict === 'function') {
+        const mine = getEffectDict()[effectKeySkill(category, skillName)];
+        if (mine && mine.memo) { parsed.timing = mine.timing || ''; parsed.cost = mine.cost || ''; parsed.range = mine.range || ''; parsed.effect = mine.memo; }
+      }
       if (timingInput) setTimingSelectValue(timingInput, parsed.timing);
       if (costInput) costInput.value = parsed.cost;
       if (rangeInput) rangeInput.value = parsed.range;
