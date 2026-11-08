@@ -206,4 +206,55 @@ window.onload = async function() {
   let savedViewMode = '0';
   try { savedViewMode = localStorage.getItem('necro_view_mode') || '0'; } catch (e) {}
   applyViewModeUI(savedViewMode === '1');
+  restoreUiState();
 };
+
+
+// ==========================================================
+// 更新（再読み込み）しても、スクロール位置と折りたたみの開閉を元に戻す
+// ==========================================================
+const UI_STATE_KEY = 'necro_ui_state';
+let uiSaveTimer = null;
+
+function saveUiState() {
+  try {
+    if (document.body.classList.contains('view-locked')) return;
+    const st = {
+      y: Math.round(window.scrollY || 0),
+      limit: !!document.getElementById('limit-card')?.open,
+      share: document.getElementById('export-share-section')?.style.display !== 'none',
+      emerg: !!document.querySelector('.emergency-fold')?.open,
+      mem: Array.from(document.querySelectorAll('#memory-list .memory-entry')).map(r => r.classList.contains('collapsed') ? 1 : 0)
+    };
+    localStorage.setItem(UI_STATE_KEY, JSON.stringify(st));
+  } catch (e) {}
+}
+function scheduleSaveUiState() {
+  if (uiSaveTimer) clearTimeout(uiSaveTimer);
+  uiSaveTimer = setTimeout(saveUiState, 250);
+}
+
+function restoreUiState() {
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(UI_STATE_KEY) || 'null'); } catch (e) {}
+  if (st) {
+    try {
+      const lim = document.getElementById('limit-card'); if (lim && typeof st.limit === 'boolean') lim.open = st.limit;
+      const em = document.querySelector('.emergency-fold'); if (em && typeof st.emerg === 'boolean') em.open = st.emerg;
+      if (typeof st.share === 'boolean') {
+        const sec = document.getElementById('export-share-section');
+        if (sec && (sec.style.display !== 'none') !== st.share) toggleExportShareSection();
+      }
+      const rows = Array.from(document.querySelectorAll('#memory-list .memory-entry'));
+      (st.mem || []).forEach((c, i) => { if (rows[i]) toggleMemoryDetail(rows[i].querySelector('.memory-toggle'), !!c); });
+    } catch (e) {}
+    const y = st.y || 0;
+    // 文章欄の高さが整ってから位置を合わせる
+    [120, 400].forEach(ms => setTimeout(() => window.scrollTo(0, y), ms));
+  }
+  window.addEventListener('scroll', scheduleSaveUiState, { passive: true });
+  document.addEventListener('click', scheduleSaveUiState, true);
+  document.addEventListener('toggle', scheduleSaveUiState, true);
+  window.addEventListener('pagehide', saveUiState);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveUiState(); });
+}
