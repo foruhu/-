@@ -15,7 +15,7 @@ function printSheetLayout() {
 
   // スキル
   const skills = d.skills.filter(s => s.name);
-  const skillRows = pad(skills, 5, null).map(s => s ?
+  const skillRows = pad(skills, 4, null).map(s => s ?
     `<tr><td class="sp-c">${box(s.isUsed)}</td><td>${E(s.name)}</td><td class="sp-c">${E(s.timing)}</td><td class="sp-c">${E(s.cost)}</td><td class="sp-c">${E(s.range)}</td><td>${E(s.memo)}</td></tr>`
     : `<tr><td class="sp-c">□</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('');
 
@@ -28,9 +28,10 @@ function printSheetLayout() {
 
   // マニューバ（部位ごと）
   const secs = [['頭', 10], ['腕', 9], ['胴', 8], ['脚', 7]];
+  const minRows = { '頭': 7, '腕': 6, '胴': 6, '脚': 5 }; // 空欄の行数（攻撃判定値とは別。スマホの印刷でも2枚に収まるよう控えめ）
   const partSec = secs.map(([ch, atk]) => {
     const ps = d.parts.filter(p => (p.location || '').startsWith(ch));
-    const rows = pad(ps, atk, null).map(p => {
+    const rows = pad(ps, minRows[ch], null).map(p => {
       if (!p) return `<tr><td class="sp-c">□</td><td class="sp-c">□</td><td></td><td></td><td></td><td></td><td></td></tr>`;
       const nm = p.name + (p.type && p.type !== '基本' ? `(${p.type})` : '') + (p.level && p.level !== '1' ? ` Lv${p.level}` : '');
       return `<tr class="${p.isBroken ? 'sp-broken' : ''}"><td class="sp-c">${box(p.isBroken)}</td><td class="sp-c">${box(p.isUsed)}</td><td>${E(nm)}</td><td class="sp-c">${E(p.timing)}</td><td class="sp-c">${E(p.cost)}</td><td class="sp-c">${E(p.range)}</td><td>${E(p.memo)}</td></tr>`;
