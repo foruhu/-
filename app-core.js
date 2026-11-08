@@ -89,7 +89,7 @@ function updateAutosaveStatusText(text) {
 function startAutosaveTimer() {
   if (autosaveTimer) clearInterval(autosaveTimer);
   autosaveTimer = setInterval(() => {
-    if (!isDirty) return;
+    if (!isDirty || document.body.classList.contains('view-locked')) return;
     performAutosave();
   }, AUTOSAVE_INTERVAL_MS);
 }

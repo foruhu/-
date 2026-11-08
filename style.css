@@ -426,3 +426,6 @@ body.battle-view #sec-skill .title { margin-bottom: 4px; }
 #memory-list .memory-head .memory-toggle { background: transparent; border: none; width: 1.8em; height: 1.8em; padding: 0; position: relative; color: #9a8a8a; }
 #memory-list .memory-head .memory-toggle::before { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translate(-50%, -70%) rotate(45deg); transition: transform .15s; }
 #memory-list .memory-entry.collapsed .memory-toggle::before { transform: translate(-70%, -50%) rotate(-45deg); }
+
+/* 閲覧用URLで開いたとき：保存・切替・編集切替のボタンと、編集用の部品を出さない */
+body.view-locked .corner-btn, body.view-locked .edit-only, body.view-locked #view-mode-toggle { display: none !important; }

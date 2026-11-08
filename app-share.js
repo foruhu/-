@@ -382,7 +382,8 @@ function applyLoadedShareData(data, isViewOnly) {
 
   if (isViewOnly) {
     applyViewModeUI(true);
-    try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
+    // 編集できないようロックする（この人自身の「表示/編集」の設定は書き換えない）
+    if (typeof lockViewOnly === 'function') lockViewOnly();
     // 閲覧用URLを開いた人には、最初は全項目を見せる（メモや履歴も）。この人自身の「戦闘用」の設定は書き換えない
     if (typeof applyBattleView === 'function') applyBattleView(false);
     isDirty = false;

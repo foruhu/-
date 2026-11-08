@@ -9,6 +9,17 @@ function applyViewModeUI(isView) {
   }
 }
 
+// 閲覧用URLで開いたときの「編集ロック」：切替ボタンを隠し、入力欄を読み取り専用にする
+// （チェックボックス＝損傷・使用の確認は、セッション中に使えるよう残す）
+function lockViewOnly() {
+  document.body.classList.add('view-locked');
+  document.querySelectorAll('input:not([type="checkbox"]), textarea').forEach(e => {
+    if (e.type === 'file') { e.disabled = true; return; }
+    e.readOnly = true;
+  });
+  document.querySelectorAll('select, input[type="radio"]').forEach(e => { e.disabled = true; });
+}
+
 // 戦闘用表示：表示モードのとき、パーツ・スキル・未練・行動値だけに絞る（初期はON）
 function applyBattleView(on) {
   document.body.classList.toggle('battle-view', on);
@@ -146,6 +157,7 @@ function jumpToSection(id) {
 }
 
 function toggleViewMode() {
+  if (document.body.classList.contains('view-locked')) return; // 閲覧用URLで開いたときは、編集に切り替えられない
   const isView = !document.body.classList.contains('view-mode');
   applyViewModeUI(isView);
   try {
