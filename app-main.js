@@ -74,6 +74,18 @@ function restoreAfterPrint() {
 }
 window.addEventListener('afterprint', restoreAfterPrint);
 
+// 数値欄の下限・上限（min / max）を、タイプ入力でも守る。
+// min="0" の欄は、キーボードで「-3」と打ててしまい、寵愛や狂気点が負になるため。
+// 他の入力処理（合計の計算など）より先に直すよう、キャプチャ段階で受ける
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (!el || el.tagName !== 'INPUT' || el.type !== 'number' || el.value === '') return;
+  const v = Number(el.value);
+  if (Number.isNaN(v)) return;
+  if (el.min !== '' && v < Number(el.min)) el.value = el.min;
+  else if (el.max !== '' && v > Number(el.max)) el.value = el.max;
+}, true);
+
 // 固定バーの折りたたみ（武装・変異・改造の表と目次を畳む）
 function applyBarFold(collapsed) {
   const bar = document.querySelector('.sticky-top-bar');

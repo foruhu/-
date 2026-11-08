@@ -118,7 +118,11 @@ function performAutosave() {
       data: data
     };
 
-    setSavedSheets(sheets);
+    if (!setSavedSheets(sheets, true)) {
+      // 保存領域がいっぱい。画面は静かに、でも上のバーで分かるようにする（isDirty は残し、次の機会に再試行する）
+      updateAutosaveStatusText('⚠ 自動保存できません（保存領域がいっぱいです）');
+      return;
+    }
     isDirty = false;
     updateAutosaveStatusText('自動保存（下書き） ' + formatTimeHM(new Date()));
     renderSaveCards(select ? select.value : '');
@@ -312,7 +316,7 @@ function duplicateSelectedSave() {
     data: JSON.parse(JSON.stringify(entry.data))
   };
 
-  setSavedSheets(sheets);
+  if (!setSavedSheets(sheets)) return;
   refreshSaveSlotOptions(newId);
   alert(`「${newName || defaultName}」として複製しました`);
 }
@@ -364,7 +368,7 @@ function onThumbFileSelected(event) {
     const sheets = getSavedSheets();
     if (!sheets[id]) return;
     sheets[id].image = dataUrl;
-    setSavedSheets(sheets);
+    if (!setSavedSheets(sheets)) return;
     renderSaveCards(id);
     alert('サムネイル画像を設定しました');
   }).catch(err => {
@@ -392,7 +396,7 @@ function clearSelectedThumbnail() {
   if (!confirm('サムネイル画像を削除して、ノーイメージに戻します。よろしいですか？')) return;
 
   sheets[id].image = null;
-  setSavedSheets(sheets);
+  if (!setSavedSheets(sheets)) return;
   renderSaveCards(id);
   alert('画像を削除しました');
 }

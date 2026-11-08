@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール</title>
-<link rel="stylesheet" href="style.css?v=42">
+<link rel="stylesheet" href="style.css?v=43">
 </head>
 <body>
 
@@ -192,7 +192,7 @@
     </div>
     <div>
       <label>基本行動値</label>
-      <input type="number" id="act-base" value="6" oninput="calcActionValue()">
+      <input type="number" id="act-base" value="6" min="0" oninput="calcActionValue()">
     </div>
   </div>
 </div>
@@ -561,6 +561,7 @@
       <li>画面上部の固定バーは、「▲ 閉じる」で武装・変異・改造の表を畳めます。「基本」「未練」などのボタンで、その項目へ飛べます。「文字：中」を押すと、文字の大きさが 小→中→大 と切り替わります。</li>
       <li>表示モードでも、「使用チェックを一括解除」は押せます(セッション終了時などに)。</li>
       <li>削除したキャラクターは、「削除したキャラを復元」で直近5件まで戻せます。</li>
+      <li>ブラウザの保存領域(約5MB)がいっぱいになると保存できません。使用量が8割を超えると保存時に知らせるので、その前に「全キャラをバックアップ」で書き出してください。いっぱいで保存できないときは、削除したキャラのゴミ箱を空にして保存し直します。</li>
       <li>「🖨 印刷」で、白地・黒文字で全項目を印刷できます(長い文章も折り返して出ます)。</li>
     </ul>
 
@@ -592,12 +593,12 @@
   </div>
 </div>
 
-<script src="data.js?v=42"></script>
-<script src="app-core.js?v=42"></script>
-<script src="app-parts.js?v=42"></script>
-<script src="app-skills.js?v=42"></script>
-<script src="app-save.js?v=42"></script>
-<script src="app-share.js?v=42"></script>
-<script src="app-main.js?v=42"></script>
+<script src="data.js?v=43"></script>
+<script src="app-core.js?v=43"></script>
+<script src="app-parts.js?v=43"></script>
+<script src="app-skills.js?v=43"></script>
+<script src="app-save.js?v=43"></script>
+<script src="app-share.js?v=43"></script>
+<script src="app-main.js?v=43"></script>
 </body>
 </html>

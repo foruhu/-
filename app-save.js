@@ -132,8 +132,39 @@ function getSavedSheets() {
   }
 }
 
-function setSavedSheets(sheets) {
-  localStorage.setItem(SHEETS_KEY, JSON.stringify(sheets));
+// ブラウザの保存領域はおよそ5MBで、いっぱいになると書き込みに失敗する。
+// 成功したら true、失敗したら false を返す（silent のときは、失敗しても画面に出さない）。
+// 失敗したら、まず「削除したキャラのゴミ箱」を空にしてもう一度試す
+const STORAGE_LIMIT_CHARS = 5000000; // 目安（ブラウザによって違う）
+const STORAGE_FULL_MESSAGE = 'ブラウザの保存領域がいっぱいで、保存できませんでした。\n「全キャラをバックアップ」で書き出してから、使わないキャラクターを削除してください。（画像を設定したキャラは容量が大きくなります）';
+
+function getStorageUsageRatio() {
+  try {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      total += k.length + (localStorage.getItem(k) || '').length;
+    }
+    return total / STORAGE_LIMIT_CHARS;
+  } catch (e) { return 0; }
+}
+
+function setSavedSheets(sheets, silent) {
+  const json = JSON.stringify(sheets);
+  try {
+    localStorage.setItem(SHEETS_KEY, json);
+    return true;
+  } catch (e) {
+    try {
+      localStorage.removeItem(TRASH_KEY);
+      localStorage.setItem(SHEETS_KEY, json);
+      if (!silent) alert('保存領域がいっぱいだったため、削除したキャラのゴミ箱を空にして保存しました。\n（削除したキャラの復元はできなくなりました）');
+      return true;
+    } catch (e2) {
+      if (!silent) alert(STORAGE_FULL_MESSAGE);
+      return false;
+    }
+  }
 }
 
 // ==========================================================
@@ -153,7 +184,12 @@ function getTrash() {
 }
 
 function setTrash(trash) {
-  localStorage.setItem(TRASH_KEY, JSON.stringify(trash));
+  try {
+    localStorage.setItem(TRASH_KEY, JSON.stringify(trash));
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 // 削除対象のエントリ全体をゴミ箱の先頭に入れる（直近5件まで残す）
@@ -168,7 +204,7 @@ function moveToTrash(id, entry) {
     deletedAt: new Date().toISOString(),
     originalId: id
   });
-  setTrash(trash.slice(0, TRASH_LIMIT));
+  return setTrash(trash.slice(0, TRASH_LIMIT));
 }
 
 // ゴミ箱の最新1件を、新しい id で保存済み一覧に復元する（同名があっても上書きしない）
@@ -186,8 +222,8 @@ function restoreDeletedSave() {
     image: entry.image || null,
     data: JSON.parse(JSON.stringify(entry.data || {}))
   };
+  if (!setSavedSheets(sheets)) return;
   setTrash(trash.slice(1));
-  setSavedSheets(sheets);
   refreshSaveSlotOptions(newId);
   alert(`「${entry.name || '(無名)'}」を復元しました`);
 }
@@ -224,7 +260,7 @@ function migrateOldSingleSave() {
       savedAt: new Date().toISOString(),
       data: oldData
     };
-    setSavedSheets(sheets);
+    setSavedSheets(sheets, true);
   } catch (e) {
     // 変換に失敗した場合は何もしない
   }
@@ -269,10 +305,11 @@ function saveData() {
     delete sheets['autosave_draft'];
   }
 
-  setSavedSheets(sheets);
+  if (!setSavedSheets(sheets)) return; // 失敗したときは、保存したと表示しない（isDirty も、そのまま）
   isDirty = false;
   refreshSaveSlotOptions(id);
-  alert('ブラウザに保存しました');
+  const usage = getStorageUsageRatio();
+  alert('ブラウザに保存しました' + (usage >= 0.8 ? `\n\n※保存領域の約${Math.round(usage * 100)}%を使っています。いっぱいになる前に、「全キャラをバックアップ」で書き出しておくのがおすすめです。` : ''));
 }
 
 function loadData() {
@@ -310,9 +347,9 @@ function deleteSelectedSave() {
     return;
   }
 
-  moveToTrash(id, entry);
+  if (!moveToTrash(id, entry) && !confirm('保存領域がいっぱいで、ゴミ箱に入れられません。このまま削除すると、元に戻せません。それでも削除しますか？')) return;
   delete sheets[id];
-  setSavedSheets(sheets);
+  if (!setSavedSheets(sheets)) return;
   refreshSaveSlotOptions('');
   alert(`「${entry.name}」を削除しました。\n「削除したキャラを復元」ボタンから復元できます。`);
 }
@@ -390,7 +427,7 @@ function onBackupFileSelected(event) {
         };
       });
 
-      setSavedSheets(sheets);
+      if (!setSavedSheets(sheets)) return;
       refreshSaveSlotOptions();
       alert(`${importIds.length}件のキャラクターを読み込みました`);
     } catch (err) {
