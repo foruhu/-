@@ -878,6 +878,9 @@ function applyHokanshoParsed(p) {
       }
       // 効果メモや名前に「たからもの」と書かれているマニューバは、分類を「たからもの」にする
       if (type !== 'たからもの' && /たからもの/.test((pt.memo || '') + (pt.name || ''))) { type = 'たからもの'; level = ''; }
+      // data.jsに無いパーツでも、シートの「たからもの」欄に同じ名前がある／以前「たからもの」に設定した名前なら、分類を「たからもの」にする
+      const treasureNames = new Set([...(data.treasures || []).map(x => (x.name || '').trim()), ...getKnownTreasureNames()].filter(Boolean));
+      if (type !== 'たからもの' && treasureNames.has((pt.name || '').trim())) { type = 'たからもの'; level = ''; }
       data.parts.push({
         isBroken: false, isUsed: false, location: HK_SEC_TO_LOC[pt.sec], name: pt.name, type: type, level: String(level),
         timing: pt.timing, cost: pt.cost, range: pt.range, memo: pt.memo, isEditable: editable, tag: detectCategoryFromMemo(pt.memo)

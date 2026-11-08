@@ -697,3 +697,20 @@ function toggleFreeMemo(force) {
   try { localStorage.setItem('necro_memo_fold', fold ? '1' : '0'); } catch (e) {}
 }
 window.addEventListener('load', () => { try { if (localStorage.getItem('necro_memo_fold') === '1') toggleFreeMemo(true); } catch (e) {} });
+
+// 「たからもの」に設定したマニューバの名前を覚えておく（保管所テキストの取り込みで、data.jsに無くても「たからもの」にするため）
+function getKnownTreasureNames() {
+  try { const a = JSON.parse(localStorage.getItem('necro_treasure_names') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+document.addEventListener('change', e => {
+  const sel = e.target;
+  if (!sel || !sel.matches || !sel.matches('.p-type')) return;
+  const tr = sel.closest('tr');
+  const name = (tr?.querySelector('.p-name')?.value || '').trim();
+  if (!name) return;
+  try {
+    const set = new Set(getKnownTreasureNames());
+    if (sel.value === 'たからもの') set.add(name); else set.delete(name);
+    localStorage.setItem('necro_treasure_names', JSON.stringify([...set].slice(-200)));
+  } catch (err) {}
+});
