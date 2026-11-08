@@ -383,6 +383,8 @@ function applyLoadedShareData(data, isViewOnly) {
   if (isViewOnly) {
     applyViewModeUI(true);
     try { localStorage.setItem('necro_view_mode', '1'); } catch (e) {}
+    // 閲覧用URLを開いた人には、最初は全項目を見せる（メモや履歴も）。この人自身の「戦闘用」の設定は書き換えない
+    if (typeof applyBattleView === 'function') applyBattleView(false);
     isDirty = false;
 
     // 送信側で設定されていたサムネイル画像があれば、閲覧画面の上部に表示する
