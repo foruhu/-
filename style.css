@@ -291,3 +291,9 @@ html.fs-large { font-size: 18px; }
 .memory-entry.collapsed .memory-detail { display: none; }
 body.print-mode .memory-entry.collapsed .memory-detail { display: block; }
 body.print-mode .memory-toggle, body.print-mode #memory-all-toggle { display: none; }
+/* 記憶のカケラの詳細：長い文章でも枠が伸びすぎないように、4行ぶんで止めて中でスクロールする */
+.memory-entry .memory-detail { max-height: 6.2em; overflow-y: auto; resize: vertical; }
+body.print-mode .memory-entry .memory-detail { max-height: none; overflow: visible; }
+/* 記憶のカケラの名前欄：行いっぱいに伸ばさず、短めにする（削除ボタンは右端） */
+.memory-entry .memory-head input.memory-name { flex: 0 1 12em; }
+.memory-entry .memory-head .del { margin-left: auto; }
