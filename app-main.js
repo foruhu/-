@@ -26,6 +26,54 @@ function initBattleView() {
   applyBattleView(on);
 }
 
+// 印刷：表示モードと同じ見た目（編集用のボタンなし）で、全項目を開いた状態にして印刷する
+let printRestore = null;
+function printSheet() {
+  const body = document.body;
+  printRestore = {
+    view: body.classList.contains('view-mode'),
+    battle: body.classList.contains('battle-view'),
+    limitOpen: document.getElementById('limit-card') ? document.getElementById('limit-card').open : true
+  };
+  body.classList.add('view-mode', 'print-mode');
+  body.classList.remove('battle-view');
+  const lc = document.getElementById('limit-card');
+  if (lc) lc.open = true;
+  if (typeof autoResizeAllMemoTextareas === 'function') autoResizeAllMemoTextareas();
+  addPrintClones();
+  setTimeout(() => {
+    try { window.print(); } finally { restoreAfterPrint(); }
+  }, 100);
+}
+// 1行の入力欄は、長い文章が欄の幅で切れて印刷されてしまう。はみ出す欄だけ、折り返して全文が出る表示に差し替える
+function addPrintClones() {
+  document.querySelectorAll('input[type="text"]').forEach(i => {
+    if (!i.value || i.offsetParent === null || i.scrollWidth <= i.clientWidth) return;
+    const sp = document.createElement('span');
+    sp.className = 'print-clone';
+    sp.textContent = i.value;
+    i.classList.add('print-hidden');
+    i.after(sp);
+  });
+}
+function removePrintClones() {
+  document.querySelectorAll('.print-clone').forEach(e => e.remove());
+  document.querySelectorAll('input.print-hidden').forEach(i => i.classList.remove('print-hidden'));
+}
+function restoreAfterPrint() {
+  if (!printRestore) return;
+  removePrintClones();
+  const body = document.body;
+  body.classList.remove('print-mode');
+  body.classList.toggle('view-mode', printRestore.view);
+  body.classList.toggle('battle-view', printRestore.battle);
+  const lc = document.getElementById('limit-card');
+  if (lc) lc.open = printRestore.limitOpen;
+  printRestore = null;
+  if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
+}
+window.addEventListener('afterprint', restoreAfterPrint);
+
 function toggleViewMode() {
   const isView = !document.body.classList.contains('view-mode');
   applyViewModeUI(isView);
@@ -43,6 +91,7 @@ window.onload = async function() {
   initBattleView();
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
+  if (typeof captureBlankSheet === 'function') captureBlankSheet();
   if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();
   if (typeof refreshSaveSlotOptions === 'function') refreshSaveSlotOptions();
   if (typeof setupDirtyTracking === 'function') setupDirtyTracking();

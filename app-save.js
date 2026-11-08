@@ -404,6 +404,36 @@ function onBackupFileSelected(event) {
   event.target.value = '';
 }
 
+// ==========================================================
+// 新規作成（白紙に戻す）
+// ==========================================================
+let BLANK_SHEET_DATA = null;
+
+// ページを開いた直後の、何も入力していない状態を覚えておく（記憶のカケラ枠は2個）
+function captureBlankSheet() {
+  try {
+    BLANK_SHEET_DATA = JSON.parse(JSON.stringify(getFullData()));
+    BLANK_SHEET_DATA.memories = ['', ''];
+  } catch (e) {
+    BLANK_SHEET_DATA = null;
+  }
+}
+
+// 今の入力を白紙に戻す。保存済みのキャラは消さず、選択も外す（次に「保存」すると新しいキャラとして保存される）
+function newBlankSheet() {
+  if (!BLANK_SHEET_DATA) return alert('白紙の状態を用意できませんでした。ページを開き直してください');
+  if (!confirm('今の入力をすべて消して、白紙に戻します。\n保存済みのキャラクターは消えません（「↩️ 元に戻す」で、今の入力は戻せます）。\n\nよろしいですか？')) return;
+  pushUndoSnapshot();
+  applyData(JSON.parse(JSON.stringify(BLANK_SHEET_DATA)));
+  const select = document.getElementById('save-slot');
+  if (select) select.value = '';
+  if (typeof renderSaveCards === 'function') renderSaveCards('');
+  if (typeof updateSelectedActionsVisibility === 'function') updateSelectedActionsVisibility('');
+  if (typeof updateViewModeImage === 'function') updateViewModeImage('');
+  isDirty = false;
+  if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
+}
+
 function applyData(data) {
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 

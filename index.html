@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>ネクロニカ キャラクターシート</title>
-<link rel="stylesheet" href="style.css?v=33">
+<link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 
@@ -18,6 +18,7 @@
     <div class="view-only view-btn-row">
       <button type="button" class="char-switch-btn" id="battle-toggle" onclick="toggleBattleView()" style="border-color:#8a2e2e; color:#f0a0a0;">⚔️ 戦闘用：ON</button>
       <button type="button" class="char-switch-btn" onclick="exportViewURL()" style="border-color:#2e6a8a; color:#7ac4f0;">👀 閲覧用URL</button>
+      <button type="button" class="char-switch-btn" onclick="printSheet()" style="border-color:#6a4a8a; color:#c9a8f0;">🖨 印刷</button>
     </div>
     <div class="edit-only" style="display: flex; justify-content: space-between; align-items: center;">
       <button type="button" class="undo-btn" id="undo-btn" onclick="undoLastAction()" disabled>↩️ 元に戻す</button>
@@ -305,6 +306,15 @@
   </select>
 
   <div class="action-btn-row">
+    <button type="button" class="action-btn c-teal" onclick="newBlankSheet()">
+      <span class="icon">🆕</span><span>新規作成<br>（白紙に戻す）</span>
+    </button>
+    <button type="button" class="action-btn c-purple" onclick="printSheet()">
+      <span class="icon">🖨</span><span>印刷</span>
+    </button>
+  </div>
+
+  <div class="action-btn-row">
     <button type="button" class="action-btn c-green" onclick="saveData()">
       <span class="icon">💾</span><span>ブラウザに<br>保存</span>
     </button>
@@ -556,12 +566,12 @@
   </div>
 </div>
 
-<script src="data.js?v=33"></script>
-<script src="app-core.js?v=33"></script>
-<script src="app-parts.js?v=33"></script>
-<script src="app-skills.js?v=33"></script>
-<script src="app-save.js?v=33"></script>
-<script src="app-share.js?v=33"></script>
-<script src="app-main.js?v=33"></script>
+<script src="data.js?v=35"></script>
+<script src="app-core.js?v=35"></script>
+<script src="app-parts.js?v=35"></script>
+<script src="app-skills.js?v=35"></script>
+<script src="app-save.js?v=35"></script>
+<script src="app-share.js?v=35"></script>
+<script src="app-main.js?v=35"></script>
 </body>
 </html>
