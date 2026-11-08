@@ -41,6 +41,10 @@ function printSheet() {
   if (lc) lc.open = true;
   if (typeof autoResizeAllMemoTextareas === 'function') autoResizeAllMemoTextareas();
   addPrintClones();
+  const credit = document.createElement('div');
+  credit.className = 'print-credit';
+  credit.textContent = 'Printed by ドール設計図館, ' + location.origin + location.pathname;
+  document.body.appendChild(credit);
   setTimeout(() => {
     try { window.print(); } finally { restoreAfterPrint(); }
   }, 100);
@@ -63,6 +67,7 @@ function removePrintClones() {
 function restoreAfterPrint() {
   if (!printRestore) return;
   removePrintClones();
+  document.querySelectorAll('.print-credit').forEach(e => e.remove());
   const body = document.body;
   body.classList.remove('print-mode');
   body.classList.toggle('view-mode', printRestore.view);

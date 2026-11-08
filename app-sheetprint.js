@@ -10,19 +10,19 @@ function printSheetLayout() {
 
   // 記憶のカケラ
   const mems = (d.memories || []).map(normalizeMemory).filter(m => m.name || m.detail || m.num);
-  const memRows = pad(mems, 7, { num: '', name: '', detail: '' }).map(m =>
+  const memRows = pad(mems, 15, { num: '', name: '', detail: '' }).map(m =>
     `<tr><td class="sp-c">${E(m.name)}</td><td class="sp-c">${E(m.num)}</td><td>${E(m.detail)}</td></tr>`).join('');
 
   // スキル
   const skills = d.skills.filter(s => s.name);
-  const skillRows = pad(skills, 7, null).map(s => s ?
+  const skillRows = pad(skills, 6, null).map(s => s ?
     `<tr><td class="sp-c">${box(s.isUsed)}</td><td>${E(s.name)}</td><td class="sp-c">${E(s.timing)}</td><td class="sp-c">${E(s.cost)}</td><td class="sp-c">${E(s.range)}</td><td>${E(s.memo)}</td></tr>`
     : `<tr><td class="sp-c">□</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('');
 
   // 未練
   const mirens = d.list.filter(m => m.target || m.emotion || m.madness || m.madName || m.madEffect);
   const dots = v => { const n = Math.max(0, Math.min(4, parseInt(v, 10) || 0)); return '●'.repeat(n) + '○'.repeat(4 - n); };
-  const mirenRows = pad(mirens, 6, null).map(m => m ?
+  const mirenRows = pad(mirens, 9, null).map(m => m ?
     `<tr><td>${E(m.target)}</td><td>${E(m.emotion)}</td><td class="sp-c">${dots(m.madness)}</td><td>${E([m.madName, m.madEffect].filter(Boolean).join('：'))}</td></tr>`
     : `<tr><td></td><td></td><td class="sp-c">○○○○</td><td></td></tr>`).join('');
 
@@ -41,6 +41,7 @@ function printSheetLayout() {
 
   const act = d.act || '0', base = d.actBase || '0';
   const mod = (parseInt(act, 10) || 0) - (parseInt(base, 10) || 0);
+  const foot = `<div class="sp-foot">Printed by ドール設計図館, ${E(location.origin + location.pathname)}</div>`;
   const html = `
   <section class="sp-page">
     <div class="sp-top">
@@ -65,19 +66,23 @@ function printSheetLayout() {
         <div class="sp-body">${E([d.height && '身長 ' + d.height, d.weight && '体重 ' + d.weight, d.hair && '髪 ' + d.hair, d.eye && '瞳 ' + d.eye, d.skin && '肌 ' + d.skin].filter(Boolean).join(' / '))}</div>
       </div>
     </div>
-    <div class="sp-sec"><div class="sp-bar">スキル</div>
-      <table class="sp-t sp-skills"><thead><tr><th>使</th><th>名称</th><th>タイミング</th><th>コスト</th><th>射程</th><th>効果</th></tr></thead><tbody>${skillRows}</tbody></table></div>
+    <div class="sp-bottom">
     <div class="sp-sec"><div class="sp-bar">記憶のカケラ</div>
       <table class="sp-t"><thead><tr><th style="width:24%">タイトル</th><th style="width:7%">番号</th><th>記憶の内容</th></tr></thead><tbody>${memRows}</tbody></table></div>
     <div class="sp-sec"><div class="sp-bar">未練</div>
       <table class="sp-t sp-miren"><thead><tr><th>未練の対象</th><th>未練の内容</th><th>狂気点</th><th>発狂時</th></tr></thead><tbody>${mirenRows}</tbody></table></div>
+    </div>
+    ${foot}
   </section>
   <section class="sp-page">
     <div class="sp-act">
       <div class="sp-actbox"><span>最大行動値</span><b>${E(base)}</b> + <b>${mod}</b> = <b class="sp-big">${E(act)}</b></div>
       <div class="sp-ps"><span>初期配置</span>${['煉獄', '花園', '楽園'].map(x => `<i>${box(sel('ps') === x)}${x}</i>`).join('')}</div>
     </div>
+    <div class="sp-sec"><div class="sp-bar">スキル</div>
+      <table class="sp-t sp-skills"><thead><tr><th>使</th><th>名称</th><th>タイミング</th><th>コスト</th><th>射程</th><th>効果</th></tr></thead><tbody>${skillRows}</tbody></table></div>
     ${partSec}
+    ${foot}
   </section>`;
 
   const wrap = document.createElement('div');
