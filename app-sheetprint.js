@@ -92,6 +92,23 @@ function printSheetLayout() {
   wrap.id = 'sheet-print';
   wrap.innerHTML = html;
   document.body.appendChild(wrap);
+  // 2枚目（スキル＋マニューバ）が1枚に収まるよう、行数と効果文の長さから高さを見積もって縮小する
+  try {
+    const pg2 = wrap.querySelectorAll('.sp-page')[1];
+    if (pg2) {
+      let est = 14;
+      pg2.querySelectorAll('.sp-t').forEach(t => {
+        est += 12; // 見出しの帯
+        t.querySelectorAll('tbody tr').forEach(tr => {
+          const txt = (tr.lastElementChild ? tr.lastElementChild.textContent : '') || '';
+          const lines = Math.max(1, Math.ceil(txt.length / 42));
+          est += Math.max(4.6, lines * 3.1 + 1.2);
+        });
+      });
+      const room = 282;
+      if (est > room) pg2.style.zoom = String(Math.max(0.5, room / est).toFixed(3));
+    }
+  } catch (e) {}
   document.body.classList.add('sheet-print-mode');
   // 画面には出ない（印刷のときだけ表示される）ので、印刷が終わるまで消さずに置いておく。
   // iPhoneのSafariは print() がすぐ戻ってくるため、ここですぐ消すと印刷プレビューが普通の画面になってしまう
