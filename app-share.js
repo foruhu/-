@@ -10,44 +10,38 @@ function exportJSON() {
 }
 
 // ココフォリアのチャットパレット用の文章を作る
-//  1) ネクロニカ用のダイスコマンド（ルームのシステムを「ネクロニカ」にしたとき使える NC=判定 / NA=攻撃判定）
-//  2) 部位ごとのマニューバ（損傷中は【損傷】と付ける）  3) スキル
-// 1行を押すとその文章がチャットに出るので、1件1行にまとめる
+//  先頭に判定コマンド、続けて --ポジション-- --メインクラス-- --サブクラス-- --頭-- --腕-- --胴-- --脚-- の順に
+//  「【名前】\n《T:タイミング／C:コスト／R:射程》\n効果」を1件1行で並べる（\n は文字どおりの \ と n で、チャットで改行になる）
+//  攻撃マニューバの行頭には「1na」（出目+Nがある場合は「1na+N」）を付けて、押すとそのまま攻撃判定できる
 function buildCcfoliaCommandLines(data) {
   const one = t => String(t || '').replace(/\s*\n\s*/g, ' ').trim();
-  const specOf = x => [x.timing, x.cost && `コスト${x.cost}`, x.range && `射程${x.range}`].filter(Boolean).join('/');
-  const lines = [];
-
-  lines.push('■判定（システム：ネクロニカ）');
-  lines.push('NC 判定');
-  lines.push('NA 攻撃判定');
-  lines.push('2NC 判定(2個)');
-  lines.push('');
-
-  const locOrder = ['頭', '腕', '胴', '脚'];
+  const body = (x, prefix) => {
+    const spec = `《T:${x.timing || ''}／C:${x.cost || ''}／R:${x.range || ''}》`;
+    return `${prefix ? prefix + ' ' : ''}【${x.name}】\\n${spec}\\n${one(x.memo)}`;
+  };
+  const attackPrefix = p => {
+    const memo = one(p.memo);
+    if (!(p.tag === '攻撃' || /(肉弾|白兵|射撃|砲撃)(攻撃)?[0-9０-９]|攻撃[0-9０-９]/.test(memo))) return '';
+    const m = memo.match(/出目\+(\d+)/);
+    return m ? `1na+${m[1]}` : '1na';
+  };
+  const lines = ['nm 【未練決定】', '1nc 【対話判定】', '1nc 【狂気判定】', '1nc 【行動判定】'];
+  const skills = (data.skills || []).filter(x => x.name);
+  const skillsOf = c => c ? skills.filter(x => x.category === c) : [];
+  const section = (label, arr, isPart) => {
+    lines.push(`--${label}--`);
+    arr.forEach(x => lines.push(body(x, isPart ? attackPrefix(x) : '')));
+  };
+  section('ポジション', skillsOf(data.pos), false);
+  section('メインクラス', skillsOf(data.mc), false);
+  section('サブクラス', skillsOf(data.sc), false);
   const parts = (data.parts || []).filter(p => p.name);
-  const groups = {};
-  parts.forEach(p => { const k = p.location || 'その他'; (groups[k] = groups[k] || []).push(p); });
-  const keys = Object.keys(groups).sort((x, y) => { const i = locOrder.findIndex(l => x.startsWith(l)), j = locOrder.findIndex(l => y.startsWith(l)); return (i < 0 ? 9 : i) - (j < 0 ? 9 : j); });
-  keys.forEach(k => {
-    lines.push(`■${k}`);
-    groups[k].forEach(p => {
-      const spec = specOf(p);
-      const memo = one(p.memo);
-      lines.push(`${p.isBroken ? '【損傷】' : ''}【${p.name}】(${p.type}${p.level && p.level !== '1' ? ' Lv' + p.level : ''}) ${spec}${memo ? ' ' + memo : ''}`.trim());
-    });
-    lines.push('');
+  const known = ['頭部', '腕部', '胴部', '脚部'];
+  [['頭', '頭部'], ['腕', '腕部'], ['胴', '胴部'], ['脚', '脚部']].forEach(([label, loc]) => {
+    section(label, parts.filter(p => p.location === loc), true);
   });
-
-  const skills = (data.skills || []).filter(s => s.name);
-  if (skills.length) {
-    lines.push('■スキル');
-    skills.forEach(s => {
-      const spec = specOf(s), memo = one(s.memo);
-      lines.push(`【${s.name}】${spec ? spec + ' ' : ''}${memo}`.trim());
-    });
-  }
-  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+  const others = parts.filter(p => !known.includes(p.location));
+  if (others.length) section('その他', others, true);
   return lines;
 }
 
