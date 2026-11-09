@@ -52,12 +52,11 @@ function exportCcfolia() {
   const currentChouaiEl = document.getElementById('current-chouai');
   const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
 
-  // ステータス欄：行動値・寵愛点・損傷（壊れた数/パーツ数）・未練ごとの狂気点（0〜4）
+  // ステータス欄：せぼね・狂気上限・未練ごとの狂気点（0〜4）
   const partList = (data.parts || []).filter(p => p.name);
   const brokenCount = partList.filter(p => p.isBroken).length;
-  const status = [
-    { label: '行動値', value: actValue, max: actValue }
-  ];
+  // 行動値はイニシアチブ欄に入れるので、ステータスには作らない
+  const status = [];
   // 「せぼね」など貯めて使うパーツは、ストック数を数えるための欄（0/0）を作る
   const stocked = [];
   partList.forEach(p => {
