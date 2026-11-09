@@ -68,7 +68,7 @@ function exportCcfolia() {
   });
   // 未練の回復できる上限は記憶のカケラの数。残り/最大の欄にする（カケラが無ければ作らない）
   const memCount = (data.memories || []).map(memoryToText).filter(Boolean).length;
-  if (memCount > 0) status.push({ label: '記憶のカケラ', value: memCount, max: memCount });
+  if (memCount > 0) status.push({ label: '狂気上限', value: memCount, max: memCount });
   (data.list || []).forEach(l => {
     const name = (l.target || '').trim();
     if (!name && !l.emotion) return;
