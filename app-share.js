@@ -52,19 +52,11 @@ function exportCcfolia() {
   const currentChouaiEl = document.getElementById('current-chouai');
   const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
 
-  // ステータス欄：せぼね・狂気上限・未練ごとの狂気点（0〜4）
+  // ステータス欄：狂気上限・未練ごとの狂気点（0〜4）・せぼね（いちばん下）
   const partList = (data.parts || []).filter(p => p.name);
   const brokenCount = partList.filter(p => p.isBroken).length;
   // 行動値はイニシアチブ欄に入れるので、ステータスには作らない
   const status = [];
-  // 「せぼね」など貯めて使うパーツは、ストック数を数えるための欄（0/0）を作る
-  const stocked = [];
-  partList.forEach(p => {
-    if ((p.name === 'せぼね' || /貯め|ストック/.test(p.memo || '')) && !stocked.includes(p.name)) {
-      stocked.push(p.name);
-      status.push({ label: p.name, value: 0, max: 0 });
-    }
-  });
   // 未練の回復できる上限は記憶のカケラの数。残り/最大の欄にする（カケラが無ければ作らない）
   const memCount = (data.memories || []).map(memoryToText).filter(Boolean).length;
   if (memCount > 0) status.push({ label: '狂気上限', value: memCount, max: memCount });
@@ -72,6 +64,14 @@ function exportCcfolia() {
     const name = (l.target || '').trim();
     if (!name && !l.emotion) return;
     status.push({ label: `${name || '○○'}への未練`, value: Math.max(0, Math.min(4, parseInt(l.madness, 10) || 0)), max: 4 });
+  });
+  // 「せぼね」など貯めて使うパーツは、ストック数を数えるための欄（0/0）を、いちばん下に作る
+  const stocked = [];
+  partList.forEach(p => {
+    if ((p.name === 'せぼね' || /貯め|ストック/.test(p.memo || '')) && !stocked.includes(p.name)) {
+      stocked.push(p.name);
+      status.push({ label: p.name, value: 0, max: 0 });
+    }
   });
 
   // パラメータ欄は使わない（情報はメモ欄に入れる）
