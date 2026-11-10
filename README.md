@@ -78,7 +78,7 @@
 
 不具合報告・更新情報：X @dollsekkeizukan（https://x.com/dollsekkeizukan）
 
-本ツールの制作には、AIアシスタント Claude（Anthropic）の支援を受けています。
+本ツールの制作には、AIアシスタント Claude（Anthropic）を使用しています。
 
 ## ■ 更新履歴
 
