@@ -55,11 +55,12 @@ function exportCcfolia() {
   const currentChouaiEl = document.getElementById('current-chouai');
   const currentChouai = currentChouaiEl ? (parseInt(currentChouaiEl.textContent, 10) || 0) : 0;
 
-  // ステータス欄：狂気上限・未練ごとの狂気点（0〜4）・せぼね（いちばん下）
+  // ステータス欄：行動値・狂気上限・未練ごとの狂気点（0〜4）・せぼね（いちばん下）
   const partList = (data.parts || []).filter(p => p.name);
   const brokenCount = partList.filter(p => p.isBroken).length;
-  // 行動値はイニシアチブ欄に入れるので、ステータスには作らない
-  const status = [];
+  const status = [
+    { label: '行動値', value: actValue, max: actValue }
+  ];
   // 未練の回復できる上限は記憶のカケラの数。残り/最大の欄にする（カケラが無ければ作らない）
   const memCount = (data.memories || []).map(memoryToText).filter(Boolean).length;
   if (memCount > 0) status.push({ label: '狂気上限', value: memCount, max: memCount });
