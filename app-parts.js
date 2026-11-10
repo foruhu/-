@@ -377,7 +377,7 @@ function placeTreasureEntry(button) {
   const baseMemo = 'バトルパート終了時、狂気点を1点回復。損傷時に所持パーツから取り除く';
   const memo = content ? `${content}\n${baseMemo}` : baseMemo;
 
-  addPartRow(tbody, name, 'たからもの', '', 'オート', '無し', '自身', memo, false, location, detectCategoryFromMemo(memo));
+  addPartRow(tbody, name, 'たからもの', '', 'オート', 'なし', '自身', memo, false, location, detectCategoryFromMemo(memo));
 
   alert(`「${name}」を${location}のパーツとして配置しました`);
 }

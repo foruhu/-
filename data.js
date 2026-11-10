@@ -16,12 +16,12 @@ const SKILL_DATABASE = {
   ],
   'ジャンク': [
     { name: '随行' }, { name: '足掻く' },
-    { name: '半壊', memo: 'オート/無し/自身\nバトルパートにおけるターン終了時、「たからもの」を破損した際、いずれも狂気点の増加を受けない' },
+    { name: '半壊', memo: 'オート/なし/自身\nバトルパートにおけるターン終了時、「たからもの」を破損した際、いずれも狂気点の増加を受けない' },
     { name: '奈落への抗い' }, { name: '地獄の住人' }, { name: '楽園の守護者' }, { name: '手負いの獣' }
   ],
   'コート': [
     { name: '助言' }, { name: '作戦' },
-    { name: '冷静', memo: 'オート/無し/自身\n行動判定において、出目+1してよい' },
+    { name: '冷静', memo: 'オート/なし/自身\n行動判定において、出目+1してよい' },
     { name: '先読み' }, { name: '看破' }, { name: '抑制' }, { name: '憎まれ役' }
   ],
   'ソロリティ': [
@@ -30,17 +30,17 @@ const SKILL_DATABASE = {
   ],
   'ステーシー': [
     { name: '蠢く肉片' },
-    { name: '平気', memo: 'オート/無し/自身\nバトルパートにおいて、パーツを損傷しても、ターン終了までそのマニューバは使用できる' },
+    { name: '平気', memo: 'オート/なし/自身\nバトルパートにおいて、パーツを損傷しても、ターン終了までそのマニューバは使用できる' },
     { name: '死に続け', memo: 'ラピッド/0/自身\n損傷している基本パーツ1つを修復する' },
     { name: '庇う', memo: 'ダメージ/0/0〜1\n対象が受けたダメージを代わりに自身が受ける、1ターンに何度でも使用可' },
     { name: '肉の盾' },
-    { name: '失敗作', memo: 'オート/無し/自身\n攻撃判定・切断判定の出目は全て+1、ただしバトルパートでのターン終了時・戦闘終了時に任意のパーツを1つ損傷する' }
+    { name: '失敗作', memo: 'オート/なし/自身\n攻撃判定・切断判定の出目は全て+1、ただしバトルパートでのターン終了時・戦闘終了時に任意のパーツを1つ損傷する' }
   ],
   'タナトス': [
     { name: '無限解体' },
-    { name: '死神', memo: 'オート/無し/自身\n白兵攻撃マニューバの攻撃判定において、出目+1してもよい' },
+    { name: '死神', memo: 'オート/なし/自身\n白兵攻撃マニューバの攻撃判定において、出目+1してもよい' },
     { name: '災禍', memo: 'ダメージ/2/自身\n自身が与えた白兵攻撃にのみ使用可、「全体攻撃」の効果を得る。これによって自身がダメージを受けることはない' },
-    { name: '殺劇', memo: 'オート/無し/自身\nバトルパートで、同カウント内に他の姉妹が攻撃対象とした敵に攻撃判定する際、自身の攻撃判定出目+1、ダメージ+1してよい' },
+    { name: '殺劇', memo: 'オート/なし/自身\nバトルパートで、同カウント内に他の姉妹が攻撃対象とした敵に攻撃判定する際、自身の攻撃判定出目+1、ダメージ+1してよい' },
     { name: '刹那' }, { name: '必中' }
   ],
   'ゴシック': [
@@ -50,16 +50,16 @@ const SKILL_DATABASE = {
     { name: '悪食' }, { name: '背徳の悦び' }
   ],
   'レクイエム': [
-    { name: '魔弾', memo: 'オート/無し/自身\nバトルパートで射撃攻撃マニューバの最大射程を+1してもよい' },
-    { name: '銃神', memo: 'オート/無し/自身\n射撃攻撃マニューバの攻撃判定において、出目+1してもよい' },
+    { name: '魔弾', memo: 'オート/なし/自身\nバトルパートで射撃攻撃マニューバの最大射程を+1してもよい' },
+    { name: '銃神', memo: 'オート/なし/自身\n射撃攻撃マニューバの攻撃判定において、出目+1してもよい' },
     { name: '死の手' }, { name: '子守唄' }, { name: '銃型' },
     { name: '集中', memo: 'ラピッド/2/自身\n以後、ターン終了まであなたの攻撃判定の出目+1' }
   ],
   'バロック': [
     { name: '異形存在' },
-    { name: '狂鬼', memo: 'オート/無し/自身\n肉弾攻撃マニューバの攻撃判定において、出目+1してもよい' },
-    { name: '怪力', memo: 'オート/無し/自身\n肉弾・白兵攻撃におけるダメージ+1' },
-    { name: '歪極', memo: '効果参照/無し/自身\nレベル3変異パーツを追加で1つ獲得、このパーツは修復可能' },
+    { name: '狂鬼', memo: 'オート/なし/自身\n肉弾攻撃マニューバの攻撃判定において、出目+1してもよい' },
+    { name: '怪力', memo: 'オート/なし/自身\n肉弾・白兵攻撃におけるダメージ+1' },
+    { name: '歪極', memo: '効果参照/なし/自身\nレベル3変異パーツを追加で1つ獲得、このパーツは修復可能' },
     { name: '業躯' }, { name: '再生' }
   ],
   'ロマネスク': [
@@ -79,8 +79,8 @@ const CLASS_PARTS = {
 
 const DEFAULT_PARTS = {
   head: [
-    { name: 'のうみそ', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+2' },
-    { name: 'めだま', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'のうみそ', type: '基本', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+2' },
+    { name: 'めだま', type: '基本', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
     { name: 'あご', type: '基本', level: 1, timing: 'アクション', cost: '2', range: '0', memo: '肉弾攻撃1' }
   ],
   arm: [
@@ -90,8 +90,8 @@ const DEFAULT_PARTS = {
   ],
   body: [
     { name: 'せぼね', type: '基本', level: 1, timing: 'アクション', cost: '1', range: '自身', memo: '同ターン内の次カウントで使うマニューバ1つのコスト-1' },
-    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '無し', memo: 'なし' },
-    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: '無し', range: '無し', memo: 'なし' }
+    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: 'なし', range: 'なし', memo: 'なし' },
+    { name: 'はらわた', type: '基本', level: 1, timing: 'オート', cost: 'なし', range: 'なし', memo: 'なし' }
   ],
   leg: [
     { name: 'ほね', type: '基本', level: 1, timing: 'アクション', cost: '3', range: '自身', memo: '移動1' },
@@ -102,14 +102,14 @@ const DEFAULT_PARTS = {
 
 const EXTRA_PARTS_DB = {
   head: [
-    { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'カンフー', type: '武装', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
     { name: '発勁', type: '武装', level: 2, timing: '', cost: '', range: '' },
-    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1、このパーツを行動判定で使用して大失敗してもこのパーツは損傷しない' },
+    { name: 'けもみみ', type: '変異', level: 2, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1、このパーツを行動判定で使用して大失敗してもこのパーツは損傷しない' },
     { name: 'よだれじた', type: '変異', level: 2, timing: '', cost: '', range: '' },
     { name: 'よぶんなあたま', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'きもちいいくすり', type: '変異', level: 3, timing: 'ダメージ', cost: '1', range: '自身', memo: '自身がダメージを受けた際のみ使用可、任意の未練から狂気点を1減少させてよい' },
-    { name: 'リフレックス', type: '改造', level: 2, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
-    { name: 'アドレナリン', type: '改造', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'リフレックス', type: '改造', level: 2, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
+    { name: 'アドレナリン', type: '改造', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
     { name: 'セイバートゥース', type: '改造', level: 1, timing: '', cost: '', range: '' },
     { name: 'ボルトヘッド', type: '改造', level: 1, timing: 'ジャッジ', cost: '1', range: '自身', memo: '支援2' },
     { name: 'ボイスエフェクト', type: '改造', level: 1, timing: '', cost: '', range: '' },
@@ -146,13 +146,13 @@ const EXTRA_PARTS_DB = {
     { name: 'アームバイス', type: '改造', level: 3, timing: '', cost: '', range: '' }
   ],
   body: [
-    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい' },
-    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'つぎはぎ', type: '変異', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: 'バトルパート終了時、このパーツと損傷した基本パーツ1つを修復してよい' },
+    { name: 'しんぞう', type: '変異', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
     { name: 'どろどろ', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'あるびの', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'ちみどろ', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'うろこ', type: '変異', level: 2, timing: '', cost: '', range: '' },
-    { name: 'やせぎす', type: '変異', level: 3, timing: 'オート', cost: '無し', range: '自身', memo: 'バトルパートで1つの判定につき1回、「妨害」を無効化してよい' },
+    { name: 'やせぎす', type: '変異', level: 3, timing: 'オート', cost: 'なし', range: '自身', memo: 'バトルパートで1つの判定につき1回、「妨害」を無効化してよい' },
     { name: 'だるま', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'サイボーグ', type: '改造', level: 3, timing: '', cost: '', range: '' },
     { name: 'アーマースキン', type: '改造', level: 1, timing: '', cost: '', range: '' },
@@ -161,7 +161,7 @@ const EXTRA_PARTS_DB = {
   ],
   leg: [
     { name: '仕込みブーツ', type: '武装', level: 2, timing: 'アクション', cost: '2', range: '0', memo: '白兵攻撃2、攻撃判定の出目+1' },
-    { name: 'しっぽ', type: '変異', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: '最大行動値+1' },
+    { name: 'しっぽ', type: '変異', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: '最大行動値+1' },
     { name: 'はりつき', type: '変異', level: 1, timing: '', cost: '', range: '' },
     { name: 'よぶんなあし', type: '変異', level: 3, timing: '', cost: '', range: '' },
     { name: 'けもあし', type: '変異', level: 3, timing: 'アクション', cost: '2', range: '自身', memo: '移動1〜2' },
@@ -188,7 +188,7 @@ const COMMON_EXTRA_PARTS = [
   { name: 'にくむち', type: '変異', level: 3, timing: '', cost: '', range: '' },
   { name: 'やぶれひまく', type: '変異', level: 3, timing: '', cost: '', range: '' },
   { name: 'しびとだけ', type: '変異', level: 3, timing: '', cost: '', range: '' },
-  { name: 'リミッター', type: '改造', level: 1, timing: 'オート', cost: '無し', range: '自身', memo: 'ターン開始時、損傷していれば最大行動値+2' },
+  { name: 'リミッター', type: '改造', level: 1, timing: 'オート', cost: 'なし', range: '自身', memo: 'ターン開始時、損傷していれば最大行動値+2' },
   { name: 'ジェットノズル', type: '改造', level: 1, timing: '', cost: '', range: '' },
   { name: 'リモートアタック', type: '改造', level: 1, timing: '', cost: '', range: '' },
   { name: 'ゾンビボム', type: '改造', level: 2, timing: '', cost: '', range: '' },
