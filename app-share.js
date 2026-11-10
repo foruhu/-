@@ -16,9 +16,7 @@ function exportJSON() {
 function buildCcfoliaCommandLines(data) {
   const one = t => String(t || '').replace(/\s*\n\s*/g, ' ').trim();
   const body = (x, prefix) => {
-    // コスト・射程の「無し」は「なし」にそろえる
-    const nash = v => String(v || '').replace(/^\s*無し\s*$/, 'なし');
-    const spec = `《T:${x.timing || ''}／C:${nash(x.cost)}／R:${nash(x.range)}》`;
+    const spec = `《T:${x.timing || ''}／C:${x.cost || ''}／R:${x.range || ''}》`;
     return `${prefix ? prefix + ' ' : ''}【${x.name}】\\n${spec}\\n${one(x.memo)}`;
   };
   const attackPrefix = p => {

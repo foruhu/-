@@ -418,13 +418,7 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
-// コスト・射程の「無し」は「なし」にそろえる（以前に保存したデータや、読み込んだテキストに「無し」があっても、表示は「なし」になる）
-function normalizeNone(v) {
-  return String(v == null ? '' : v).replace(/^\s*無し\s*$/, 'なし');
-}
-
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
-  cost = normalizeNone(cost); range = normalizeNone(range);
   const tr = document.createElement('tr');
   tr.className = 'part-row';
   const readOnlyAttr = isEditable ? '' : 'readonly';
