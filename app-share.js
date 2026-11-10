@@ -104,6 +104,8 @@ function exportCcfolia() {
   // 損傷しているパーツは、名前の前に ❌ を付ける
   const names = arr => arr.filter(x => x.name).map(x => `${x.isBroken ? '❌' : ''}【${x.name}】`).join('');
   const skillsOf = c => c ? (data.skills || []).filter(x => x.category === c) : [];
+  // ✅❌をコピーするための行（メモを編集するとき、ここからコピーして貼る）。マニューバの一覧のすぐ上に置く
+  memoLines.push('✅使用済み／❌損傷済み');
   memoLines.push(`--ポジション--${names(skillsOf(data.pos))}`);
   memoLines.push(`--メインクラス--${names(skillsOf(data.mc))}`);
   memoLines.push(`--サブクラス--${names(skillsOf(data.sc))}`);
@@ -119,9 +121,6 @@ function exportCcfolia() {
       memoLines.push(`未練[${l.target || '?'}] ${l.emotion || ''}（狂気点${l.madness || 0}）` + (l.madName ? ` 発狂：${l.madName}${l.madEffect ? '（' + l.madEffect + '）' : ''}` : ''));
     }
   });
-  // ✅❌をコピーするための行（メモを編集するとき、ここからコピーして貼る）
-  memoLines.push('');
-  memoLines.push('✅使用済み／❌損傷済み');
 
   const ccfoliaData = {
     kind: 'character',
