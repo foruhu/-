@@ -81,10 +81,18 @@ function exportCcfolia() {
 
   // メモ欄：基本情報 → 記憶のかけら → 部位ごとのパーツ一覧（【名前】を並べる）
   const memoLines = [];
-  memoLines.push(`名前: ${data.name || ''}`);
+  memoLines.push(`PC: ${data.name || ''}`);
+  memoLines.push(`PL: ${data.pl || ''}`);
   memoLines.push(`ポジション: ${data.pos || ''}`);
   memoLines.push(`クラス： ${[data.mc, data.sc].filter(Boolean).join(' / ')}`);
   memoLines.push(`行動値: ${actValue}`);
+  if (data.age) memoLines.push(`享年: ${data.age}`);
+  if (data.ps) memoLines.push(`初期配置: ${data.ps}`);
+  // 外見（入力のある項目だけ、2行にまとめる）
+  const look1 = [['身長', data.height], ['体重', data.weight]].filter(x => x[1]).map(x => `${x[0]}: ${x[1]}`).join(' / ');
+  const look2 = [['髪の色', data.hair], ['瞳の色', data.eye], ['肌の色', data.skin]].filter(x => x[1]).map(x => `${x[0]}: ${x[1]}`).join(' / ');
+  if (look1) memoLines.push(look1);
+  if (look2) memoLines.push(look2);
   memoLines.push('');
   memoLines.push('記憶のかけら');
   const memTexts = (data.memories || []).map(memoryToText).filter(Boolean);
