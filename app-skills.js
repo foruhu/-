@@ -254,6 +254,7 @@ function toggleSkillUsed(checkbox) {
 }
 
 function addSkillRow(category, skillName = '', timing = '', cost = '', range = '', memo = '', tag = '', isUsed = false) {
+  cost = normalizeNone(cost); range = normalizeNone(range);
   const tbody = document.getElementById('skill-tbody');
   if (!tbody) return;
   const tr = document.createElement('tr');
