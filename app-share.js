@@ -364,8 +364,9 @@ async function exportViewURL() {
   const selectedId = document.getElementById('save-slot')?.value;
   if (selectedId && mode === 'server') {
     const sheets = getSavedSheets();
-    if (sheets[selectedId] && sheets[selectedId].image) {
-      data.shareImage = sheets[selectedId].image;
+    const _imgs = entryImages(sheets[selectedId]);
+    if (_imgs.length) {
+      data.shareImage = _imgs[0];
     }
   }
 

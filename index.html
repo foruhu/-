@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール">
 <meta name="twitter:description" content="『永い後日談のネクロニカ』用 非公式キャラクターシート作成・保管ツール。スマホ対応。">
-<link rel="stylesheet" href="style.css?v=134">
+<link rel="stylesheet" href="style.css?v=135">
 </head>
 <body>
 
@@ -112,6 +112,13 @@
 
 <div class="card" id="sec-basic">
   <div class="title">基本情報・強化値計算</div>
+  <div id="image-panel" class="edit-only">
+    <div class="img-panel-head">🖼 キャラクター画像 <span id="img-panel-count"></span></div>
+    <div id="img-panel-list" class="img-panel-list"></div>
+    <div id="img-panel-note" class="img-panel-note"></div>
+  </div>
+  <input type="file" id="img-add-input" accept="image/*" multiple style="display:none" onchange="onImagesAdded(event)">
+  <input type="file" id="img-replace-input" accept="image/*" style="display:none" onchange="onImageReplaced(event)">
   <div class="kv-grid">
     <div class="kv kv-wide"><label>PL名</label><input type="text" id="pl"></div>
     <div class="kv kv-wide"><label>ドール名</label><input type="text" id="name"></div>
@@ -369,15 +376,8 @@
       <button type="button" class="action-btn c-pink" onclick="duplicateSelectedSave()">
         <span class="icon">📋</span><span>複製</span>
       </button>
-      <button type="button" class="action-btn c-pink" onclick="document.getElementById('thumb-file-input').click()">
-        <span class="icon">🖼</span><span>画像を設定</span>
-      </button>
-      <button type="button" class="action-btn c-red" onclick="clearSelectedThumbnail()">
-        <span class="icon">🚫</span><span>ノーイメージ<br>に戻す</span>
-      </button>
     </div>
   </div>
-  <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="onThumbFileSelected(event)">
 
   <div class="action-btn-row" style="margin-top:8px;">
     <button type="button" class="action-btn c-blue" onclick="restoreDeletedSave()">
@@ -536,6 +536,7 @@
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 基本の入力</h4>
     <ul style="margin:0; padding-left:1.2em;">
+      <li>基本情報のいちばん上の「🖼 キャラクター画像」で、画像を最大6枚まで設定できます。「＋画像を追加」から選ぶと、まとめて複数枚も選べます。画像をタップすると、メインにする・差し替え・削除ができます。先頭の「メイン」が、保存済みキャラの一覧と表示モードの最初の画像になり、表示モードでは、ほかの画像を下の小さな一覧から切り替えられます。共有URL・閲覧用URL(サーバーに保存する場合)には、メイン画像だけが入ります。</li>
       <li>ポジション・メインクラス・サブクラスを選ぶと、武装・変異・改造のパーツ配置上限が自動計算されます。</li>
       <li>「ボーナス」は武装・変異・改造のいずれか1つに+1です。寵愛による修正は手入力で加算します。</li>
       <li>最大行動値は「基本行動値＋損傷していないパーツの『最大行動値+N』」で自動計算されます(内訳も表示)。</li>
@@ -613,6 +614,7 @@
       <li>2026/11/10 コマのメモ：先頭を「PC / PL」の表記にして、享年・初期配置・外見を追加しました。</li>
       <li>2026/11/10 コマのメモとチャットパレット：「✅使用済み／❌損傷済み」のコピペ用の行を追加しました。損傷済みのパーツには、名前の前に❌が付きます。</li>
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
+      <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
     </ul>
   </div>
 </div>
@@ -631,16 +633,16 @@
   </div>
 </div>
 
-<script src="data.js?v=134"></script>
-<script src="app-core.js?v=134"></script>
-<script src="app-parts.js?v=134"></script>
-<script src="app-skills.js?v=134"></script>
-<script src="app-save.js?v=134"></script>
-<script src="app-dict.js?v=134"></script>
-<script src="app-image.js?v=134"></script>
-<script src="app-look.js?v=134"></script>
-<script src="app-sheetprint.js?v=134"></script>
-<script src="app-share.js?v=134"></script>
-<script src="app-main.js?v=134"></script>
+<script src="data.js?v=135"></script>
+<script src="app-core.js?v=135"></script>
+<script src="app-parts.js?v=135"></script>
+<script src="app-skills.js?v=135"></script>
+<script src="app-save.js?v=135"></script>
+<script src="app-dict.js?v=135"></script>
+<script src="app-image.js?v=135"></script>
+<script src="app-look.js?v=135"></script>
+<script src="app-sheetprint.js?v=135"></script>
+<script src="app-share.js?v=135"></script>
+<script src="app-main.js?v=135"></script>
 </body>
 </html>

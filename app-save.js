@@ -204,6 +204,7 @@ function moveToTrash(id, entry) {
     pl: entry.pl || '',
     savedAt: entry.savedAt || '',
     image: entry.image || null,
+    images: entryImages(entry),
     data: entry.data,
     deletedAt: new Date().toISOString(),
     originalId: id
@@ -224,6 +225,7 @@ function restoreDeletedSave() {
     pl: entry.pl || '',
     savedAt: entry.savedAt || new Date().toISOString(),
     image: entry.image || null,
+    images: entryImages(entry),
     data: JSON.parse(JSON.stringify(entry.data || {}))
   };
   if (!setSavedSheets(sheets)) return;
@@ -288,9 +290,11 @@ function saveData() {
       name: inputName || defaultName,
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
-      image: null,
+      image: pendingImages[0] || null,
+      images: pendingImages.slice(),
       data: data
     };
+    pendingImages = [];
   } else {
     // 上書き保存
     const existing = sheets[id];
@@ -301,6 +305,7 @@ function saveData() {
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
       image: existing ? existing.image || null : null,
+      images: existing ? entryImages(existing) : [],
       data: data
     };
   }
@@ -451,6 +456,7 @@ function onBackupFileSelected(event) {
           pl: entry.pl || '',
           savedAt: entry.savedAt || new Date().toISOString(),
           image: entry.image || null,
+          images: entryImages(entry),
           data: entry.data
         };
       });
@@ -491,6 +497,7 @@ function newBlankSheet() {
   if (!confirm('今の入力をすべて消して、白紙に戻します。\n保存済みのキャラクターは消えません（「↩️ 元に戻す」で、今の入力は戻せます）。\n\nよろしいですか？')) return;
   pushUndoSnapshot();
   applyData(JSON.parse(JSON.stringify(BLANK_SHEET_DATA)));
+  pendingImages = [];
   const select = document.getElementById('save-slot');
   if (select) select.value = '';
   if (typeof renderSaveCards === 'function') renderSaveCards('');

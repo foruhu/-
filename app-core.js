@@ -59,7 +59,7 @@ function markDirty() {
 }
 
 function setupDirtyTracking() {
-  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input']);
+  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input', 'img-add-input', 'img-replace-input']);
   document.addEventListener('input', (e) => {
     if (e.target && ignoreIds.has(e.target.id)) return;
     isDirty = true;
@@ -107,12 +107,14 @@ function performAutosave() {
     const selectedId = select ? select.value : '';
     const selectedEntry = selectedId ? sheets[selectedId] : null;
     const id = 'autosave_draft';
-    const existingImage = sheets[id] ? sheets[id].image : null;
+    // 保存済みキャラの下書きは、サムネイル用のメイン1枚だけ持つ（残りは本体にある）。未保存のときだけ全部持つ
+    const imgList = selectedId ? entryImages(selectedEntry).slice(0, 1) : pendingImages.slice();
     sheets[id] = {
       name: '（自動保存）' + (data.name || '下書き'),
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
-      image: existingImage,
+      image: imgList[0] || null,
+      images: selectedId ? [] : imgList,
       draftOf: selectedId || '',
       draftOfName: selectedEntry ? (selectedEntry.name || '') : '',
       data: data
@@ -155,21 +157,32 @@ function toggleExportShareSection() {
   toggleBtn.textContent = isHidden ? '▲ 出力・共有オプションを隠す' : '▼ 出力・共有オプションを表示';
 }
 
-// 選択中キャラクターの画像を、表示モード時にページ最上部へ表示する
+// 選択中キャラクターの画像を、表示モード時にページ最上部へ表示する（複数枚あるときは、下の小さな一覧で切り替える）
 function updateViewModeImage(selectedId) {
   const container = document.getElementById('view-mode-image-container');
   if (!container) return;
 
-  const sheets = getSavedSheets();
-  const entry = selectedId ? sheets[selectedId] : null;
+  const list = selectedId ? entryImages(getSavedSheets()[selectedId]) : pendingImages.slice();
 
-  if (entry && entry.image) {
-    container.innerHTML = `<img src="${entry.image}" alt="">`;
+  if (list.length) {
+    const thumbs = list.length > 1
+      ? `<div class="vm-thumbs">${list.map((s, i) => `<img src="${s}" alt="" class="${i === 0 ? 'on' : ''}" onclick="setViewMainImage(${i})">`).join('')}</div>`
+      : '';
+    container.innerHTML = `<img src="${list[0]}" alt="" id="vm-main-img">${thumbs}`;
     container.style.display = '';
   } else {
     container.innerHTML = '';
     container.style.display = 'none';
   }
+}
+
+// 表示モードで、下の小さな画像を押したとき、上の大きな画像を切り替える
+function setViewMainImage(i) {
+  const thumbs = document.querySelectorAll('#view-mode-image-container .vm-thumbs img');
+  const main = document.getElementById('vm-main-img');
+  if (!main || !thumbs[i]) return;
+  main.src = thumbs[i].src;
+  thumbs.forEach((t, k) => t.classList.toggle('on', k === i));
 }
 
 function renderSaveCards(selectedId = '') {
@@ -179,6 +192,7 @@ function renderSaveCards(selectedId = '') {
 
   updateSelectedActionsVisibility(selectedId);
   updateViewModeImage(selectedId);
+  renderImagePanel();
 
   const sheets = getSavedSheets();
   const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
@@ -314,6 +328,7 @@ function duplicateSelectedSave() {
     pl: entry.pl || '',
     savedAt: new Date().toISOString(),
     image: entry.image || null,
+    images: entryImages(entry),
     data: JSON.parse(JSON.stringify(entry.data))
   };
 
@@ -323,9 +338,46 @@ function duplicateSelectedSave() {
 }
 
 // ==========================================================
-// サムネイル画像の設定
+// キャラクター画像（複数枚）。先頭の1枚が「メイン画像」で、保存済みカードのサムネイルや表示モードの最初の画像になる。
+// 保存済みのキャラには entry.images（配列）で持つ。entry.image は先頭の1枚のコピー（古い形式との互換）。
+// まだ保存していないキャラの画像は、保存するまで pendingImages に持つ。
 // ==========================================================
-function resizeImageToDataURL(file, maxDim = 160, quality = 0.75) {
+const IMG_MAX_COUNT = 6;
+let pendingImages = [];
+let imageReplaceIndex = -1;
+
+function entryImages(e) {
+  if (!e) return [];
+  if (Array.isArray(e.images) && e.images.length) return e.images.filter(Boolean);
+  return e.image ? [e.image] : [];
+}
+
+function currentImageList() {
+  const sel = document.getElementById('save-slot');
+  const id = sel ? sel.value : '';
+  if (id) return entryImages(getSavedSheets()[id]);
+  return pendingImages.slice();
+}
+
+// 画像の並びを保存する（保存済みキャラなら本体へ、未保存なら保留分へ）。うまくいったら true
+function writeImageList(list) {
+  const sel = document.getElementById('save-slot');
+  const id = sel ? sel.value : '';
+  if (id) {
+    const sheets = getSavedSheets();
+    if (!sheets[id]) return false;
+    sheets[id].images = list.slice();
+    sheets[id].image = list[0] || null;
+    if (!setSavedSheets(sheets)) return false;
+  } else {
+    pendingImages = list.slice();
+    try { performAutosave(); } catch (e) {}
+  }
+  renderSaveCards(id);
+  return true;
+}
+
+function resizeImageToDataURL(file, maxDim = 360, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -353,56 +405,98 @@ function resizeImageToDataURL(file, maxDim = 160, quality = 0.75) {
   });
 }
 
-function onThumbFileSelected(event) {
-  const file = event.target.files && event.target.files[0];
+// 基本情報の上の「キャラクター画像」欄を描く
+function renderImagePanel() {
+  const box = document.getElementById('img-panel-list');
+  if (!box) return;
+  const list = currentImageList();
+  const cnt = document.getElementById('img-panel-count');
+  if (cnt) cnt.textContent = `（${list.length}/${IMG_MAX_COUNT}枚）`;
+  const sel = document.getElementById('save-slot');
+  const saved = !!(sel && sel.value);
+  const thumbs = list.map((src, i) => `<button type="button" class="img-thumb${i === 0 ? ' main' : ''}" onclick="openImageActions(${i})"><img src="${src}" alt=""><span class="img-badge">${i === 0 ? 'メイン' : (i + 1)}</span></button>`).join('');
+  const addBtn = list.length < IMG_MAX_COUNT
+    ? `<button type="button" class="img-thumb img-add" onclick="document.getElementById('img-add-input').click()"><span class="img-add-plus">＋</span><span class="img-add-text">画像を追加</span></button>`
+    : '';
+  box.innerHTML = thumbs + addBtn;
+  const note = document.getElementById('img-panel-note');
+  if (note) note.textContent = list.length
+    ? '画像をタップすると、メインにする・差し替え・削除ができます。先頭の「メイン」が、キャラの一覧と表示モードの最初の画像になります。' + (saved ? '' : '（まだ保存していません。保存すると、画像もいっしょに保存されます）')
+    : '画像はまだありません。「＋画像を追加」から、写真やイラストを選んでください(まとめて複数枚も選べます)。' + (saved ? '' : '（まだ保存していません。保存すると、画像もいっしょに保存されます）');
+}
+
+// 画像を追加（複数枚をまとめて選べる）
+function onImagesAdded(event) {
+  const files = Array.from((event.target.files) || []);
   event.target.value = '';
-  if (!file) return;
-
-  const select = document.getElementById('save-slot');
-  const id = select ? select.value : '';
-  if (!id) {
-    alert('先に「保存済みキャラクター」のカードを選択してください（未保存の場合は先にブラウザに保存してください）');
-    return;
-  }
-
-  resizeImageToDataURL(file).then(dataUrl => {
-    const sheets = getSavedSheets();
-    if (!sheets[id]) return;
-    sheets[id].image = dataUrl;
-    if (!setSavedSheets(sheets)) return;
-    renderSaveCards(id);
-    alert('サムネイル画像を設定しました');
+  if (!files.length) return;
+  const list = currentImageList();
+  const room = IMG_MAX_COUNT - list.length;
+  if (room <= 0) { alert(`画像は${IMG_MAX_COUNT}枚までです。不要な画像を削除してから追加してください`); return; }
+  const use = files.slice(0, room);
+  Promise.all(use.map(f => resizeImageToDataURL(f))).then(urls => {
+    if (!writeImageList(list.concat(urls))) return;
+    if (files.length > room) alert(`画像は${IMG_MAX_COUNT}枚までなので、${use.length}枚だけ追加しました`);
   }).catch(err => {
-    alert('画像の設定に失敗しました: ' + (err && err.message ? err.message : err));
+    alert('画像の追加に失敗しました: ' + (err && err.message ? err.message : err));
   });
 }
 
-// 選択中のキャラクターのサムネイル画像を削除し、ノーイメージ（プレースホルダー）に戻す
-function clearSelectedThumbnail() {
-  const select = document.getElementById('save-slot');
-  const id = select ? select.value : '';
-  if (!id) {
-    alert('先に「保存済みキャラクター」のカードを選択してください');
-    return;
-  }
-
-  const sheets = getSavedSheets();
-  if (!sheets[id]) return;
-
-  if (!sheets[id].image) {
-    alert('このキャラクターには画像が設定されていません');
-    return;
-  }
-
-  if (!confirm('サムネイル画像を削除して、ノーイメージに戻します。よろしいですか？')) return;
-
-  sheets[id].image = null;
-  if (!setSavedSheets(sheets)) return;
-  renderSaveCards(id);
-  alert('画像を削除しました');
+// 画像の差し替え（openImageActions から呼ぶ）
+function onImageReplaced(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  const i = imageReplaceIndex;
+  imageReplaceIndex = -1;
+  if (!file || i < 0) return;
+  const list = currentImageList();
+  if (i >= list.length) return;
+  resizeImageToDataURL(file).then(url => {
+    list[i] = url;
+    writeImageList(list);
+  }).catch(err => {
+    alert('画像の差し替えに失敗しました: ' + (err && err.message ? err.message : err));
+  });
 }
 
-
+// 画像をタップしたときの操作（メインにする・差し替え・削除）
+function openImageActions(i) {
+  const list = currentImageList();
+  if (i < 0 || i >= list.length) return;
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;color:#222;max-width:360px;width:100%;border-radius:10px;padding:14px;font-size:.88rem;';
+  const btn = 'display:block;width:100%;margin:0 0 8px;padding:10px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;font-size:.9rem;';
+  box.innerHTML = `<img src="${list[i]}" alt="" style="display:block;max-width:100%;max-height:220px;margin:0 auto 10px;border-radius:6px;">
+    ${i > 0 ? `<button type="button" data-k="main" style="${btn}">メイン画像にする</button>` : '<div style="text-align:center;margin-bottom:8px;color:#666;">いまのメイン画像です</div>'}
+    <button type="button" data-k="replace" style="${btn}">別の画像に差し替える</button>
+    <button type="button" data-k="delete" style="${btn}color:#b00;">この画像を削除する</button>
+    <button type="button" data-k="" style="${btn}background:#fff;color:#444;margin-bottom:0;">閉じる</button>`;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  box.addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]');
+    if (!b) return;
+    const k = b.dataset.k;
+    close();
+    const cur = currentImageList();
+    if (k === 'main') {
+      const [it] = cur.splice(i, 1);
+      cur.unshift(it);
+      writeImageList(cur);
+    } else if (k === 'replace') {
+      imageReplaceIndex = i;
+      document.getElementById('img-replace-input').click();
+    } else if (k === 'delete') {
+      if (!confirm('この画像を削除します。よろしいですか？')) return;
+      cur.splice(i, 1);
+      writeImageList(cur);
+    }
+  });
+}
 
 // 「選択中のキャラ」を覚えておく対象か（下書きは対象外）
 function selectedIdForMemo(id) { return typeof id === 'string' && id !== 'autosave_draft'; }
@@ -419,6 +513,7 @@ function restoreWorkOnLoad() {
     const hasDraftId = draft && draft.draftOf && sheets[draft.draftOf];
     if (draft && draft.data && (!draft.draftOf || !hasDraftId || (sheets[draft.draftOf].savedAt || '') <= (draft.savedAt || ''))) {
       applyData(draft.data);
+      if (!hasDraftId) pendingImages = entryImages(draft);
       refreshSaveSlotOptions(hasDraftId ? draft.draftOf : '');
       updateAutosaveStatusText('下書きを復元しました');
       return;

@@ -465,3 +465,23 @@ body.battle-view .miren-mad-box { flex-wrap: wrap; row-gap: 0; }
 body.battle-view .miren-mad-box .miren-madname { flex: 1 1 0; }
 body.battle-view .miren-mad-box .miren-madeffect { flex: 1 0 100%; padding: 0 3px; }
 body.battle-view .miren-mad-row td { padding: 0 2px 3px; }
+
+/* キャラクター画像（複数枚）の管理欄 */
+#image-panel { margin: 4px 0 12px 0; padding: 8px; border: 1px dashed #666; border-radius: 8px; }
+.img-panel-head { font-size: .9rem; font-weight: bold; margin-bottom: 6px; }
+.img-panel-head span { font-weight: normal; font-size: .78rem; color: #999; }
+.img-panel-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.img-thumb { position: relative; width: 72px; height: 72px; padding: 0; border: 2px solid #555; border-radius: 8px; background: #222228; overflow: hidden; cursor: pointer; }
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-thumb.main { border-color: #e0a040; }
+.img-badge { position: absolute; left: 0; bottom: 0; right: 0; font-size: .62rem; line-height: 1.4; background: rgba(0,0,0,.65); color: #fff; text-align: center; }
+.img-thumb.main .img-badge { background: rgba(200,130,20,.85); }
+.img-add { display: flex; flex-direction: column; align-items: center; justify-content: center; border-style: dashed; color: #bbb; gap: 2px; }
+.img-add-plus { font-size: 1.5rem; line-height: 1; }
+.img-add-text { font-size: .62rem; }
+.img-panel-note { font-size: .72rem; color: #999; margin-top: 6px; line-height: 1.5; }
+/* 表示モードの画像：複数枚のとき、下に小さな一覧 */
+.vm-thumbs { display: flex; gap: 6px; justify-content: center; margin: -4px 0 10px 0; flex-wrap: wrap; }
+.vm-thumbs img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1.5px solid #555; opacity: .65; cursor: pointer; }
+.vm-thumbs img.on { border-color: #e0a040; opacity: 1; }
+@media print { #image-panel, .vm-thumbs { display: none !important; } }
