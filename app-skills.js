@@ -173,7 +173,8 @@ function updateSkillOptions() {
       SKILL_DATABASE[category].forEach(s => {
         const isSelectedByOther = selectedSkills.has(s.name) && s.name !== currentValue;
         const disabledAttr = isSelectedByOther ? 'disabled' : '';
-        const labelText = isSelectedByOther ? `${s.name} (選択済み)` : s.name;
+        const baseName = s.tokka ? `${s.name}（特化）` : s.name;
+        const labelText = isSelectedByOther ? `${baseName} (選択済み)` : baseName;
         optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
       });
     }
