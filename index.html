@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=212">
+<link rel="stylesheet" href="style.css?v=213">
 </head>
 <body>
 
@@ -128,7 +128,6 @@
 
 <div class="card" id="sec-basic">
   <div class="title">基本情報・強化値計算</div>
-  <button type="button" class="hokansho-bar edit-only" onclick="openHokanshoImport()" title="キャラクター保管所の「テキスト出力」を貼り付けて読み込みます">📝 保管所テキストから<br>キャラクターを読み込む</button>
   <div id="image-panel" class="edit-only">
     <div class="img-panel-head">🖼 キャラクター画像 <span id="img-panel-count"></span></div>
     <div id="img-panel-list" class="img-panel-list"></div>
@@ -409,6 +408,7 @@
       <span class="icon">📂</span><span>データを<br>読み込む</span>
     </button>
   </div>
+  <button type="button" class="hokansho-bar edit-only" style="margin-top:8px;" onclick="openHokanshoImport()" title="キャラクター保管所の「テキスト出力」を貼り付けて読み込みます">📝 保管所テキストから<br>キャラクターを読み込む</button>
 
   <div id="selected-actions" style="display:none;">
     <div style="font-size:0.72rem; color:#f0a0a0; margin: 6px 0 2px 2px;">▼ 選択中のキャラクターの操作</div>
@@ -677,7 +677,7 @@
       <li>書き出したファイルは、クラウドやメールなど、このブラウザとは別の場所にも置いておくと安心です。「🔍 バックアップファイルを確認」で、ファイルが読めるか・何人入っているか・今のブラウザと同じ内容かを、復元せずに確かめられます。</li>
       <li>保存済みのキャラがいて、14日以上バックアップを取っていない(または一度も取っていない)ときは、開いたときに画面の下でお知らせします。「あとで」を押すと、7日間は出ません。</li>
       <li>データ未登録のスキル・パーツに自分で書いた効果は、このブラウザに覚えられます。次からは、同じスキル・パーツを選ぶと自動で入ります(「全キャラをバックアップ」にも一緒に入ります)。</li>
-      <li>「保管所テキストから読み込む」(基本情報のいちばん上にある、横いっぱいの「📝 保管所テキストからキャラクターを読み込む」)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ。効果メモや名前に「たからもの」とあるもの、シートの「たからもの」欄と同じ名前のもの、以前に分類を「たからもの」にしたことがある名前のもの、このシートのパーツ一覧に無くてタイミングがオート・コストなし・射程なしのものは、分類が「たからもの」になります)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
+      <li>「保管所テキストから読み込む」(キャラクター管理の「ブラウザに保存」「データを読み込む」のすぐ下にある、横いっぱいの「📝 保管所テキストからキャラクターを読み込む」)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ。効果メモや名前に「たからもの」とあるもの、シートの「たからもの」欄と同じ名前のもの、以前に分類を「たからもの」にしたことがある名前のもの、このシートのパーツ一覧に無くてタイミングがオート・コストなし・射程なしのものは、分類が「たからもの」になります)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
       <li>「↩️ 削除したキャラを復元」では、削除したキャラの一覧(新しいものから最大5件)が開き、好きなものを選んで復元したり、完全に削除したりできます。</li>
     </ul>
 
@@ -698,6 +698,7 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/19 「保管所テキストからキャラクターを読み込む」ボタンを、キャラクター管理の「ブラウザに保存」「データを読み込む」のすぐ下に戻しました(横いっぱいの目立つ色のボタンです)。</li>
       <li>2026/11/19 「保管所テキストからキャラクターを読み込む」ボタンを、キャラクター画像の枠の外(その上)に出し、横いっぱいの大きなボタンにしました(画像の一部に見えないようにするためです)。</li>
       <li>2026/11/19 キャラクター画像の横のボタンを「保管所テキストからキャラクターを読み込む」に改め、大きく目立つ色にしました。(キャラクターの切り替えは、左下の「切替」で行います。)</li>
       <li>2026/11/18 「保管所テキストから読み込む」ボタンを、基本情報のいちばん上の「キャラクター画像」の横(画像の一覧の右)に置きました。左下の固定ボタンと、キャラクター管理の中のボタンは無くしました。</li>
@@ -759,16 +760,16 @@
   </div>
 </div>
 
-<script src="data.js?v=212"></script>
-<script src="app-core.js?v=212"></script>
-<script src="app-parts.js?v=212"></script>
-<script src="app-skills.js?v=212"></script>
-<script src="app-save.js?v=212"></script>
-<script src="app-dict.js?v=212"></script>
-<script src="app-image.js?v=212"></script>
-<script src="app-look.js?v=212"></script>
-<script src="app-sheetprint.js?v=212"></script>
-<script src="app-share.js?v=212"></script>
-<script src="app-main.js?v=212"></script>
+<script src="data.js?v=213"></script>
+<script src="app-core.js?v=213"></script>
+<script src="app-parts.js?v=213"></script>
+<script src="app-skills.js?v=213"></script>
+<script src="app-save.js?v=213"></script>
+<script src="app-dict.js?v=213"></script>
+<script src="app-image.js?v=213"></script>
+<script src="app-look.js?v=213"></script>
+<script src="app-sheetprint.js?v=213"></script>
+<script src="app-share.js?v=213"></script>
+<script src="app-main.js?v=213"></script>
 </body>
 </html>
