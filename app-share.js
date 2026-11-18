@@ -1025,6 +1025,7 @@ function applyHokanshoParsed(p) {
   // スキル（区分＝ポジション/メインクラス/サブクラスの今の設定）
   if (plan.skills) data.skills = p.skills.map(s => {
     const category = data[s.slot];
+    s = Object.assign({}, s, { name: normSkillName(category, s.name) });
     const known = typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category] && SKILL_DATABASE[category].some(x => x.name === s.name);
     if (!known) rep.customSkills.push(`${HK_SLOT_LABEL[s.slot]}「${s.name}」`);
     rep.skills++;

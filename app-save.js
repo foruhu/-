@@ -636,6 +636,11 @@ function applyData(data) {
         }
       });
     }
+    // ポジションのスキルのうち、サプリのもの(祈り・血の涙など)にも「(歪曲)」を付けて読み替える
+    if (data && Array.isArray(data.skills) && data.skills.some(s => s && typeof s.name === 'string' && normSkillName(s.category, s.name) !== s.name)) {
+      data = JSON.parse(JSON.stringify(data));
+      data.skills.forEach(s => { if (s && typeof s.name === 'string') s.name = normSkillName(s.category, s.name); });
+    }
   } catch (e) {}
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
