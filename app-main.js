@@ -192,6 +192,10 @@ window.onload = async function() {
   if (typeof checkForSharedURLOnLoad === 'function') await checkForSharedURLOnLoad();
   // 共有URLでなければ、更新前に編集していた内容に戻す
   if (typeof migrateKnownTypos === 'function') migrateKnownTypos();
+  if (typeof initCardTools === 'function') initCardTools();
+  setTimeout(() => { if (typeof captureBaselineState === 'function') captureBaselineState(); }, 400);
+  setTimeout(() => { if (typeof maybeShowBackupNudge === 'function') maybeShowBackupNudge(); }, 1500);
+  setTimeout(() => { if (typeof maybeShowWelcome === 'function') maybeShowWelcome(); }, 500);
   if (!hadHash && typeof restoreWorkOnLoad === 'function') restoreWorkOnLoad();
 
   // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく
@@ -339,3 +343,40 @@ let fitTimer2 = null;
     if (clampNumberInput(e.target, true)) e.target.dispatchEvent(new Event('input', { bubbles: true }));
   }, true);
 })();
+
+// 初めて開いた人への、短い案内（一度だけ。すでに保存済みのキャラがいる人や、共有・閲覧用URLで開いた人には出さない）
+let welcomeShown = false;
+function maybeShowWelcome() {
+  try {
+    if (welcomeShown) return;
+    if (document.body.classList.contains('view-locked') || document.body.classList.contains('view-mode')) return;
+    if (location.hash && /^#(tok|share|view)/.test(location.hash)) return;
+    let seen = '';
+    try { seen = localStorage.getItem('necro_welcome_seen') || ''; } catch (e) {}
+    if (seen) return;
+    const hasSaved = Object.keys(getSavedSheets()).some(i => i !== 'autosave_draft');
+    if (hasSaved) { try { localStorage.setItem('necro_welcome_seen', '1'); } catch (e) {} return; }
+    welcomeShown = true;
+    const ov = document.createElement('div');
+    ov.id = 'welcome-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:10002;padding:16px;overflow-y:auto;';
+    ov.innerHTML = `<div style="max-width:380px;margin:50px auto;background:#18181c;border:1.5px solid #8b0000;border-radius:10px;padding:16px;color:#eee;line-height:1.6;">
+      <div style="color:#f0a0a0;font-weight:bold;font-size:1.05rem;margin-bottom:8px;">ようこそ、ドール設計図館へ</div>
+      <div style="font-size:.85rem;">『永い後日談のネクロニカ』用の、非公式キャラクターシート作成・保管ツールです。</div>
+      <ul style="font-size:.82rem;margin:10px 0 0;padding-left:1.2em;">
+        <li>入力すると、自動で下書きが保存されます。キャラクターとして残すには「💾 ブラウザに保存」を押してください。</li>
+        <li>保存先は、このブラウザの中だけです。ブラウザのデータを消すとキャラクターも消えるので、時々「📦 全キャラをバックアップ」で書き出しておくと安心です。</li>
+        <li>左下の「🔒 表示」で、見やすい表示用の画面に切り替えられます。</li>
+        <li>くわしい使い方は、右下の「📜 README」ボタンからいつでも読めます。</li>
+      </ul>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+        <button type="button" class="sec" id="welcome-help">README を読む</button>
+        <button type="button" id="welcome-ok">はじめる</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    const done = () => { try { localStorage.setItem('necro_welcome_seen', '1'); } catch (e) {} ov.remove(); };
+    ov.querySelector('#welcome-ok').onclick = done;
+    ov.querySelector('#welcome-help').onclick = () => { done(); if (typeof openHelp === 'function') openHelp(); };
+  } catch (e) { /* 出せなくても、ほかの動きには影響しない */ }
+}

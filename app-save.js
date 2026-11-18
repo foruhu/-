@@ -323,6 +323,44 @@ function migrateOldSingleSave() {
   }
 }
 
+// 上書き保存の前に出す、前回保存からの変更点の要約（比べられなかったときは、その旨だけ出す）
+const DIFF_LABELS = {
+  pl: 'PL名', name: 'ドール名', pos: 'ポジション', mc: 'メインクラス', sc: 'サブクラス', age: '享年', ps: '死因', hint: '未練のヒント',
+  height: '身長', weight: '体重', hair: '髪', eye: '瞳', skin: '肌', freeMemo: 'メモ', act: '最大行動値', actBase: '行動値の基本', fav: '寵愛',
+  chouaiWep: '寵愛点(武装)', chouaiMut: '寵愛点(変異)', chouaiCyb: '寵愛点(改造)', bonus: 'ボーナス', chatPalette: 'チャパレ',
+  ccfoliaMemo: '駒のメモ', ccfoliaExtra: '駒の追加設定', ccfoliaStatus: '駒のステータス', imageBg: '画像の背景色', pieceColor: '駒の色'
+};
+const DIFF_LIST_LABELS = { skills: 'スキル', parts: 'パーツ', treasures: '宝物', memories: '記憶のカケラ', list: '未練', history: '履歴', chouaiUses: '寵愛点の使用' };
+function describeSaveDiff(oldData, newData) {
+  try {
+    if (!oldData || typeof oldData !== 'object') return '（前回の保存内容を読めなかったので、変更点は出せません）';
+    const lines = [];
+    const short = v => { const t = String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); return t ? (t.length > 14 ? t.slice(0, 14) + '…' : t) : '（空）'; };
+    Object.keys(DIFF_LABELS).forEach(k => {
+      const a = oldData[k], b = newData[k];
+      if (JSON.stringify(a == null ? '' : a) !== JSON.stringify(b == null ? '' : b)) {
+        const long = (typeof a === 'string' && a.length > 14) || (typeof b === 'string' && b.length > 14) || k === 'ccfoliaExtra' || k === 'ccfoliaStatus';
+        lines.push(long ? `・${DIFF_LABELS[k]}が変わりました` : `・${DIFF_LABELS[k]}：${short(a)} → ${short(b)}`);
+      }
+    });
+    Object.keys(DIFF_LIST_LABELS).forEach(k => {
+      const A = Array.isArray(oldData[k]) ? oldData[k].map(x => JSON.stringify(x)) : [];
+      const B = Array.isArray(newData[k]) ? newData[k].map(x => JSON.stringify(x)) : [];
+      const count = {};
+      A.forEach(x => { count[x] = (count[x] || 0) + 1; });
+      let added = 0;
+      B.forEach(x => { if (count[x] > 0) count[x]--; else added++; });
+      const removed = Object.keys(count).reduce((s, x) => s + count[x], 0);
+      if (added || removed) lines.push(`・${DIFF_LIST_LABELS[k]}：${B.length}件（前回は${A.length}件）／入れ替わり${Math.max(added, removed)}件`);
+    });
+    if (lines.length === 0) return '前回の保存から変わっているところはありません。';
+    const shown = lines.slice(0, 14);
+    return '前回の保存からの変更点：\n' + shown.join('\n') + (lines.length > shown.length ? `\n…ほか${lines.length - shown.length}項目` : '');
+  } catch (e) {
+    return '（変更点を比べられませんでした）';
+  }
+}
+
 function saveData() {
   const data = getFullData();
   const select = document.getElementById('save-slot');
@@ -348,7 +386,7 @@ function saveData() {
     // 上書き保存
     const existing = sheets[id];
     const existingName = existing ? existing.name : '(無名)';
-    if (!confirm(`「${existingName}」に上書き保存します。よろしいですか？`)) return;
+    if (!confirm(`「${existingName}」に上書き保存します。\n\n${describeSaveDiff(existing && existing.data, data)}\n\nよろしいですか？`)) return;
     // 保存名がドール名そのものだったとき（自分で別の名前を付けていないとき）は、ドール名を変えたら保存名も新しいドール名にする
     const followDollName = !!(existing && existing.data && existing.data.name && existing.data.name === existing.name && data.name);
     sheets[id] = {
@@ -438,15 +476,24 @@ function exportAllCharactersBackup() {
     effectDict: (typeof getEffectDict === 'function') ? getEffectDict() : {}
   };
 
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  const dateStr = new Date().toISOString().slice(0, 10);
-  a.download = `necronica_backup_${dateStr}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `necronica_backup_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (err) {
+    // 書き出せなかったときは、「バックアップ済み」にしない
+    alert('バックアップファイルを書き出せませんでした。\n（' + (err && err.message ? err.message : err) + '）\n\nキャラクターが多すぎるか、ブラウザが対応していない可能性があります。「JSON出力」でキャラクターを1人ずつ書き出すこともできます。');
+    return;
+  }
   try { localStorage.setItem('necro_last_backup', String(Date.now())); } catch (e) {}
+  hideBackupNudge();
   updateBackupReminder();
 
   alert(`${ids.length}件のキャラクターをバックアップファイルとして書き出しました`);
@@ -747,3 +794,49 @@ function applyRowFlags(tbody, isBroken, isUsed) {
   }
 }
 
+
+// 起動時のバックアップのお願い：保存済みキャラがいて、14日以上バックアップしていない（または一度も取っていない）とき、画面の下に一度だけ出す。
+// 「あとで」を押したら7日は出さない。閉じても保存や操作の邪魔にならないよう、確認ダイアログは使わない
+let backupNudgeShown = false;
+function hideBackupNudge() {
+  const el = document.getElementById('backup-nudge');
+  if (el) el.remove();
+}
+function maybeShowBackupNudge() {
+  try {
+    if (backupNudgeShown) return;
+    if (document.body.classList.contains('view-locked')) return; // 閲覧用URLで開いたときは出さない
+    const sheets = getSavedSheets();
+    const n = Object.keys(sheets).filter(i => i !== 'autosave_draft').length;
+    if (n === 0) return;
+    let last = 0, asked = 0;
+    try {
+      last = parseInt(localStorage.getItem('necro_last_backup') || '0', 10) || 0;
+      asked = parseInt(localStorage.getItem('necro_backup_nudge_at') || '0', 10) || 0;
+    } catch (e) {}
+    const DAY = 86400000;
+    if (last && Date.now() - last < 14 * DAY) return;
+    if (asked && Date.now() - asked < 7 * DAY) return;
+    backupNudgeShown = true;
+    const days = last ? Math.floor((Date.now() - last) / DAY) : 0;
+    const el = document.createElement('div');
+    el.id = 'backup-nudge';
+    el.setAttribute('role', 'alert');
+    el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:9000;background:#241416;color:#fff;border:1px solid #f0a0a0;border-radius:10px;padding:10px 12px;font-size:.82rem;box-shadow:0 4px 14px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;';
+    const msg = document.createElement('div');
+    msg.textContent = last
+      ? `最後のバックアップから${days}日たっています。キャラクターはこのブラウザの中にだけ保存されているので、ここでバックアップしておくと安心です。`
+      : 'まだバックアップを取っていません。キャラクターはこのブラウザの中にだけ保存されているので、ここでバックアップしておくと安心です。';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
+    const later = document.createElement('button');
+    later.type = 'button'; later.className = 'sec'; later.textContent = 'あとで';
+    later.onclick = () => { try { localStorage.setItem('necro_backup_nudge_at', String(Date.now())); } catch (e) {} hideBackupNudge(); };
+    const go = document.createElement('button');
+    go.type = 'button'; go.textContent = '📦 バックアップを取る';
+    go.onclick = () => { try { localStorage.setItem('necro_backup_nudge_at', String(Date.now())); } catch (e) {} exportAllCharactersBackup(); hideBackupNudge(); };
+    row.appendChild(later); row.appendChild(go);
+    el.appendChild(msg); el.appendChild(row);
+    document.body.appendChild(el);
+  } catch (e) { /* 出せなくても、ほかの動きには影響しない */ }
+}

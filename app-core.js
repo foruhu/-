@@ -2,7 +2,7 @@
 // 元に戻す（Undo）・未保存の変更検知・自動保存
 // ==========================================================
 let undoStack = [];
-const UNDO_LIMIT = 15;
+const UNDO_LIMIT = 40;
 let isDirty = false;
 let autosaveTimer = null;
 // いま画面で編集しているキャラクターの id（保存済みのキャラを読み込んだ・保存した、のときだけ入る。未保存の新規は ''）。
@@ -59,19 +59,44 @@ function showToast(msg) {
 }
 const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
 
+// 「元に戻す」「やり直す」：編集（欄を書き換えて確定するたび）や、行の追加・削除、読み込みの前の状態を、順番に覚えておく
+let redoStack = [];
+let lastStateJson = null; // 直近の編集のあとの状態（次の編集の「前の状態」として使う）
+function captureBaselineState() {
+  try { lastStateJson = JSON.stringify(getFullData()); } catch (e) { lastStateJson = null; }
+}
 function pushUndoSnapshot() {
   try {
-    undoStack.push(JSON.stringify(getFullData()));
+    const cur = JSON.stringify(getFullData());
+    if (undoStack[undoStack.length - 1] !== cur) undoStack.push(cur);
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    redoStack = [];
     updateUndoButtonState();
+    // この操作が終わったあとの状態を、次の編集の基準にする
+    setTimeout(captureBaselineState, 60);
   } catch (e) {
     // 取得に失敗しても致命的ではないので握りつぶす
   }
+}
+// 欄の書き換えが確定したとき、書き換える前の状態を覚える
+function recordEditForUndo() {
+  try {
+    if (lastStateJson === null) { captureBaselineState(); return; }
+    const cur = JSON.stringify(getFullData());
+    if (cur === lastStateJson) return;
+    if (undoStack[undoStack.length - 1] !== lastStateJson) undoStack.push(lastStateJson);
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    redoStack = [];
+    lastStateJson = cur;
+    updateUndoButtonState();
+  } catch (e) {}
 }
 
 function updateUndoButtonState() {
   const btn = document.getElementById('undo-btn');
   if (btn) btn.disabled = undoStack.length === 0;
+  const rb = document.getElementById('redo-btn');
+  if (rb) rb.disabled = redoStack.length === 0;
 }
 
 function undoLastAction() {
@@ -79,14 +104,43 @@ function undoLastAction() {
     alert('これ以上元に戻せません');
     return;
   }
-  const prevJson = undoStack.pop();
-  updateUndoButtonState();
+  // 確定前の入力があれば、先にそれを1つの編集として覚える
+  recordEditForUndo();
+  const prevJson = undoStack[undoStack.length - 1];
   try {
     const data = JSON.parse(prevJson);
+    const curJson = JSON.stringify(getFullData());
     applyData(data);
+    undoStack.pop();
+    redoStack.push(curJson);
+    lastStateJson = prevJson;
+    updateUndoButtonState();
     markDirty();
   } catch (e) {
-    alert('元に戻す処理に失敗しました');
+    // 失敗したときは、履歴を減らさず、今の画面のままにする
+    updateUndoButtonState();
+    alert('元に戻す処理に失敗しました。画面の内容は変わっていません');
+  }
+}
+
+function redoLastAction() {
+  if (redoStack.length === 0) {
+    alert('やり直せる操作がありません');
+    return;
+  }
+  const nextJson = redoStack[redoStack.length - 1];
+  try {
+    const data = JSON.parse(nextJson);
+    const curJson = JSON.stringify(getFullData());
+    applyData(data);
+    redoStack.pop();
+    undoStack.push(curJson);
+    lastStateJson = nextJson;
+    updateUndoButtonState();
+    markDirty();
+  } catch (e) {
+    updateUndoButtonState();
+    alert('やり直す処理に失敗しました。画面の内容は変わっていません');
   }
 }
 
@@ -119,6 +173,7 @@ function setupDirtyTracking() {
   document.addEventListener('change', (e) => {
     if (e.target && ignoreIds.has(e.target.id)) return;
     isDirty = true;
+    if (!e.target || !e.target.closest || !e.target.closest('#card-tools, #cp-modal, #ccf-modal')) recordEditForUndo();
   });
 }
 
@@ -253,10 +308,41 @@ function renderSaveCards(selectedId = '') {
   renderImagePanel();
 
   const sheets = getSavedSheets();
-  const ids = Object.keys(sheets).sort((a, b) => (sheets[b].savedAt || '').localeCompare(sheets[a].savedAt || ''));
+  const allIds = Object.keys(sheets);
 
-  if (ids.length === 0) {
+  // 並べ替え・絞り込み（自動保存の下書きは、いつも先頭に出す）
+  const tools = document.getElementById('card-tools');
+  const sortEl = document.getElementById('card-sort');
+  const filterEl = document.getElementById('card-filter');
+  if (tools) tools.style.display = allIds.filter(i => i !== 'autosave_draft').length >= 2 ? 'flex' : 'none';
+  const mode = (sortEl && sortEl.value) || 'saved-desc';
+  const q = ((filterEl && filterEl.value) || '').trim().toLowerCase();
+  const textOf = id => {
+    const s = sheets[id] || {}; const d = s.data || {};
+    return [s.name, s.pl, d.name, d.pl, d.pos, d.mc, d.sc].filter(Boolean).join(' ').toLowerCase();
+  };
+  const cmpStr = (a, b) => String(a || '').localeCompare(String(b || ''), 'ja');
+  let ids = allIds.filter(id => id === 'autosave_draft' || !q || textOf(id).includes(q));
+  ids.sort((a, b) => {
+    if (a === 'autosave_draft') return -1;
+    if (b === 'autosave_draft') return 1;
+    const sa = sheets[a], sb = sheets[b];
+    if (mode === 'saved-asc') return (sa.savedAt || '').localeCompare(sb.savedAt || '');
+    if (mode === 'name-asc') return cmpStr(sa.name, sb.name);
+    if (mode === 'pl-asc') {
+      // PL名が空のキャラは、いちばん後ろに回す
+      if (!sa.pl !== !sb.pl) return sa.pl ? -1 : 1;
+      return cmpStr(sa.pl, sb.pl) || cmpStr(sa.name, sb.name);
+    }
+    return (sb.savedAt || '').localeCompare(sa.savedAt || '');
+  });
+
+  if (allIds.length === 0) {
     container.innerHTML = '<div style="color:#888;font-size:0.78rem;padding:8px;">保存済みキャラクターはまだありません</div>';
+    return;
+  }
+  if (ids.length === 0) {
+    container.innerHTML = '<div style="color:#888;font-size:0.78rem;padding:8px;">「' + escapeHtml(q) + '」に合うキャラクターはありません（絞り込みを消すと全員が出ます）</div>';
     return;
   }
 
@@ -362,6 +448,35 @@ function quickSwitchToCharacter(id) {
 
   closeCharSwitcher();
   alert(`「${entry.name}」に切り替えました`);
+}
+
+// ==========================================================
+// 保存名の変更（一覧に出る名前だけを変える。シートの中のドール名は変わらない）
+// ==========================================================
+function renameSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('名前を変えるキャラクターをカードから選択してください');
+  if (id === 'autosave_draft') return alert('自動保存の下書きは、名前を変えられません。「ブラウザに保存」でキャラクターとして保存してから変えてください');
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした。一覧を開き直してください');
+  const cur = entry.name || '(無名)';
+  const hint = (entry.data && entry.data.name && entry.data.name !== cur) ? `\n（シートのドール名は「${entry.data.name}」です）` : '';
+  const input = prompt('新しい保存名を入力してください（一覧に出る名前です）' + hint, cur);
+  if (input === null) return;
+  const nn = input.trim().slice(0, 60);
+  if (!nn) return alert('名前が空です。変更しませんでした');
+  if (nn === cur) return;
+  entry.name = nn;
+  if (!setSavedSheets(sheets)) return; // 失敗したときは、setSavedSheets が理由を知らせる
+  // 下書きがこのキャラの下書きなら、「元: ○○」の表示も合わせる
+  try {
+    const sh2 = getSavedSheets();
+    if (sh2['autosave_draft'] && sh2['autosave_draft'].draftOf === id) { sh2['autosave_draft'].draftOfName = nn; setSavedSheets(sh2, true); }
+  } catch (e) {}
+  refreshSaveSlotOptions(id);
+  showToast('✔ 保存名を変更しました');
 }
 
 // ==========================================================
@@ -628,4 +743,19 @@ function onColorHexInput(colorId, text) {
   c.dataset.set = '1';
   if (colorId === 'piece-color') updatePieceColorNote(true);
   else applyImageBg(true);
+}
+
+// 並べ替え・絞り込みの操作（並べ替えは覚えておく。覚えられなくても、そのまま使える）
+function onCardToolsChange() {
+  const sortEl = document.getElementById('card-sort');
+  try { if (sortEl) localStorage.setItem('necro_card_sort', sortEl.value); } catch (e) {}
+  const select = document.getElementById('save-slot');
+  renderSaveCards(select ? select.value : '');
+}
+function initCardTools() {
+  try {
+    const v = localStorage.getItem('necro_card_sort');
+    const sortEl = document.getElementById('card-sort');
+    if (v && sortEl && Array.from(sortEl.options).some(o => o.value === v)) sortEl.value = v;
+  } catch (e) {}
 }
