@@ -598,10 +598,7 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 /* 印の付いていない行の「寵」ボタンは、目立たないよう薄くする(押せば印が付く)。印の付いた行は、これまでどおり金色で目立たせる */
 tr:not(.chouai-acq) .chouai-btn { opacity: .85; background: transparent; border: 1px dashed #c9a43a; color: #e6c766; }
 tr:not(.chouai-acq) .chouai-btn:hover, tr:not(.chouai-acq) .chouai-btn:focus-visible { opacity: 1; background: #3a3018; }
-/* チェックボックスのように、押す前は「☐寵」、押すと「☑寵」 */
 .chouai-btn { white-space: nowrap; }
-.chouai-btn::before { content: '☐'; margin-right: 1px; }
-tr.chouai-acq .chouai-btn::before { content: '☑'; }
 .chouai-note { font-size: .72rem; color: #c9b27a; margin: 4px 2px 0; line-height: 1.5; }
 .chouai-note b { color: #ffd24a; }
 tr.no-chouai .chouai-btn { display: none !important; }
