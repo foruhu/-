@@ -69,9 +69,7 @@ function updateBarSkills() {
       else if (r.cat && r.cat === mc && r.cat === sc) { if (r.ch) lab = 'メイン'; else { seen[r.cat] = (seen[r.cat] || 0) + 1; lab = seen[r.cat] <= SKILL_INITIAL_LIMITS.mc ? 'メイン' : 'サブ'; } }
       else if (r.cat && r.cat === mc) lab = 'メイン';
       else if (r.cat && r.cat === sc) lab = 'サブ';
-      const tags = [lab, r.ch ? '寵' : ''].filter(Boolean);
-      const txt = r.v + (tags.length ? '（' + tags.join('・') + '）' : '');
-      return r.ch ? { t: txt, ch: true } : { t: txt, ch: false };
+      return { lab, v: r.v, ch: r.ch };
     });
     const part = (label, key) => `<span style="white-space:nowrap;">${key === 'pos' ? '' : '| '}${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</span>`;
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
@@ -79,8 +77,12 @@ function updateBarSkills() {
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra;
     const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    // 寵愛で取ったスキルは、金色(寵の印と同じ色)で出す
-    list.innerHTML = labeled.length ? labeled.map(o => o.ch ? `<span style="color:#ffd24a;font-weight:bold;">${esc(o.t)}</span>` : esc(o.t)).join('・') : 'なし';
+    // 「ポジション 氷の心 無茶(寵)　メイン …」の形で、区分ごとにまとめて出す。寵愛で取ったスキルは名前の後ろに(寵)を付け、金色にする
+    const groups = ['ポジション', 'メイン', 'サブ', ''].map(g => ({ g, items: labeled.filter(o => o.lab === g) })).filter(x => x.items.length);
+    list.innerHTML = groups.length ? groups.map(x => {
+      const nm = x.items.map(o => o.ch ? `<span style="color:#ffd24a;font-weight:bold;">${esc(o.v)}(寵)</span>` : esc(o.v)).join(' ');
+      return `<span style="display:inline-block;">${x.g ? `<b style="color:#c9a7ff;">${x.g}</b> ` : ''}${nm}</span>`;
+    }).join('　') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
   } catch (e) { list.innerHTML = ''; if (cnt) cnt.textContent = ''; }
 }
