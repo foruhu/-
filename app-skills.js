@@ -14,20 +14,39 @@ function onClassChange() {
 
 // 固定バーの「スキル」行：初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する、取得数と、取得しているスキルの名前
 const SKILL_INITIAL_LIMITS = { pos: 1, mc: 2, sc: 1 };
+// 寵愛点の使い道に書かれた点数を、寵の印が付いた行ごとに集計する(固定バーの「+寵1(3点)」用)
+//  ・使い道の1行に名前が1つだけ書かれていれば、その点数をその行に数える(複数書かれているときは、名前の数で等分する)
+function chouaiPointMap() {
+  const map = new Map();
+  try {
+    const uses = Array.from(document.querySelectorAll('#chouai-use-tbody tr')).map(tr => ({ memo: chouaiNorm(tr.querySelector('.use-memo')?.value), pts: parseInt(tr.querySelector('.used-pts')?.value, 10) || 0 })).filter(u => u.memo && u.pts > 0);
+    if (!uses.length) return map;
+    const items = [];
+    const eligible = tr => tr.querySelector('.chouai-btn') && !tr.classList.contains('no-chouai');
+    document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => { const v = tr.querySelector('.skill-name-select')?.value; if (v && eligible(tr)) items.push({ tr, v }); });
+    document.querySelectorAll('#parts-container tr.part-row').forEach(tr => { const v = tr.querySelector('.p-name')?.value; if (v && eligible(tr)) items.push({ tr, v }); });
+    uses.forEach(u => {
+      const hit = items.filter(it => chouaiNameHit(it.v, [u.memo]));
+      hit.forEach(it => map.set(it.tr, (map.get(it.tr) || 0) + u.pts / hit.length)); // 複数の名前が書かれた行は、点数を名前の数で等分する
+    });
+  } catch (e) {}
+  return map;
+}
 // 固定バーの「武装・変異・改造」の行に、寵愛点で取得したパーツの数を添える(取得数の計算には、そのまま含まれる)
 function updateBarChouaiParts() {
   const keys = { '武装': 'wep', '変異': 'mut', '改造': 'cyb' };
-  const n = {};
+  const n = {}, pt = {};
+  const pm = chouaiPointMap();
   try {
     document.querySelectorAll('#parts-container tr.part-row.chouai-acq').forEach(tr => {
       const k = keys[tr.querySelector('.p-type')?.value];
       const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
-      if (k && lv >= 1 && lv <= 3) { const id = `${k}-lv${lv}`; n[id] = (n[id] || 0) + 1; }
+      if (k && lv >= 1 && lv <= 3) { const id = `${k}-lv${lv}`; n[id] = (n[id] || 0) + 1; pt[id] = (pt[id] || 0) + (pm.get(tr) || 0); }
     });
   } catch (e) {}
   ['wep', 'mut', 'cyb'].forEach(k => [1, 2, 3].forEach(lv => {
     const id = `${k}-lv${lv}`, el = document.getElementById('bar-chouai-' + id);
-    if (el) el.textContent = n[id] ? `+寵${n[id]}` : '';
+    if (el) el.textContent = n[id] ? `+寵${n[id]}${pt[id] ? `(${Math.round(pt[id] * 10) / 10}点)` : ''}` : '';
   }));
 }
 
@@ -38,11 +57,13 @@ function updateBarSkills() {
   if (!cnt && !document.getElementById('bar-skill-line')) return;
   try {
     const catCount = {};
-    const chouaiCat = {};
+    const chouaiCat = {}, chouaiCatPt = {};
+    const skillPt = { pos: 0, mc: 0, sc: 0 };
+    const pmap = chouaiPointMap();
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
       if (!v) return; // スキルを選んでいない行は数えない
-      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; return; } // 寵愛点で取ったものは、初期の取得数には数えない
+      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); return; } // 寵愛点で取ったものは、初期の取得数には数えない
       const cat = tr.querySelector('.skill-category')?.value || '';
       catCount[cat] = (catCount[cat] || 0) + 1;
     });
@@ -54,8 +75,8 @@ function updateBarSkills() {
     // 寵愛で取ったスキルは、ポジション・メイン・サブごとに数える(同じクラスを重ねて選んだときは、ポジション→メイン→サブの順)
     const cc = { pos: 0, mc: 0, sc: 0 }; let chouaiSkills = 0, chouaiOther = 0;
     Object.keys(chouaiCat).forEach(c => {
-      const n = chouaiCat[c]; chouaiSkills += n;
-      if (c && c === pos) cc.pos += n; else if (c && c === mc) cc.mc += n; else if (c && c === sc) cc.sc += n; else chouaiOther += n;
+      const n = chouaiCat[c], pp = chouaiCatPt[c] || 0; chouaiSkills += n;
+      if (c && c === pos) { cc.pos += n; skillPt.pos += pp; } else if (c && c === mc) { cc.mc += n; skillPt.mc += pp; } else if (c && c === sc) { cc.sc += n; skillPt.sc += pp; } else chouaiOther += n;
     });
     const skillRow = (label, key) => {
       const lim = SKILL_INITIAL_LIMITS[key], n = got[key];
@@ -70,7 +91,7 @@ function updateBarSkills() {
     const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
-    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">+寵${cc[k]}</span>` : ''}`).join(' | ');
+    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">+寵${cc[k]}${skillPt[k] ? `(${Math.round(skillPt[k] * 10) / 10}点)` : ''}</span>` : ''}</span>`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
