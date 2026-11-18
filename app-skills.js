@@ -12,19 +12,32 @@ function onClassChange() {
   calcTotals();
 }
 
-// 固定バーに、いま取得しているスキルの名前を並べる(スキルを選んでいない行は数えない)
+// 固定バーの「スキル」行：初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する、取得数と、取得しているスキルの名前
+const SKILL_INITIAL_LIMITS = { pos: 1, mc: 2, sc: 1 };
 function updateBarSkills() {
   const list = document.getElementById('bar-skill-list');
+  const cnt = document.getElementById('bar-skill-counts');
   if (!list) return;
   try {
     const names = [];
+    const catCount = {};
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
-      if (v) names.push(v);
+      if (!v) return; // スキルを選んでいない行は数えない
+      names.push(v);
+      const cat = tr.querySelector('.skill-category')?.value || '';
+      catCount[cat] = (catCount[cat] || 0) + 1;
     });
+    const val = id => (document.getElementById(id)?.value || '');
+    const pos = val('pos'), mc = val('mc'), sc = val('sc');
+    const got = { pos: catCount[pos] || 0, mc: catCount[mc] || 0, sc: catCount[sc] || 0 };
+    // メインクラスとサブクラスが同じクラスのときは、先にメインの2つ、残りをサブとして数える
+    if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, SKILL_INITIAL_LIMITS.mc); got.sc = Math.max(0, n - SKILL_INITIAL_LIMITS.mc); }
+    const part = (label, key) => `${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}`;
+    if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' | ');
     list.textContent = names.length ? names.join('・') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
-  } catch (e) { list.textContent = ''; }
+  } catch (e) { list.textContent = ''; if (cnt) cnt.textContent = ''; }
 }
 
 function calcTotals() {
