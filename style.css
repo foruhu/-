@@ -522,3 +522,19 @@ body.view-mode.view-locked #battle-memo { pointer-events: auto !important; }
 /* リンクの色：標準の青は、暗い背景でも、配色を「明」にして反転したときでも読みにくいので、見出しと同じ色にする */
 a, a:visited { color: #8ff; text-decoration: underline; }
 a:hover { color: #cff; }
+
+/* --- スマホ：左下・右下の固定ボタン（保存・切替・表示・README）を小さくして、内容に重なりにくくする --- */
+@media screen and (max-width: 899px) {
+  .fixed-save, .corner-btn, .fixed-readme { opacity: .9; box-shadow: 0 2px 6px rgba(0,0,0,.6) !important; }
+  .fixed-save { left: 8px !important; bottom: 10px !important; padding: 5px 11px !important; font-size: .72rem !important; }
+  .corner-btn { left: 8px !important; padding: 4px 10px !important; font-size: .68rem !important; }
+  .corner-switch { bottom: 44px !important; }
+  #view-mode-toggle { bottom: 76px !important; }
+  .fixed-readme { right: 8px !important; bottom: 10px !important; padding: 5px 11px !important; font-size: .72rem !important; }
+  /* いちばん下まで読んだとき、固定ボタンの下に内容が隠れないよう、余白をあける */
+  body { padding-bottom: 64px; }
+}
+/* スマホで文字を入力している間は、固定ボタンを隠す（キーボードの上で入力欄に重なるため。自動保存は動き続ける） */
+@media (pointer: coarse) {
+  body.typing .fixed-save, body.typing .corner-btn, body.typing .fixed-readme { display: none !important; }
+}

@@ -952,3 +952,73 @@ function onBackupVerifySelected(event) {
   };
   reader.readAsText(file);
 }
+
+// ---- 保存領域の使用量の表示と、画像を軽くする機能 ----
+function entrySizeChars(e) { try { return JSON.stringify(e).length; } catch (er) { return 0; } }
+function fmtKB(n) { return n >= 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB'; }
+
+function renderStorageInfo() {
+  const box = document.getElementById('storage-info');
+  if (!box) return;
+  try {
+    const ratio = getStorageUsageRatio();
+    const pct = Math.min(100, Math.round(ratio * 100));
+    const color = ratio >= 0.8 ? '#e55' : ratio >= 0.5 ? '#eb4' : '#6c8';
+    const sheets = getSavedSheets();
+    const rows = Object.keys(sheets).map(id => {
+      const e = sheets[id];
+      const imgs = entryImages(e);
+      return { name: e.name || '(名前なし)', size: entrySizeChars(e), img: imgs.length };
+    }).filter(r => r.img > 0).sort((a, b) => b.size - a.size).slice(0, 3);
+    const heavy = rows.length ? '<div style="opacity:.85;margin-top:2px;">画像で重いキャラ：' + rows.map(r => `${escapeHtmlSafe(r.name)}（${fmtKB(r.size)}・画像${r.img}枚）`).join('、') + '</div>' : '';
+    const warn = ratio >= 0.8 ? '<div style="color:#e55;">※もうすぐいっぱいです。バックアップしてから、使わないキャラの削除や「画像を軽くする」をおすすめします。</div>' : '';
+    box.innerHTML = `<div>💾 ブラウザの保存領域：約${pct}%使用中（目安 約${fmtKB(STORAGE_LIMIT_CHARS)}）</div>
+      <div style="height:8px;background:#333;border-radius:4px;overflow:hidden;margin:3px 0;"><div style="width:${pct}%;height:100%;background:${color};"></div></div>${heavy}${warn}
+      <button type="button" class="action-btn c-teal" style="margin-top:6px;" onclick="compressSavedImages()"><span class="icon">📦</span><span>画像を軽くする<br>（保存済みの全画像）</span></button>`;
+  } catch (e) { box.innerHTML = ''; }
+}
+function escapeHtmlSafe(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+function recompressDataUrl(url, maxDim, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let w = img.width, h = img.height;
+        const k = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, w, h);
+        let alpha = false;
+        const px = cx.getImageData(0, 0, w, h).data;
+        for (let i = 3; i < px.length; i += 4) { if (px[i] < 250) { alpha = true; break; } }
+        let out = alpha ? cv.toDataURL('image/webp', quality) : cv.toDataURL('image/jpeg', quality);
+        if (alpha && !out.startsWith('data:image/webp')) out = url; // 透明を保てないときは、そのまま
+        resolve(out.length < url.length ? out : url); // 軽くならなければ、元のまま
+      } catch (e) { resolve(url); }
+    };
+    img.onerror = () => resolve(url);
+    img.src = url;
+  });
+}
+
+async function compressSavedImages() {
+  const sheets = getSavedSheets();
+  const ids = Object.keys(sheets).filter(id => entryImages(sheets[id]).length);
+  if (!ids.length) return alert('保存済みのキャラクターに、画像はありません');
+  if (!confirm('保存済みの全キャラの画像を、小さく・軽く作り直します（画質は少し落ちます。元には戻せません）。\n\n先に「全キャラをバックアップ」しておくと安心です。続けますか？')) return;
+  const before = getStorageUsageRatio() * STORAGE_LIMIT_CHARS;
+  try {
+    for (const id of ids) {
+      const list = await Promise.all(entryImages(sheets[id]).map(u => recompressDataUrl(u, 240, 0.5)));
+      sheets[id].images = list; sheets[id].image = list[0];
+    }
+    if (!setSavedSheets(sheets)) return; // 失敗したときは、保存領域のメッセージが出て、元のまま
+    const after = getStorageUsageRatio() * STORAGE_LIMIT_CHARS;
+    renderStorageInfo();
+    try { renderSaveCards(document.getElementById('save-slot')?.value || ''); } catch (e) {}
+    alert(`画像を軽くしました（約${fmtKB(Math.max(0, before - after))}の節約）`);
+  } catch (e) {
+    alert('画像を軽くする途中でエラーが起きたため、中止しました。保存済みのデータはそのままです。');
+  }
+}

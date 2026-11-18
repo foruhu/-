@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=174">
+<link rel="stylesheet" href="style.css?v=176">
 </head>
 <body>
 
@@ -420,6 +420,8 @@
     </div>
   </div>
 
+  <div id="storage-info" style="margin-top:10px;font-size:.78rem;line-height:1.6;"></div>
+
   <div class="action-btn-row" style="margin-top:8px;">
     <button type="button" class="action-btn c-blue" onclick="openTrashList()">
       <span class="icon">↩️</span><span>削除したキャラを<br>復元</span>
@@ -484,7 +486,7 @@
 </div>
 
 <!-- 左下固定：スクロールしても常に見える保存ボタン -->
-<button type="button" class="edit-only" onclick="saveData()" style="
+<button type="button" class="edit-only fixed-save" onclick="saveData()" style="
   position: fixed;
   bottom: 20px;
   left: 20px;
@@ -502,7 +504,7 @@
 ">💾 保存</button>
 
 <!-- 左下固定：キャラクター切替（小さく、スクロールしても常に見える） -->
-<button type="button" class="corner-btn" onclick="openCharSwitcher()" style="
+<button type="button" class="corner-btn corner-switch" onclick="openCharSwitcher()" style="
   bottom: 66px;
   background: #17182c;
   color: #9aa4ff;
@@ -518,7 +520,7 @@
 ">🔒 表示</button>
 
 <!-- 右下固定：README（使い方）をアプリ内で開くボタン -->
-<button type="button" onclick="openHelp()" style="
+<button type="button" class="fixed-readme" onclick="openHelp()" style="
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -572,6 +574,17 @@
     </div>
 
     <p style="margin:0 0 4px;">『永い後日談のネクロニカ』用の非公式キャラクターシート作成・保管ツールです。</p>
+
+    <h4 style="color:#8ff; margin:12px 0 4px;">■ はじめに（よく使う機能）</h4>
+    <ul style="margin:0; padding-left:1.2em;">
+      <li>目次：■ 基本の入力／■ スキル／■ マニューバ(パーツ)／■ たからもの・未練・寵愛点／■ 保存・切り替え／■ 共有・バックアップ／■ ライセンス・権利表記／■ 更新履歴（この画面を下へ進むと、順に出てきます）</li>
+      <li>まず作る：画面上のほうの「基本」から、ポジション・クラスを選び、スキルとマニューバを入れていきます。入力は自動で下書きに残ります。</li>
+      <li>保存する：左下の「💾 保存」で、ブラウザに保存します。保存したキャラは、下の一覧のカードをタップして切り替えられます。</li>
+      <li>戦闘中に見る：左下の「🔒 表示」で、見るための画面に切り替わります。上のバーの「メモ」や、マニューバの下の「📝 戦闘メモ」も使えます。</li>
+      <li>間違えたとき：上のバーの「元に戻す／やり直す」で、編集をさかのぼれます。削除したキャラは「削除したキャラを復元」で戻せます。</li>
+      <li>データを守る：「全キャラをバックアップ」でファイルに書き出しておくと安心です。保存領域の使用量は、キャラクター管理の欄に出ます。容量が足りないときは「画像を軽くする」が使えます。</li>
+      <li>人に見せる・渡す：「出力・共有オプション」から、画像・ココフォリア駒・チャットパレット・共有URLなどを作れます。卓のみんなの分は「卓まとめ画像」で1枚にできます。</li>
+    </ul>
 
     <h4 style="color:#f0c060; margin:12px 0 4px;">⚠️ ご利用にあたって</h4>
     <ul style="margin:0; padding-left:1.2em;">
@@ -678,6 +691,9 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/18 スマホで、左下・右下の固定ボタン(保存・切替・表示・README)を小さくして、内容に重なりにくくしました。文字を入力している間は、キーボードの邪魔にならないよう隠れます。</li>
+      <li>2026/11/18 キャラクター管理に、「ブラウザの保存領域の使用量」と、画像で重いキャラの表示を追加しました。「📦 画像を軽くする」で、保存済みの全画像を小さく作り直せます(元には戻せません。失敗したときは今のまま)。</li>
+      <li>2026/11/18 使い方に、「はじめに（よく使う機能）」と目次を追加しました。</li>
       <li>2026/11/18 ココフォリアのコマの色と、キャラクター画像の背景色を、色見本や「#ff3366」のような文字で選べるようにしました。透過PNGは、透明を保って保存されます。</li>
       <li>2026/11/18 「🎲 ココフォリアコマ」「💬 チャパレ」を押すと編集画面が開き、名前・ステータス・パラメータ・立ち絵・差分・メモ欄・チャットパレットの文章を書き換えて、保存できるようにしました。</li>
       <li>2026/11/18 戦闘用のON/OFFの見た目を、一目で分かるようにしました。パソコンの画面では、左右の固定ボタンが内容に重ならないようにしました。</li>
@@ -704,16 +720,16 @@
   </div>
 </div>
 
-<script src="data.js?v=174"></script>
-<script src="app-core.js?v=174"></script>
-<script src="app-parts.js?v=174"></script>
-<script src="app-skills.js?v=174"></script>
-<script src="app-save.js?v=174"></script>
-<script src="app-dict.js?v=174"></script>
-<script src="app-image.js?v=174"></script>
-<script src="app-look.js?v=174"></script>
-<script src="app-sheetprint.js?v=174"></script>
-<script src="app-share.js?v=174"></script>
-<script src="app-main.js?v=174"></script>
+<script src="data.js?v=176"></script>
+<script src="app-core.js?v=176"></script>
+<script src="app-parts.js?v=176"></script>
+<script src="app-skills.js?v=176"></script>
+<script src="app-save.js?v=176"></script>
+<script src="app-dict.js?v=176"></script>
+<script src="app-image.js?v=176"></script>
+<script src="app-look.js?v=176"></script>
+<script src="app-sheetprint.js?v=176"></script>
+<script src="app-share.js?v=176"></script>
+<script src="app-main.js?v=176"></script>
 </body>
 </html>

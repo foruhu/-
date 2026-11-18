@@ -302,6 +302,7 @@ function setViewMainImage(i) {
 function renderSaveCards(selectedId = '') {
   const container = document.getElementById('save-cards');
   if (!container) return;
+  try { renderStorageInfo(); } catch (e) {}
 
   updateSelectedActionsVisibility(selectedId);
   updateViewModeImage((workingId && getSavedSheets()[workingId]) ? workingId : '');
