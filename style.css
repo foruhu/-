@@ -537,9 +537,6 @@ a:hover { color: #cff; }
   /* いちばん下まで読んだとき、固定ボタンの下に内容が隠れないよう、余白をあける */
   body { padding-bottom: 64px; }
 }
-/* スマホで文字を入力している間は、固定ボタンを隠す（キーボードの上で入力欄に重なるため。自動保存は動き続ける） */
-@media (pointer: coarse) {
-  body.typing .fixed-save, body.typing .corner-btn, body.typing .fixed-readme { display: none !important; }
 }
 
 /* スマホ：マニューバ表の入力欄の左右の余白を小さくして、「アクション」などが切れずに見えるようにする */

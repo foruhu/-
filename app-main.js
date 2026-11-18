@@ -409,12 +409,6 @@ function trackFeature(name) {
   });
 })();
 
-// 入力中は、固定ボタンを隠す（スマホのキーボードが出ている間、入力欄に重ならないように）
-(function setupTypingMode() {
-  const isField = el => el && el.tagName && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|file|color|range)$/.test(el.type)));
-  document.addEventListener('focusin', e => { if (isField(e.target)) document.body.classList.add('typing'); });
-  document.addEventListener('focusout', () => { setTimeout(() => { if (!isField(document.activeElement)) document.body.classList.remove('typing'); }, 150); });
-})();
 
 // 固定バーのキャラ名を、名前の入力・保存・読み込み・表示モード切り替えのたびに更新する
 (function setupEditingName() {
