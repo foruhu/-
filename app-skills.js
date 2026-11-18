@@ -83,6 +83,9 @@ function updateBarSkills() {
     // 初期の取得数(寵愛で取ったものは除く)を超えたときは、理由を一言添える
     const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > SKILL_INITIAL_LIMITS[k]).map(([k, l]) => `${l}${got[k]}/${SKILL_INITIAL_LIMITS[k]}`);
     const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
+    // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
+    const barLine = document.getElementById('bar-skill-line');
+    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">+寵${cc[k]}</span>` : ''}`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
