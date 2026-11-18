@@ -510,6 +510,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="寵愛点で取得したものに印を付けます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
   tbody.appendChild(tr);
+  syncChouaiEligibility(tr);
   updatePartUsedCheckboxVisibility(tr);
 
   const memoTr = document.createElement('tr');

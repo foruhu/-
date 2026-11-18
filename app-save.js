@@ -514,7 +514,7 @@ function exportAllCharactersBackup() {
 function updateBackupReminder() {
   const el = document.getElementById('backup-reminder');
   if (!el) return;
-  const n = Object.keys(getSavedSheets()).length;
+  const n = Object.keys(getSavedSheets()).filter(i => i !== 'autosave_draft').length; // 下書き(自動保存)は数えない(お知らせの判定と同じ)
   if (n === 0) { el.style.display = 'none'; return; }
   let last = 0;
   try { last = parseInt(localStorage.getItem('necro_last_backup') || '0', 10) || 0; } catch (e) {}
