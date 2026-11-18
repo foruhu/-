@@ -547,7 +547,8 @@ a:hover { color: #cff; }
 }
 @media screen and (min-width: 385px) and (max-width: 899px) {
   /* 文字が切れやすい列に、最低限の幅をとる（名前の列がそのぶん細くなる。幅の狭い小型のスマホでは、名前が潰れるので行わない） */
-  .maneuver-table td:has(> .p-cost), .maneuver-table td:has(> .p-range) { min-width: 30px; }
+  .maneuver-table td:has(> .p-cost) { min-width: 30px; }
+  .maneuver-table td:has(> .p-range), .maneuver-table td:has(> .skill-range) { min-width: 40px; }
   .maneuver-table td:has(> .p-timing) { min-width: 50px; }
 }
 
@@ -562,7 +563,6 @@ html.table-roomy .maneuver-table select.p-timing { font-size: .8rem; }
 /* 射程(選択式＋自由枠) */
 .maneuver-table select.range-sel { font-size: .72rem; }
 html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
-.maneuver-table td select.range-sel + input { margin-top: 2px; }
 
 /* 固定のパーツ(基本パーツ・一覧から選んだパーツ)の、無効にしているレベル・射程の選択欄も、同じ色で見せる */
 .maneuver-table select.p-level:disabled, .maneuver-table select.range-sel:disabled { opacity: 1; color: #fff; -webkit-text-fill-color: #fff; }

@@ -436,25 +436,33 @@ function onExtraPartSelect(secId, selectElem) {
 // 射程は「0・なし・自身」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
 // 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
 const RANGE_PRESETS = ['0', 'なし', '自身'];
+// 枠は1つだけ見せる：ふだんは選択欄、「自由枠」を選ぶ(または「0〜1」など自由な値が入っている)と、文字欄に切り替わる。
+// 文字欄を空にして、枠の外を押すと、選択欄に戻る
 function buildRangeCellHtml(inputClass, value, locked = false) {
   const v = (value === undefined || value === null) ? '' : String(value);
   const free = v !== '' && !RANGE_PRESETS.includes(v);
   const opt = (val, label, sel) => `<option value="${escapeHtml(val)}" ${sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
-  const options = opt('', '（未選択）', v === '' ) + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
-  return `<select class="range-sel" ${locked ? 'disabled' : ''} style="${(locked && free) ? 'display:none;' : ''}" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} style="${free ? '' : 'display:none;'}">`;
+  const options = opt('', '－', v === '') + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
+  return `<select class="range-sel" ${locked ? 'disabled' : ''} style="${free ? 'display:none;' : ''}" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} onblur="onRangeFreeBlur(this)" style="${free ? '' : 'display:none;'}">`;
 }
 function onRangeSelChange(sel) {
   const inp = sel.parentElement && sel.parentElement.querySelector('input[type="text"]');
   if (!inp) return;
   if (sel.value === '自由枠') {
-    if (RANGE_PRESETS.includes(inp.value)) inp.value = '';
+    inp.value = '';
+    sel.style.display = 'none';
     inp.style.display = '';
     try { inp.focus(); } catch (e) {}
   } else {
     inp.value = sel.value;
-    inp.style.display = 'none';
   }
   inp.dispatchEvent(new Event('change', { bubbles: true })); // 効果の記憶・編集の記録などに、変更を伝える
+}
+// 自由枠の文字欄が空のまま枠の外を押したら、選択欄に戻す
+function onRangeFreeBlur(inp) {
+  if (!inp || inp.readOnly || (inp.value || '').trim() !== '') return;
+  inp.value = '';
+  syncRangeSelect(inp);
 }
 // 文字欄の値を、プログラムから書き換えたあと、選択欄の表示を合わせる
 function syncRangeSelect(inp) {
@@ -463,6 +471,7 @@ function syncRangeSelect(inp) {
   const v = inp.value || '';
   const free = v !== '' && !RANGE_PRESETS.includes(v);
   sel.value = free ? '自由枠' : v;
+  sel.style.display = free ? 'none' : '';
   inp.style.display = free ? '' : 'none';
 }
 
