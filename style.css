@@ -413,6 +413,7 @@ html.theme-light { filter: invert(1) hue-rotate(180deg); background: #fff; }
 html.theme-light img, html.theme-light video, html.theme-light canvas { filter: invert(1) hue-rotate(180deg); }
 html.theme-light input[type="color"] { filter: hue-rotate(180deg) invert(1); }
 html.theme-light { --red: #5c4a4a; }
+html.theme-light .part-header, html.theme-light .calc-table .total-row td { background: #2e2a2a; }
 @media print { html.theme-light { filter: none; } }
 .bar-tools { flex-wrap: wrap; }
 
