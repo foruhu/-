@@ -503,3 +503,8 @@ body.view-mode #cp-text { pointer-events: auto !important; background: #fff !imp
 
 /* ココフォリアコマの編集画面も、表示モードで入力できるようにする */
 body.view-mode #ccf-modal input, body.view-mode #ccf-modal textarea { pointer-events: auto !important; background: #fff !important; border-color: #999 !important; }
+
+/* iPhone：表示モードでも編集できるチャパレ・ココフォリアコマの編集画面は、16pxにして勝手に拡大されないようにする */
+@media (pointer: coarse) {
+  body.view-mode #cp-text, body.view-mode #ccf-modal input, body.view-mode #ccf-modal textarea { font-size: 16px !important; }
+}
