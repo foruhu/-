@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=197">
+<link rel="stylesheet" href="style.css?v=198">
 </head>
 <body>
 
@@ -355,6 +355,7 @@
   <tbody id="chouai-use-tbody"></tbody>
 </table>
 <button type="button" class="sec edit-only" onclick="addChouaiUseRow()" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ 使い道を追加</button>
+<button type="button" class="sec edit-only" onclick="autoMarkChouaiFromUses()" title="使い道に書いたスキル名・パーツ名と同じ行に、寵の印を付けます" style="background: #333; color: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">使い道から寵の印を付ける</button>
 
 </div>
 
@@ -633,7 +634,7 @@
     <ul style="margin:0; padding-left:1.2em;">
       <li>「たからもの」は枠を追加し、「パーツとして配置」で好きな部位に置けます。</li>
       <li>未練の下の「発狂」欄に、発狂の名前と効果を書けます。狂気点は「0/4」の形で、−＋ボタンでも増減でき、4/4になると赤くなります。</li>
-      <li>寵愛点は、セッション履歴(獲得)と使い道の記録から、残りを自動集計します。</li>
+      <li>寵愛点は、セッション履歴(獲得)と使い道の記録から、残りを自動集計します。使い道にスキル名・パーツ名を書くと、同じ名前の行に「寵」の印が自動で付きます。</li>
     </ul>
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 保存・切り替え</h4>
@@ -699,6 +700,7 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/18 「寵愛点の使い道」に書いたスキル名・パーツ名と同じ行に、自動で寵愛の印(寵)を付けるようにしました(使い道の記入を変えたとき、または「使い道から寵の印を付ける」ボタンを押したとき。印を付けるだけで、外しはしません。基本パーツは対象外です)。</li>
       <li>2026/11/18 固定バーの「武装・変異・改造」の行にも、寵愛点で取得したパーツの数(例：寵愛 1)を出すようにしました(取得数の計算には、これまでどおり含まれます)。</li>
       <li>2026/11/18 寵愛点で取得したスキル・パーツに、印を付けられるようにしました。スキルとマニューバの「操作」欄の「寵」ボタンを押すと、その行の左端に金色の印が付きます(もう一度押すと外れます。保存・読み込みしても残ります)。固定バーの「スキル」行では、寵愛点で取ったスキルは初期の取得数(ポジション1・メイン2・サブ1)に数えず、「寵愛で取得：スキル○・パーツ○」と別に出します。</li>
       <li>2026/11/18 画面上の固定バーの「武装・変異・改造」の下に、「スキル」の行を追加しました。初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する取得数(例：メイン 1/2)と、取得しているスキルの名前が出ます(上限を超えると赤くなります。スキルを選ぶ・消す・読み込むたびに更新されます)。</li>
@@ -746,16 +748,16 @@
   </div>
 </div>
 
-<script src="data.js?v=197"></script>
-<script src="app-core.js?v=197"></script>
-<script src="app-parts.js?v=197"></script>
-<script src="app-skills.js?v=197"></script>
-<script src="app-save.js?v=197"></script>
-<script src="app-dict.js?v=197"></script>
-<script src="app-image.js?v=197"></script>
-<script src="app-look.js?v=197"></script>
-<script src="app-sheetprint.js?v=197"></script>
-<script src="app-share.js?v=197"></script>
-<script src="app-main.js?v=197"></script>
+<script src="data.js?v=198"></script>
+<script src="app-core.js?v=198"></script>
+<script src="app-parts.js?v=198"></script>
+<script src="app-skills.js?v=198"></script>
+<script src="app-save.js?v=198"></script>
+<script src="app-dict.js?v=198"></script>
+<script src="app-image.js?v=198"></script>
+<script src="app-look.js?v=198"></script>
+<script src="app-sheetprint.js?v=198"></script>
+<script src="app-share.js?v=198"></script>
+<script src="app-main.js?v=198"></script>
 </body>
 </html>
