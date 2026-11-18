@@ -89,7 +89,11 @@ function autoMarkChouaiFromUses(silent) {
       let hit = false;
       if (name.length >= 2 && !basic.has(name)) {
         const short = name.replace(/[(（][^)）]*[)）]/g, ''); // 「(歪曲)」などの括弧書きを除いた名前でも照合する
-        hit = memos.some(m => m.includes(name) || (short.length >= 2 && m.includes(short)));
+        // 名前が、区切り(、・「」スペースなど)や「を習得」「取得」などで区切られた単語として書かれているときだけ一致とする(別の語の一部は対象外)
+        const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const B = '[\\s、,，・「『（(\\[【/／:：+＋]', A = '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|も|の|取得|習得|獲得|購入|追加|入手|修復|強化|習)';
+        const cands = [name]; if (short.length >= 3 && short !== name) cands.push(short);
+        hit = cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
       }
       if (hit && !tr.classList.contains('chouai-acq')) { tr.classList.add('chouai-acq'); changed++; }
     };
