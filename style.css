@@ -566,3 +566,6 @@ html.table-roomy .maneuver-table select.p-timing { font-size: .8rem; }
 .maneuver-table select.range-sel { font-size: .72rem; }
 html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 .maneuver-table td select.range-sel + input { margin-top: 2px; }
+
+/* 固定のパーツ(基本パーツ・一覧から選んだパーツ)の、無効にしているレベル・射程の選択欄も、同じ色で見せる */
+.maneuver-table select.p-level:disabled, .maneuver-table select.range-sel:disabled { opacity: 1; color: #fff; -webkit-text-fill-color: #fff; }

@@ -436,12 +436,12 @@ function onExtraPartSelect(secId, selectElem) {
 // 射程は「0・なし・自身」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
 // 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
 const RANGE_PRESETS = ['0', 'なし', '自身'];
-function buildRangeCellHtml(inputClass, value) {
+function buildRangeCellHtml(inputClass, value, locked = false) {
   const v = (value === undefined || value === null) ? '' : String(value);
   const free = v !== '' && !RANGE_PRESETS.includes(v);
   const opt = (val, label, sel) => `<option value="${escapeHtml(val)}" ${sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
   const options = opt('', '（未選択）', v === '' ) + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
-  return `<select class="range-sel" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" style="${free ? '' : 'display:none;'}">`;
+  return `<select class="range-sel" ${locked ? 'disabled' : ''} onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} style="${free ? '' : 'display:none;'}">`;
 }
 function onRangeSelChange(sel) {
   const inp = sel.parentElement && sel.parentElement.querySelector('input[type="text"]');
@@ -494,10 +494,10 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
         ${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
-    <td><select class="p-level" onchange="calcTotals()">${buildLevelOptionsHtml(level)}</select></td>
-    <td><select class="p-timing" onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
+    <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${buildLevelOptionsHtml(level)}</select></td>
+    <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
-    <td>${buildRangeCellHtml('p-range', range)}</td>
+    <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
