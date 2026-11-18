@@ -850,8 +850,12 @@ function maybeShowBackupNudge() {
       asked = parseInt(localStorage.getItem('necro_backup_nudge_at') || '0', 10) || 0;
     } catch (e) {}
     const DAY = 86400000;
-    if (last && Date.now() - last < 14 * DAY) return;
-    if (asked && Date.now() - asked < 7 * DAY) return;
+    // 時計が進んだあとに戻されたなどで、記録の時刻が「未来」になっているときは、無効なものとして扱う(お知らせが出なくなるのを防ぐ)
+    const now = Date.now();
+    if (last > now) last = 0;
+    if (asked > now) asked = 0;
+    if (last && now - last < 14 * DAY) return;
+    if (asked && now - asked < 7 * DAY) return;
     backupNudgeShown = true;
     const days = last ? Math.floor((Date.now() - last) / DAY) : 0;
     const el = document.createElement('div');
@@ -869,7 +873,13 @@ function maybeShowBackupNudge() {
     later.onclick = () => { try { localStorage.setItem('necro_backup_nudge_at', String(Date.now())); } catch (e) {} hideBackupNudge(); };
     const go = document.createElement('button');
     go.type = 'button'; go.textContent = '📦 バックアップを取る';
-    go.onclick = () => { try { localStorage.setItem('necro_backup_nudge_at', String(Date.now())); } catch (e) {} exportAllCharactersBackup(); hideBackupNudge(); };
+    go.onclick = () => {
+      // 書き出しに成功して「最後のバックアップ」の時刻が更新されたときだけ、お知らせを閉じる(失敗・中止のときは残し、「7日出さない」も記録しない)
+      let before = 0; try { before = parseInt(localStorage.getItem('necro_last_backup') || '0', 10) || 0; } catch (e) {}
+      exportAllCharactersBackup();
+      let after = 0; try { after = parseInt(localStorage.getItem('necro_last_backup') || '0', 10) || 0; } catch (e) {}
+      if (after !== before) hideBackupNudge();
+    };
     row.appendChild(later); row.appendChild(go);
     el.appendChild(msg); el.appendChild(row);
     document.body.appendChild(el);

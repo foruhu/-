@@ -121,23 +121,31 @@ function exportSheetImage(opts) {
 }
 
 // 作った画像（canvas）をPNGとして保存する（iPhoneは画像を開いて長押しで保存）
+// 画像を保存する。保存の操作を始められたら true、失敗したら false になる Promise を返す(呼び出し側は、待たなくてもよい)
 function savePngCanvas(cv, fname) {
-  cv.toBlob(blob => {
-    if (!blob) { alert('画像を作れませんでした'); return; }
-    const url = URL.createObjectURL(blob);
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-    if (isIOS) {
-      // iOSは直接ダウンロードできないので、画像を開いて長押しで保存してもらう
-      const w = window.open(url, '_blank');
-      if (!w) alert('画像を開けませんでした。ポップアップを許可してください');
-      else setTimeout(() => alert('画像が開いたら、長押しして「写真に追加」で保存できます'), 300);
-    } else {
-      const a = document.createElement('a');
-      a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }
-  }, 'image/png');
+  return new Promise(resolve => {
+    try {
+      cv.toBlob(blob => {
+        try {
+          if (!blob) { alert('画像を作れませんでした'); resolve(false); return; }
+          const url = URL.createObjectURL(blob);
+          const ua = navigator.userAgent || '';
+          const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+          if (isIOS) {
+            // iOSは直接ダウンロードできないので、画像を開いて長押しで保存してもらう
+            const w = window.open(url, '_blank');
+            if (!w) { alert('画像を開けませんでした。ポップアップを許可してください'); resolve(false); return; }
+            setTimeout(() => alert('画像が開いたら、長押しして「写真に追加」で保存できます'), 300);
+          } else {
+            const a = document.createElement('a');
+            a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+          }
+          resolve(true);
+        } catch (err) { alert('画像を保存できませんでした。\n（' + (err && err.message ? err.message : err) + '）'); resolve(false); }
+      }, 'image/png');
+    } catch (err) { alert('画像を作れませんでした。\n（' + (err && err.message ? err.message : err) + '）'); resolve(false); }
+  });
 }
 
 // 画像の書き出し方（配色・内容）を選ぶ小さなダイアログ
@@ -220,9 +228,11 @@ function openGroupImageOptions() {
     const battle = ov.querySelector('input[name="grp-content"]:checked').value === 'battle';
     ov.querySelector('#grp-msg').textContent = '画像を作っています…';
     // 「画像を作っています」を先に描画してから、重い処理を始める
-    setTimeout(() => {
-      const okDone = exportGroupImage(sel, { theme, battle });
-      if (okDone) close(); else ov.querySelector('#grp-msg').textContent = '画像を作れませんでした。人数を減らして、もう一度お試しください';
+    setTimeout(async () => {
+      let okDone = false;
+      try { okDone = await exportGroupImage(sel, { theme, battle }); } catch (e) { okDone = false; }
+      // 保存の操作まで済んだときだけ閉じる(失敗したときは、画面を残して理由を出す)
+      if (okDone) close(); else { const m = ov.querySelector('#grp-msg'); if (m) m.textContent = '画像を作れませんでした。人数を減らして、もう一度お試しください'; }
     }, 30);
   };
 }
@@ -277,8 +287,7 @@ function exportGroupImage(ids, opts) {
       }
       y += rowH[r] + gap;
     }
-    savePngCanvas(cv, '卓まとめ_' + n + '人' + (opts.battle ? '_戦闘用' : '') + '.png');
-    return true;
+    return savePngCanvas(cv, '卓まとめ_' + n + '人' + (opts.battle ? '_戦闘用' : '') + '.png'); // 保存の操作が済んでから、呼び出し側が画面を閉じる
   } catch (err) {
     alert('卓まとめ画像を作れませんでした。\n（' + (err && err.message ? err.message : err) + '）');
     return false;
