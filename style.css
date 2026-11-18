@@ -533,7 +533,6 @@ a:hover { color: #cff; }
   .corner-btn { left: 8px !important; padding: 4px 10px !important; font-size: .68rem !important; }
   .corner-switch { bottom: 44px !important; }
   #view-mode-toggle { bottom: 76px !important; }
-  .corner-hokansho { bottom: 108px !important; }
   .fixed-readme { right: 8px !important; bottom: 10px !important; padding: 5px 11px !important; font-size: .72rem !important; }
   /* いちばん下まで読んだとき、固定ボタンの下に内容が隠れないよう、余白をあける */
   body { padding-bottom: 64px; }
@@ -587,3 +586,7 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 
 
 
+
+/* キャラクター画像の横に置く「保管所から読み込む」ボタン(画像の枠と同じ大きさ) */
+.img-panel-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.img-hokansho { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-style: dashed; border-color: #8a5a2e; background: #2a1d10; color: #f0b070; font-family: inherit; line-height: 1.2; }
