@@ -1286,6 +1286,7 @@ function exportChatPalette() {
   box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">チャットパレットの編集</div>
     <div id="cp-note" style="font-size:.76rem;color:#555;"></div>
     <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:Consolas,'Courier New',Menlo,monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
+    <div style="font-size:.74rem;color:#555;background:#f4f4f4;border-radius:6px;padding:6px 8px;">「\\n」は、ココフォリアで<b>改行</b>として使われる記号です。このまま貼ると、発言したときに【名前】・《タイミング／コスト／射程》・効果が、1行ずつ改行されて表示されます。「「\\n」なしでコピー」を使うと、「\\n」が半角スペースになり、1行で表示されます（ココフォリアで改行が効かないときなどに使います）。</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
       <button type="button" data-k="copy2" style="${btn}background:#e6f4ea;border-color:#2e8a6a;">📋 「\\n」なしでコピー</button>
