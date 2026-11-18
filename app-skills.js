@@ -233,12 +233,13 @@ function calcTotals() {
         autoBonus = 1;
       }
 
-      const maxAllowed = baseLimit + autoBonus;
+      const chMarks = (chouaiCounts[cat.name] && chouaiCounts[cat.name][lv]) || 0; // 寵愛点で取ったパーツは、上限の枠に足す
+      const maxAllowed = baseLimit + autoBonus + chMarks;
       // 上限(maxAllowed)のうち、「寵愛による修正」の欄で増えた(減った)分
       const chInput = getVal('chouai-' + cat.key);
       const noCh = chInput ? ((typeof getLimitByVal === 'function') ? getLimitByVal(cat.total - chInput) : { lv1:0, lv2:0, lv3:0 })[`lv${lv}`] || 0 : baseLimit;
-      const chBonus = baseLimit - noCh;
-      const chBonusTxt = chBonus ? `(寵${chBonus > 0 ? '+' : ''}${chBonus})` : '';
+      const chBonus = baseLimit - noCh + chMarks; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
+      const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
       if (chBar) chBar.textContent = chBonusTxt;
       const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
