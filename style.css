@@ -569,3 +569,11 @@ html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 
 /* 固定バーの「スキル」行：名前が多いときは折り返す */
 #bar-skill-list { font-size: .85em; word-break: break-all; opacity: .9; }
+
+/* 寵愛点で取得したスキル・パーツ：「寵」ボタンと、行の左端の金色の印 */
+.op-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 2px; }
+.chouai-btn { background: #2a2418; color: #d9b44a; border: 1px solid #8a6d1e; border-radius: 3px; font-size: .68rem; padding: 1px 3px; cursor: pointer; line-height: 1.2; }
+tr.chouai-acq .chouai-btn { background: #b8860b; color: #fff; border-color: #ffd24a; font-weight: bold; }
+tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #ffd24a; }
+html.theme-light tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #a07000; }
+@media print { .chouai-btn { display: none !important; } }

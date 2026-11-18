@@ -507,7 +507,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
     <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>
-    <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
+    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="寵愛点で取得したものに印を付けます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
   tbody.appendChild(tr);
   updatePartUsedCheckboxVisibility(tr);

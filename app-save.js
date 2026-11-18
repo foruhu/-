@@ -51,7 +51,8 @@ function getFullData() {
       range: tr.querySelector('.skill-range')?.value || '',
       memo: memo,
       tag: tr.querySelector('.skill-tag')?.value || '',
-      isUsed: tr.querySelector('.skill-used')?.checked || false
+      isUsed: tr.querySelector('.skill-used')?.checked || false,
+      isChouai: tr.classList.contains('chouai-acq')
     });
   });
 
@@ -73,7 +74,8 @@ function getFullData() {
         range: tr.querySelector('.p-range')?.value || '',
         memo: memo,
         isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly'),
-        tag: tr.querySelector('.p-tag')?.value || ''
+        tag: tr.querySelector('.p-tag')?.value || '',
+        isChouai: tr.classList.contains('chouai-acq')
       });
     }
   });
@@ -702,7 +704,7 @@ function applyData(data) {
           memo = parsed.timing || parsed.cost || parsed.range ? parsed.effect : memo;
         }
 
-        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed);
+        addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed, !!s.isChouai);
       });
     }
   }
@@ -783,7 +785,7 @@ function restorePartsFromData(parts) {
       DEFAULT_PARTS[secId].forEach((p, idx) => {
         const saved = savedBaseStates[idx];
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
-        if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed);
+        if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed, saved.isChouai);
       });
     }
   });
@@ -802,17 +804,18 @@ function restorePartsFromData(parts) {
     if (!tbody) return;
 
     addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId], p.tag || '');
-    applyRowFlags(tbody, p.isBroken, p.isUsed);
+    applyRowFlags(tbody, p.isBroken, p.isUsed, p.isChouai);
   });
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
 }
 
 // 追加したばかりの行（tbodyの最後の行）に損傷・使用チェックの状態を反映する
-function applyRowFlags(tbody, isBroken, isUsed) {
+function applyRowFlags(tbody, isBroken, isUsed, isChouai) {
   const rows = tbody.querySelectorAll('tr.part-row');
   const lastRow = rows[rows.length - 1];
   if (!lastRow) return;
+  if (isChouai) lastRow.classList.add('chouai-acq');
   if (isBroken) {
     const cb = lastRow.querySelector('.p-broken');
     if (cb) { cb.checked = true; togglePartBreak(cb); }
