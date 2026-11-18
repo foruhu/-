@@ -125,7 +125,7 @@ function buildCcfoliaPiece(data, useSaved) {
   const ccfoliaData = {
     kind: 'character',
     data: {
-      name: data.name || '(無名)',
+      name: (useSaved && data.ccfoliaExtra && typeof data.ccfoliaExtra.name === 'string' && data.ccfoliaExtra.name.trim()) ? data.ccfoliaExtra.name : (data.name || '(無名)'),
       initiative: actValue,
       externalUrl: '',
       iconUrl: (useSaved && data.ccfoliaExtra && typeof data.ccfoliaExtra.iconUrl === 'string') ? data.ccfoliaExtra.iconUrl : '',
@@ -155,6 +155,8 @@ function exportCcfolia() {
   const inp = 'box-sizing:border-box;border:1px solid #999;border-radius:6px;padding:5px;color:#222;background:#fff;font-size:.84rem;';
   box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">ココフォリアコマの編集</div>
     <div id="ccf-note" style="font-size:.76rem;color:#555;"></div>
+    <div style="font-weight:bold;">名前 <span style="font-weight:normal;font-size:.74rem;color:#666;">（コマに表示される名前）</span></div>
+    <input type="text" id="ccf-name" style="${inp}width:100%;">
     <div style="font-weight:bold;">ステータス <span style="font-weight:normal;font-size:.74rem;color:#666;">（名前・現在値／最大値）</span></div>
     <div id="ccf-status" style="display:flex;flex-direction:column;gap:4px;"></div>
     <div><button type="button" data-k="addst" style="${btn}">＋ ステータスを追加</button></div>
@@ -202,6 +204,7 @@ function exportCcfolia() {
   const paBox = box.querySelector('#ccf-params');
   const faBox = box.querySelector('#ccf-faces');
   const iconEl = box.querySelector('#ccf-icon');
+  const nameEl = box.querySelector('#ccf-name');
   const addPair = (target, a, b, ph1, ph2, delKey) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:4px;align-items:center;';
@@ -214,6 +217,7 @@ function exportCcfolia() {
   };
   const fill = (pc) => {
     memoEl.value = pc.data.memo || '';
+    nameEl.value = pc.data.name || '';
     stBox.innerHTML = '';
     (pc.data.status || []).forEach(addRow);
     paBox.innerHTML = '';
@@ -224,6 +228,7 @@ function exportCcfolia() {
   };
   const readPairs = (target, k1, k2) => Array.from(target.children).map(r => ({ [k1]: r.querySelector('.ccf-p1').value.trim(), [k2]: r.querySelector('.ccf-p2').value.trim() })).filter(x => x[k1] || x[k2]);
   const readExtra = () => ({
+    name: nameEl.value.trim(),
     iconUrl: iconEl.value.trim(),
     params: readPairs(paBox, 'label', 'value').filter(x => x.label),
     faces: readPairs(faBox, 'label', 'iconUrl').filter(x => x.iconUrl)
@@ -240,6 +245,7 @@ function exportCcfolia() {
     out.data.memo = memoEl.value;
     out.data.status = readStatus();
     const ex = readExtra();
+    out.data.name = ex.name || out.data.name;
     out.data.iconUrl = ex.iconUrl;
     out.data.params = ex.params;
     if (ex.faces.length) out.data.faces = ex.faces; else delete out.data.faces;
