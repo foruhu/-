@@ -583,3 +583,6 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 
 /* 「寵」ボタンは、印が付いた行にだけ出す(印は「寵愛点の使い道」の記載から自動で付く。ボタンは外すとき用) */
 tr:not(.chouai-acq) .chouai-btn { display: none; }
+
+/* 寵の印は「寵愛点の使い道」から自動で付くので、手で押すボタンは出さない */
+.chouai-btn { display: none !important; }

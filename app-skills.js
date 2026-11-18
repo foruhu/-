@@ -72,39 +72,39 @@ function toggleChouaiAcq(btn) {
   btn.dispatchEvent(new Event('change', { bubbles: true })); // 元に戻す・未保存の印などに、変更を伝える
 }
 
-// 寵愛点の使い道の文章に、スキル名・パーツ名が出てくる行へ「寵」の印を付ける(付けるだけで、外しはしません)
-function autoMarkChouaiFromUses(silent) {
+// 寵の印は、「寵愛点の使い道」の文章にスキル名・パーツ名が出てくる行だけに付く(書き換えると、付け外しも自動で追従する)
+let chouaiSyncing = false;
+function autoMarkChouaiFromUses() {
+  if (chouaiSyncing) return 0;
+  chouaiSyncing = true;
   try {
     const norm = s => String(s || '').normalize('NFKC').replace(/\s+/g, '');
     const memos = Array.from(document.querySelectorAll('#chouai-use-tbody .use-memo')).map(i => norm(i.value)).filter(Boolean);
-    if (!memos.length) { if (!silent) showToast('「寵愛点の使い道」に記入がありません'); return 0; }
     const basic = new Set();
     try { Object.values(DEFAULT_PARTS).forEach(a => a.forEach(p => basic.add(norm(p.name)))); } catch (e) {}
-    let added = 0;
-    const check = (tr, rawName) => {
+    let changed = 0;
+    const apply = (tr, rawName) => {
+      if (!tr || !tr.querySelector('.chouai-btn')) return; // 基本パーツ・たからもの行は対象外
       const name = norm(rawName);
-      if (!tr || name.length < 2 || basic.has(name) || tr.classList.contains('chouai-acq') || !tr.querySelector('.chouai-btn')) return;
-      // 「(歪曲)」などの括弧書きを除いた名前でも照合する
-      const short = name.replace(/[(（][^)）]*[)）]/g, '');
-      if (memos.some(m => m.includes(name) || (short.length >= 2 && m.includes(short)))) {
-        tr.classList.add('chouai-acq'); added++;
+      let hit = false;
+      if (name.length >= 2 && !basic.has(name)) {
+        const short = name.replace(/[(（][^)）]*[)）]/g, ''); // 「(歪曲)」などの括弧書きを除いた名前でも照合する
+        hit = memos.some(m => m.includes(name) || (short.length >= 2 && m.includes(short)));
       }
+      if (hit !== tr.classList.contains('chouai-acq')) { tr.classList.toggle('chouai-acq', hit); changed++; }
     };
-    document.querySelectorAll('#skill-tbody tr').forEach(tr => check(tr, tr.querySelector('.skill-name-select')?.value));
-    document.querySelectorAll('#parts-container tr.part-row').forEach(tr => check(tr, tr.querySelector('.p-name')?.value));
-    if (added) {
-      try { calcTotals(); } catch (e) {}
-      if (typeof markDirty === 'function') markDirty();
-    }
-    if (!silent) showToast(added ? `使い道の記載から、${added}件に寵愛の印を付けました` : '印を付けられる行は見つかりませんでした(すでに印済み、または名前が記載にありません)');
-    return added;
+    document.querySelectorAll('#skill-tbody tr').forEach(tr => apply(tr, tr.querySelector('.skill-name-select')?.value));
+    document.querySelectorAll('#parts-container tr.part-row').forEach(tr => apply(tr, tr.querySelector('.p-name')?.value));
+    return changed;
   } catch (e) {
-    if (!silent) showToast('判定に失敗しました：' + (e && e.message ? e.message : e));
-    return 0;
+    return 0; // 判定に失敗しても、ほかの計算は止めない
+  } finally {
+    chouaiSyncing = false;
   }
 }
 
 function calcTotals() {
+  try { autoMarkChouaiFromUses(); } catch (e) {}
   try { updateBarSkills(); } catch (e) {}
   const getVal = id => parseInt(document.getElementById(id)?.value || document.getElementById(id)?.textContent, 10) || 0;
 
@@ -488,7 +488,7 @@ function addChouaiUseRow(used = 0, memo = '') {
       <input type="number" class="used-pts" value="${escapeHtml(Number(used) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="use-memo" onchange="autoMarkChouaiFromUses(true)" value="${escapeHtml(memo)}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="use-memo" oninput="calcTotals()" value="${escapeHtml(memo)}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
