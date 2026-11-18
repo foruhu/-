@@ -128,14 +128,15 @@ function buildCcfoliaPiece(data, useSaved) {
       name: data.name || '(無名)',
       initiative: actValue,
       externalUrl: '',
-      iconUrl: '',
+      iconUrl: (useSaved && data.ccfoliaExtra && typeof data.ccfoliaExtra.iconUrl === 'string') ? data.ccfoliaExtra.iconUrl : '',
       memo: (useSaved && data.ccfoliaMemo && data.ccfoliaMemo.trim()) ? data.ccfoliaMemo : memoLines.join('\n'),
       ...(data.pieceColor ? { color: data.pieceColor } : {}),
       status: (useSaved && Array.isArray(data.ccfoliaStatus)) ? data.ccfoliaStatus : status,
-      params: params,
+      params: (useSaved && data.ccfoliaExtra && Array.isArray(data.ccfoliaExtra.params)) ? data.ccfoliaExtra.params : params,
       commands: useSaved ? getChatPaletteText(data) : commandLines.join('\n')
     }
   };
+  if (useSaved && data.ccfoliaExtra && Array.isArray(data.ccfoliaExtra.faces) && data.ccfoliaExtra.faces.length) ccfoliaData.data.faces = data.ccfoliaExtra.faces;
   return ccfoliaData;
 }
 
@@ -144,7 +145,7 @@ function exportCcfolia() {
   const data = getFullData();
   const piece = buildCcfoliaPiece(data, true);
   const isLocked = document.body.classList.contains('view-locked');
-  const hasSaved = !!((data.ccfoliaMemo && data.ccfoliaMemo.trim()) || Array.isArray(data.ccfoliaStatus));
+  const hasSaved = !!((data.ccfoliaMemo && data.ccfoliaMemo.trim()) || Array.isArray(data.ccfoliaStatus) || data.ccfoliaExtra);
   const ov = document.createElement('div');
   ov.id = 'ccf-modal';
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
@@ -157,6 +158,15 @@ function exportCcfolia() {
     <div style="font-weight:bold;">ステータス <span style="font-weight:normal;font-size:.74rem;color:#666;">（名前・現在値／最大値）</span></div>
     <div id="ccf-status" style="display:flex;flex-direction:column;gap:4px;"></div>
     <div><button type="button" data-k="addst" style="${btn}">＋ ステータスを追加</button></div>
+    <div style="font-weight:bold;">パラメータ <span style="font-weight:normal;font-size:.74rem;color:#666;">（名前・値）</span></div>
+    <div id="ccf-params" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <div><button type="button" data-k="addpa" style="${btn}">＋ パラメータを追加</button></div>
+    <div style="font-weight:bold;">立ち絵（画像のURL）</div>
+    <input type="text" id="ccf-icon" placeholder="https://…（ココフォリアに入れた画像のURLなど）" style="${inp}width:100%;">
+    <div style="font-weight:bold;">差分 <span style="font-weight:normal;font-size:.74rem;color:#666;">（名前・画像のURL）</span></div>
+    <div id="ccf-faces" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <div><button type="button" data-k="addfa" style="${btn}">＋ 差分を追加</button></div>
+    <div style="font-size:.72rem;color:#777;">※画像は、インターネット上のURLで指定します。この画面の画像（端末に保存したもの）は使えません。</div>
     <div style="font-weight:bold;">メモ欄</div>
     <textarea id="ccf-memo" spellcheck="false" style="${inp}width:100%;min-height:200px;height:34vh;font-family:monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;"></textarea>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
@@ -189,11 +199,35 @@ function exportCcfolia() {
     row.querySelector('.ccf-st-max').value = (st.max === undefined || st.max === null) ? '' : st.max;
     stBox.appendChild(row);
   };
+  const paBox = box.querySelector('#ccf-params');
+  const faBox = box.querySelector('#ccf-faces');
+  const iconEl = box.querySelector('#ccf-icon');
+  const addPair = (target, a, b, ph1, ph2, delKey) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:4px;align-items:center;';
+    row.innerHTML = `<input type="text" class="ccf-p1" placeholder="${ph1}" style="${inp}flex:0 1 38%;min-width:0;">
+      <input type="text" class="ccf-p2" placeholder="${ph2}" style="${inp}flex:1 1 auto;min-width:0;">
+      <button type="button" data-k="${delKey}" style="${btn}padding:6px 9px;">×</button>`;
+    row.querySelector('.ccf-p1').value = a || '';
+    row.querySelector('.ccf-p2').value = b || '';
+    target.appendChild(row);
+  };
   const fill = (pc) => {
     memoEl.value = pc.data.memo || '';
     stBox.innerHTML = '';
     (pc.data.status || []).forEach(addRow);
+    paBox.innerHTML = '';
+    (pc.data.params || []).forEach(x => addPair(paBox, x.label, x.value, '名前', '値', 'delpa'));
+    iconEl.value = pc.data.iconUrl || '';
+    faBox.innerHTML = '';
+    (pc.data.faces || []).forEach(x => addPair(faBox, x.label, x.iconUrl, '差分の名前', '画像のURL', 'delfa'));
   };
+  const readPairs = (target, k1, k2) => Array.from(target.children).map(r => ({ [k1]: r.querySelector('.ccf-p1').value.trim(), [k2]: r.querySelector('.ccf-p2').value.trim() })).filter(x => x[k1] || x[k2]);
+  const readExtra = () => ({
+    iconUrl: iconEl.value.trim(),
+    params: readPairs(paBox, 'label', 'value').filter(x => x.label),
+    faces: readPairs(faBox, 'label', 'iconUrl').filter(x => x.iconUrl)
+  });
   const readStatus = () => Array.from(stBox.children).map(r => {
     const num = (sel) => { const v = parseInt(r.querySelector(sel).value, 10); return Number.isFinite(v) ? v : 0; };
     return { label: r.querySelector('.ccf-st-label').value.trim(), value: num('.ccf-st-value'), max: num('.ccf-st-max') };
@@ -205,6 +239,10 @@ function exportCcfolia() {
     const out = JSON.parse(JSON.stringify(piece));
     out.data.memo = memoEl.value;
     out.data.status = readStatus();
+    const ex = readExtra();
+    out.data.iconUrl = ex.iconUrl;
+    out.data.params = ex.params;
+    if (ex.faces.length) out.data.faces = ex.faces; else delete out.data.faces;
     const jsonText = JSON.stringify(out);
     const done = () => { note.textContent = 'コピーしました。ココフォリアのルーム画面（盤面）に貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。'; };
     const manual = () => prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
@@ -216,10 +254,13 @@ function exportCcfolia() {
     if (!k) return;
     if (k === 'copy') copy();
     else if (k === 'addst') addRow({ label: '', value: 0, max: 0 });
-    else if (k === 'delst') e.target.parentNode.remove();
+    else if (k === 'delst' || k === 'delpa' || k === 'delfa') e.target.parentNode.remove();
+    else if (k === 'addpa') addPair(paBox, '', '', '名前', '値', 'delpa');
+    else if (k === 'addfa') addPair(faBox, '', '', '差分の名前', '画像のURL', 'delfa');
     else if (k === 'save') {
       setHidden('ccf-memo-custom', memoEl.value);
       setHidden('ccf-status-custom', JSON.stringify(readStatus()));
+      setHidden('ccf-extra-custom', JSON.stringify(readExtra()));
       savedNow = true;
       setNote('（保存しました。キャラクターの「💾 保存」を押すと、保存済みキャラクターにも残ります）');
     } else if (k === 'reset') {
@@ -227,6 +268,7 @@ function exportCcfolia() {
       fill(buildCcfoliaPiece(getFullData(), false));
       setHidden('ccf-memo-custom', '');
       setHidden('ccf-status-custom', '');
+      setHidden('ccf-extra-custom', '');
       savedNow = false;
       setNote('（自動生成に戻しました）');
     } else if (k === 'close') ov.remove();

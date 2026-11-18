@@ -10,6 +10,7 @@ function getFullData() {
     age: getVal('age'),
     chatPalette: getVal('chat-palette-custom'),
     ccfoliaMemo: getVal('ccf-memo-custom'),
+    ccfoliaExtra: (() => { try { const o = JSON.parse(getVal('ccf-extra-custom') || 'null'); return (o && typeof o === 'object') ? o : undefined; } catch (e) { return undefined; } })(),
     ccfoliaStatus: (() => { try { const a = JSON.parse(getVal('ccf-status-custom') || 'null'); return Array.isArray(a) ? a : undefined; } catch (e) { return undefined; } })(),
     imageBg: (document.getElementById('img-bg-color')?.dataset.set === '1') ? getVal('img-bg-color') : '',
     pieceColor: (document.getElementById('piece-color')?.dataset.set === '1') ? getVal('piece-color') : '',
@@ -521,6 +522,7 @@ function applyData(data) {
   { const ib = document.getElementById('img-bg-color'); if (ib) { ib.value = data.imageBg || '#222228'; ib.dataset.set = data.imageBg ? '1' : ''; applyImageBg(); } }
   setVal('chat-palette-custom', data.chatPalette);
   setVal('ccf-memo-custom', data.ccfoliaMemo);
+  setVal('ccf-extra-custom', data.ccfoliaExtra ? JSON.stringify(data.ccfoliaExtra) : '');
   setVal('ccf-status-custom', Array.isArray(data.ccfoliaStatus) ? JSON.stringify(data.ccfoliaStatus) : '');
   setVal('age', data.age); setVal('ps', data.ps || '煉獄');
   setVal('height', data.height); setVal('weight', data.weight);
