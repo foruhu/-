@@ -10,7 +10,7 @@ function printSheetLayout() {
 
   // 記憶のカケラ
   const mems = (d.memories || []).map(normalizeMemory).filter(m => m.name || m.detail || m.num);
-  const memRows = pad(mems, 12, { num: '', name: '', detail: '' }).map(m =>
+  const memRows = pad(mems, 6, { num: '', name: '', detail: '' }).map(m =>
     `<tr><td class="sp-c">${E(m.name)}</td><td class="sp-c">${E(m.num)}</td><td>${E(m.detail)}</td></tr>`).join('');
 
   // スキル
