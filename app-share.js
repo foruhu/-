@@ -294,6 +294,7 @@ function exportCcfolia() {
 // --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
 
 function afterExternalLoad(data) {
+  detachWorkingSheet();
   alert(`「${data.name || '(無名)'}」を読み込みました`);
   if (confirm('このブラウザにもキャラクターとして保存しますか？\n（保存すると「保存済みキャラクター」からいつでも呼び出せます）')) {
     saveData();
@@ -600,6 +601,7 @@ async function checkForSharedURLOnLoad() {
 function applyLoadedShareData(data, isViewOnly) {
   pushUndoSnapshot();
   applyData(data);
+  detachWorkingSheet();
 
   if (isViewOnly) {
     applyViewModeUI(true);
@@ -1151,6 +1153,7 @@ function applyHokanshoParsed(p) {
   }
 
   applyData(data);
+  if (plan.full) detachWorkingSheet(); // シート全体を取り込んだときは、編集中だった別のキャラとは別物にする
 
   // 強化値・最大行動値は自動計算なので、テキストの値と違えば知らせる
   const num = id => parseInt(document.getElementById(id)?.textContent, 10);

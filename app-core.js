@@ -25,6 +25,20 @@ function adoptLoadedEntry(id, entry) {
   }
   refreshSaveSlotOptions(workingId);
 }
+// 外から読み込んだ内容（JSON・共有コード・共有URL・保管所テキスト全体）は、編集中だったキャラとは別物にする。
+// 切り離さないと、前のキャラの下書きとして自動保存され、前のキャラを上書きしうる
+function detachWorkingSheet() {
+  setWorkingId('');
+  pendingImages = [];
+  const select = document.getElementById('save-slot');
+  if (select) select.value = '';
+  try {
+    const sh = getSavedSheets();
+    if (typeof renderSaveCards === 'function') renderSaveCards('');
+    if (typeof updateSelectedActionsVisibility === 'function') updateSelectedActionsVisibility('');
+    if (typeof updateViewModeImage === 'function') updateViewModeImage('');
+  } catch (e) {}
+}
 const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
 
 function pushUndoSnapshot() {
@@ -160,7 +174,7 @@ function performAutosave() {
 // 画像として表示してよい文字列か確かめる（data:image/…;base64,… の形だけ通す。他人のデータに混ぜられた攻撃用の文字列を表示しないため）
 function safeImageSrc(src) {
   const t = typeof src === 'string' ? src : '';
-  return /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(t) ? t : '';
+  return /^data:image\/(png|jpe?g|webp|gif|bmp|avif);base64,[A-Za-z0-9+\/=\s]+$/.test(t) ? t : '';
 }
 
 function escapeHtml(str) {

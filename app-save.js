@@ -151,10 +151,16 @@ function getSavedSheets() {
 let corruptNoticeShown = false;
 function stashCorruptSheets(raw) {
   if (!raw) return;
+  // すでに退避した中身と同じなら、知らせ直さない（保存するまで壊れたデータが残るため、開くたびに出てしまう）。違う中身が壊れたときは2つ目の退避先に残す
+  let known = false;
   try {
-    if (!localStorage.getItem('necro_sheets_corrupt')) localStorage.setItem('necro_sheets_corrupt', raw);
+    const prev = localStorage.getItem('necro_sheets_corrupt');
+    const prev2 = localStorage.getItem('necro_sheets_corrupt_2');
+    if (!prev) localStorage.setItem('necro_sheets_corrupt', raw);
+    else if (prev === raw || prev2 === raw) known = true;
+    else localStorage.setItem('necro_sheets_corrupt_2', raw);
   } catch (e) {}
-  if (!corruptNoticeShown) {
+  if (!corruptNoticeShown && !known) {
     corruptNoticeShown = true;
     setTimeout(() => alert('保存済みキャラクターのデータが壊れていて、読み込めませんでした。\n壊れた中身は、このブラウザの別の場所に退避してあります（消さないでください）。\nお手数ですが、作者に連絡してください。'), 0);
   }
@@ -549,7 +555,7 @@ function newBlankSheet() {
   pendingImages = [];
   setWorkingId('');
   // 白紙に戻したあと、再読み込みで前の内容が戻らないよう、自動保存の下書きも片付ける
-  try { const sh = getSavedSheets(); if (sh['autosave_draft']) { delete sh['autosave_draft']; setSavedSheets(sh, true); } } catch (e) {}
+  try { const sh = getSavedSheets(); if (sh['autosave_draft']) { delete sh['autosave_draft']; if (!setSavedSheets(sh, true)) alert('白紙に戻しましたが、自動保存の下書きを片付けられませんでした（保存領域がいっぱいです）。\nこのまま再読み込みすると、前の内容が戻ることがあります。不要なキャラを削除してから、もう一度お試しください。'); } } catch (e) {}
   const select = document.getElementById('save-slot');
   if (select) select.value = '';
   if (typeof renderSaveCards === 'function') renderSaveCards('');

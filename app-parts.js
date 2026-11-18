@@ -289,14 +289,21 @@ function toggleMemoryDetail(btn, force) {
   row.classList.toggle('collapsed', collapsed);
   updateMemoryPreview(row);
   if (!collapsed) autoResizeTextarea(row.querySelector('.memory-detail'));
+  syncMemoryAllToggle();
+}
+// 「詳細をすべて折りたたむ／開く」ボタンの文言を、いまの開閉の状態に合わせる
+function syncMemoryAllToggle() {
+  const b = document.getElementById('memory-all-toggle');
+  if (!b) return;
+  const rows = Array.from(document.querySelectorAll('#memory-list .memory-entry'));
+  b.textContent = (rows.length && rows.every(r => r.classList.contains('collapsed'))) ? '詳細をすべて開く' : '詳細をすべて折りたたむ';
 }
 // すべて折りたたむ／すべて開く（1つでも開いていれば、すべて折りたたむ）
 function toggleAllMemoryDetails() {
   const rows = Array.from(document.querySelectorAll('#memory-list .memory-entry'));
   const anyOpen = rows.some(r => !r.classList.contains('collapsed'));
   rows.forEach(r => toggleMemoryDetail(r.querySelector('.memory-toggle'), anyOpen));
-  const b = document.getElementById('memory-all-toggle');
-  if (b) b.textContent = anyOpen ? '詳細をすべて開く' : '詳細をすべて折りたたむ';
+  syncMemoryAllToggle();
 }
 
 // 「記憶のカケラ」の1枠（数字・名前・詳細＋削除）を作成する
