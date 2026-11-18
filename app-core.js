@@ -11,6 +11,23 @@ let workingId = '';
 function setWorkingId(id) {
   workingId = id || '';
   try { localStorage.setItem('necro_last_slot', workingId); } catch (e) {}
+  try { updateEditingName(); } catch (e) {}
+}
+// 固定バーの先頭に、いま編集している(見ている)キャラの名前を出す。保存名と違うときは保存名も、未保存なら「未保存」と添える
+function updateEditingName() {
+  const box = document.getElementById('editing-name');
+  if (!box) return;
+  let saved = null;
+  try { const e = workingId ? getSavedSheets()[workingId] : null; saved = e && e.name ? e.name : null; } catch (er) {}
+  const nameEl = document.getElementById('name');
+  const doll = ((nameEl && nameEl.value) || '').trim();
+  const shown = doll || saved || '（名前未入力）';
+  let tail = '';
+  if (!workingId || saved === null) tail = '（未保存）';
+  else if (saved !== shown) tail = `（保存名：${saved}）`;
+  const label = document.body.classList.contains('view-mode') ? '👁 表示中' : '✏️ 編集中';
+  box.textContent = `${label}：${shown}${tail}`;
+  box.title = box.textContent;
 }
 // 保存済みの項目(entry)を画面に読み込んだあと、編集中のキャラの id を決める。下書きカードを読み込んだときは、下書きの元のキャラが編集中のキャラになる
 function adoptLoadedEntry(id, entry) {
@@ -303,6 +320,7 @@ function renderSaveCards(selectedId = '') {
   const container = document.getElementById('save-cards');
   if (!container) return;
   try { renderStorageInfo(); } catch (e) {}
+  try { updateEditingName(); } catch (e) {}
 
   updateSelectedActionsVisibility(selectedId);
   updateViewModeImage((workingId && getSavedSheets()[workingId]) ? workingId : '');

@@ -415,3 +415,13 @@ function trackFeature(name) {
   document.addEventListener('focusin', e => { if (isField(e.target)) document.body.classList.add('typing'); });
   document.addEventListener('focusout', () => { setTimeout(() => { if (!isField(document.activeElement)) document.body.classList.remove('typing'); }, 150); });
 })();
+
+// 固定バーのキャラ名を、名前の入力・保存・読み込み・表示モード切り替えのたびに更新する
+(function setupEditingName() {
+  const upd = () => { try { updateEditingName(); } catch (e) {} };
+  document.addEventListener('input', e => { if (e.target && e.target.id === 'name') upd(); });
+  document.addEventListener('change', upd);
+  new MutationObserver(upd).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('load', () => setTimeout(upd, 600));
+  setTimeout(upd, 100);
+})();

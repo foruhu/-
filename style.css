@@ -553,3 +553,5 @@ a:hover { color: #cff; }
   .maneuver-table td:has(> .p-cost), .maneuver-table td:has(> .p-range) { min-width: 30px; }
   .maneuver-table td:has(> .p-timing) { min-width: 50px; }
 }
+
+#editing-name { font-weight: bold; color: #ffd0d0; font-size: .9rem; line-height: 1.3; padding: 1px 2px 3px; border-bottom: 1px dashed var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
