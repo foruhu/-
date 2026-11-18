@@ -191,6 +191,7 @@ window.onload = async function() {
   const hadHash = !!(location.hash && /^#(tok|share|view)/.test(location.hash));
   if (typeof checkForSharedURLOnLoad === 'function') await checkForSharedURLOnLoad();
   // 共有URLでなければ、更新前に編集していた内容に戻す
+  if (typeof migrateKnownTypos === 'function') migrateKnownTypos();
   if (!hadHash && typeof restoreWorkOnLoad === 'function') restoreWorkOnLoad();
 
   // 新規キャラクター作成時（何も読み込んでいない初期状態）は、記憶のカケラ枠を2個用意しておく

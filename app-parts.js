@@ -336,11 +336,11 @@ function addTreasureEntry(name = '', content = '', location = '頭部') {
   div.className = 'treasure-entry';
   div.innerHTML = `
     <div class="g2">
-      <div><label>たからもの名</label><input type="text" class="treasure-name" value="${name}"></div>
+      <div><label>たからもの名</label><input type="text" class="treasure-name" value="${escapeHtml(name)}"></div>
       <div><label>配置部位</label><select class="treasure-location">${locOptions}</select></div>
     </div>
     <label>内容（どんなものか）</label>
-    <textarea class="treasure-content" rows="2">${content}</textarea>
+    <textarea class="treasure-content" rows="2">${escapeHtml(content)}</textarea>
     <div class="edit-only" style="display:flex; gap:6px; margin-top:6px;">
       <button type="button" class="sec" onclick="placeTreasureEntry(this)" style="flex:1;padding:6px;">パーツとして配置</button>
       <button type="button" class="del" onclick="removeRowWithUndo(this)" style="padding:6px 10px;">削除</button>

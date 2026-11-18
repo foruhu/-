@@ -175,7 +175,7 @@ function updateSkillOptions() {
         const disabledAttr = isSelectedByOther ? 'disabled' : '';
         const baseName = s.tokka ? `${s.name}（特化）` : s.name;
         const labelText = isSelectedByOther ? `${baseName} (選択済み)` : baseName;
-        optionsHtml += `<option value="${s.name}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
+        optionsHtml += `<option value="${escapeHtml(s.name)}" ${s.name === currentValue ? 'selected' : ''} ${disabledAttr}>${labelText}</option>`;
       });
     }
     // スキル一覧に無い名前（保管所テキストの読み込みなど）が入っている場合も、選択肢として残して値が消えないようにする
@@ -261,7 +261,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
   tr.className = 'skill-row';
   tr.innerHTML = `
     <td class="skill-used-cell"><input type="checkbox" class="skill-used" onchange="toggleSkillUsed(this)"></td>
-    <td><input type="text" class="skill-category" value="${category}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
+    <td><input type="text" class="skill-category" value="${escapeHtml(category)}" readonly style="background:#1e1e24;color:#ccc;border:none;"></td>
     <td class="color-col"><select class="skill-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
     <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
@@ -365,10 +365,10 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
       <input type="text" class="h-scenario" value="${escapeHtml(scenario)}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="battle-pts" value="${battle}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+      <input type="number" class="battle-pts" value="${escapeHtml(Number(battle) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="personal-pts" value="${personal}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+      <input type="number" class="personal-pts" value="${escapeHtml(Number(personal) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
       <input type="text" class="h-memo" value="${escapeHtml(memo)}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
@@ -391,10 +391,10 @@ function addChouaiUseRow(used = 0, memo = '') {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="number" class="used-pts" value="${used}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
+      <input type="number" class="used-pts" value="${escapeHtml(Number(used) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="use-memo" value="${memo}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="use-memo" value="${escapeHtml(memo)}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>

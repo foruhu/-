@@ -135,11 +135,47 @@ function getFullData() {
 const SHEETS_KEY = 'necro_sheets';
 
 function getSavedSheets() {
+  let raw = null;
   try {
-    return JSON.parse(localStorage.getItem(SHEETS_KEY) || '{}');
+    raw = localStorage.getItem(SHEETS_KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw);
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
   } catch (e) {
+    stashCorruptSheets(raw);
     return {};
   }
+}
+
+// 保存データが壊れて読めなかったとき、壊れた中身を別のキーに退避する（このあとの保存で、壊れたデータが上書きされて失われないように）
+let corruptNoticeShown = false;
+function stashCorruptSheets(raw) {
+  if (!raw) return;
+  try {
+    if (!localStorage.getItem('necro_sheets_corrupt')) localStorage.setItem('necro_sheets_corrupt', raw);
+  } catch (e) {}
+  if (!corruptNoticeShown) {
+    corruptNoticeShown = true;
+    setTimeout(() => alert('保存済みキャラクターのデータが壊れていて、読み込めませんでした。\n壊れた中身は、このブラウザの別の場所に退避してあります（消さないでください）。\nお手数ですが、作者に連絡してください。'), 0);
+  }
+}
+
+// 以前の誤字「よぷんなめ」を「よぶんなめ」に直す（保存済みのキャラ・ゴミ箱・効果の記憶）。起動時に1回だけ行う
+const TYPO_FIXES = [['よぷんなめ', 'よぶんなめ']];
+function fixKnownTyposInString(str) {
+  let t = str;
+  TYPO_FIXES.forEach(([from, to]) => { if (t.includes(from)) t = t.split(from).join(to); });
+  return t;
+}
+function migrateKnownTypos() {
+  ['necro_sheets', 'necro_trash', 'necro_effect_dict'].forEach(key => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const fixed = fixKnownTyposInString(raw);
+      if (fixed !== raw) { JSON.parse(fixed); localStorage.setItem(key, fixed); }
+    } catch (e) {}
+  });
 }
 
 // ブラウザの保存領域はおよそ5MBで、いっぱいになると書き込みに失敗する。
@@ -165,6 +201,8 @@ function setSavedSheets(sheets, silent) {
     localStorage.setItem(SHEETS_KEY, json);
     return true;
   } catch (e) {
+    // 自動保存など、画面に出さない保存では、ゴミ箱(削除したキャラの復元用)には手を付けない
+    if (silent) return false;
     try {
       localStorage.removeItem(TRASH_KEY);
       localStorage.setItem(SHEETS_KEY, json);
@@ -251,7 +289,7 @@ function refreshSaveSlotOptions(selectedId = '') {
   ids.forEach(id => {
     const s = sheets[id];
     const label = `${s.name || '(無名)'}${s.pl ? '［' + s.pl + '］' : ''}`;
-    html += `<option value="${id}" ${id === selectedId ? 'selected' : ''}>${label}</option>`;
+    html += `<option value="${escapeHtml(id)}" ${id === selectedId ? 'selected' : ''}>${escapeHtml(label)}</option>`;
   });
   select.innerHTML = html;
   renderSaveCards(selectedId);
@@ -300,7 +338,6 @@ function saveData() {
       images: pendingImages.slice(),
       data: data
     };
-    pendingImages = [];
   } else {
     // 上書き保存
     const existing = sheets[id];
@@ -321,8 +358,10 @@ function saveData() {
     delete sheets['autosave_draft'];
   }
 
-  if (!setSavedSheets(sheets)) return; // 失敗したときは、保存したと表示しない（isDirty も、そのまま）
+  if (!setSavedSheets(sheets)) return; // 失敗したときは、保存したと表示しない（isDirty も、画像も、そのまま）
+  if (wasNew) pendingImages = []; // 保存できてから、未保存の画像リストを空にする
   isDirty = false;
+  setWorkingId(id);
   refreshSaveSlotOptions(id);
   const usage = getStorageUsageRatio();
   alert('ブラウザに保存しました' + (usage >= 0.8 ? `\n\n※保存領域の約${Math.round(usage * 100)}%を使っています。いっぱいになる前に、「全キャラをバックアップ」で書き出しておくのがおすすめです。` : ''));
@@ -340,6 +379,7 @@ function loadData() {
   pushUndoSnapshot(); // 今の編集内容が失われないよう、読み込み前の状態を退避
   applyData(entry.data);
   isDirty = false;
+  adoptLoadedEntry(id, entry);
   alert(`「${entry.name}」を読み込みました`);
 }
 
@@ -366,6 +406,7 @@ function deleteSelectedSave() {
   if (!moveToTrash(id, entry) && !confirm('保存領域がいっぱいで、ゴミ箱に入れられません。このまま削除すると、元に戻せません。それでも削除しますか？')) return;
   delete sheets[id];
   if (!setSavedSheets(sheets)) return;
+  if (workingId === id) setWorkingId('');
   refreshSaveSlotOptions('');
   alert(`「${entry.name}」を削除しました。\n「削除したキャラを復元」ボタンから復元できます。`);
 }
@@ -504,6 +545,9 @@ function newBlankSheet() {
   pushUndoSnapshot();
   applyData(JSON.parse(JSON.stringify(BLANK_SHEET_DATA)));
   pendingImages = [];
+  setWorkingId('');
+  // 白紙に戻したあと、再読み込みで前の内容が戻らないよう、自動保存の下書きも片付ける
+  try { const sh = getSavedSheets(); if (sh['autosave_draft']) { delete sh['autosave_draft']; setSavedSheets(sh, true); } } catch (e) {}
   const select = document.getElementById('save-slot');
   if (select) select.value = '';
   if (typeof renderSaveCards === 'function') renderSaveCards('');
@@ -514,6 +558,8 @@ function newBlankSheet() {
 }
 
 function applyData(data) {
+  // 以前の誤字「よぷんなめ」が入っていたら、「よぶんなめ」に直して読み込む
+  try { const js = JSON.stringify(data); const fx = fixKnownTyposInString(js); if (fx !== js) data = JSON.parse(fx); } catch (e) {}
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
   setVal('pl', data.pl); setVal('name', data.name);
@@ -546,7 +592,7 @@ function applyData(data) {
   }
 
   if (data.bonus) {
-    const radio = document.querySelector(`input[name="bonus"][value="${data.bonus}"]`);
+    const radio = ['wep', 'mut', 'cyb'].includes(data.bonus) ? document.querySelector(`input[name="bonus"][value="${data.bonus}"]`) : null;
     if (radio) radio.checked = true;
   }
 

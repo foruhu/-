@@ -186,7 +186,7 @@ const COMMON_EXTRA_PARTS = [
   { name: 'おとこのこ', type: '変異', level: 2, timing: '', cost: '', range: '' },
   { name: 'ほねやり', type: '変異', level: 2, timing: '', cost: '', range: '' },
   { name: 'どくばり', type: '変異', level: 2, timing: '', cost: '', range: '' },
-  { name: 'よぷんなめ', type: '変異', level: 2, timing: '', cost: '', range: '' },
+  { name: 'よぶんなめ', type: '変異', level: 2, timing: '', cost: '', range: '' },
   { name: 'しょくしゅ', type: '変異', level: 2, timing: '', cost: '', range: '' },
   { name: 'ほとけかずら', type: '変異', level: 2, timing: 'ジャッジ', cost: '0', range: '0', memo: '支援1か妨害1' },
   { name: 'くされじる', type: '変異', level: 3, timing: '', cost: '', range: '' },

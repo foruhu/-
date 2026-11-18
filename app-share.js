@@ -610,8 +610,13 @@ function applyLoadedShareData(data, isViewOnly) {
     // 送信側で設定されていたサムネイル画像があれば、閲覧画面の上部に表示する
     const imageContainer = document.getElementById('view-mode-image-container');
     if (imageContainer) {
-      if (data.shareImage) {
-        imageContainer.innerHTML = `<img src="${data.shareImage}" alt="">`;
+      const shareSrc = safeImageSrc(data.shareImage);
+      if (shareSrc) {
+        imageContainer.innerHTML = '';
+        const im = document.createElement('img');
+        im.src = shareSrc;
+        im.alt = '';
+        imageContainer.appendChild(im);
         imageContainer.style.display = '';
       } else {
         imageContainer.innerHTML = '';
@@ -727,6 +732,7 @@ function hkParseMirenRow(text) {
 
 // テキストを解析する（画面には触らない）
 function parseHokanshoText(raw) {
+  raw = fixKnownTyposInString(String(raw || ''));
   const r = {
     fields: {}, memories: [], list: [], skills: [], parts: [],
     enhanceLines: [], enhance: {}, madnessNotes: [], unrecognized: [], recognized: 0,
@@ -1400,8 +1406,8 @@ function renderShareList() {
     return `<div class="share-row">
       <div class="share-info"><b>${escapeHtml(x.name)}</b><span>${x.viewOnly ? '閲覧用' : '編集可'} ・ ${ds}</span></div>
       <div class="share-btns">
-        <button type="button" class="sec" onclick="copyShareURL('${x.token}')">コピー</button>
-        <button type="button" class="sec" onclick="removeShareRecord('${x.token}')">控えを消す</button>
+        <button type="button" class="sec" data-token="${escapeHtml(x.token)}" onclick="copyShareURL(this.dataset.token)">コピー</button>
+        <button type="button" class="sec" data-token="${escapeHtml(x.token)}" onclick="removeShareRecord(this.dataset.token)">控えを消す</button>
       </div></div>`;
   }).join('');
 }

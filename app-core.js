@@ -5,6 +5,26 @@ let undoStack = [];
 const UNDO_LIMIT = 15;
 let isDirty = false;
 let autosaveTimer = null;
+// いま画面で編集しているキャラクターの id（保存済みのキャラを読み込んだ・保存した、のときだけ入る。未保存の新規は ''）。
+// 一覧で「選択」しただけのカードとは別に持つ（選択しただけで、編集中の内容がそのカードの下書きにならないようにするため）
+let workingId = '';
+function setWorkingId(id) {
+  workingId = id || '';
+  try { localStorage.setItem('necro_last_slot', workingId); } catch (e) {}
+}
+// 保存済みの項目(entry)を画面に読み込んだあと、編集中のキャラの id を決める。下書きカードを読み込んだときは、下書きの元のキャラが編集中のキャラになる
+function adoptLoadedEntry(id, entry) {
+  const sheets = getSavedSheets();
+  if (id === 'autosave_draft') {
+    const of = entry && entry.draftOf;
+    if (of && sheets[of]) { setWorkingId(of); pendingImages = []; }
+    else { setWorkingId(''); pendingImages = entryImages(entry); }
+  } else {
+    setWorkingId(id);
+    pendingImages = [];
+  }
+  refreshSaveSlotOptions(workingId);
+}
 const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
 
 function pushUndoSnapshot() {
@@ -104,7 +124,8 @@ function performAutosave() {
     const data = getFullData();
     const select = document.getElementById('save-slot');
     const sheets = getSavedSheets();
-    const selectedId = select ? select.value : '';
+    // 下書きの元は、一覧で選択しているカードではなく、いま編集しているキャラ(workingId)にする
+    const selectedId = (workingId && sheets[workingId]) ? workingId : '';
     const selectedEntry = selectedId ? sheets[selectedId] : null;
     const id = 'autosave_draft';
     // 保存済みキャラの下書きは、サムネイル用のメイン1枚だけ持つ（残りは本体にある）。未保存のときだけ全部持つ
@@ -136,6 +157,12 @@ function performAutosave() {
 // ==========================================================
 // 保存済みキャラクターのカード表示
 // ==========================================================
+// 画像として表示してよい文字列か確かめる（data:image/…;base64,… の形だけ通す。他人のデータに混ぜられた攻撃用の文字列を表示しないため）
+function safeImageSrc(src) {
+  const t = typeof src === 'string' ? src : '';
+  return /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(t) ? t : '';
+}
+
 function escapeHtml(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -166,9 +193,9 @@ function updateViewModeImage(selectedId) {
 
   if (list.length) {
     const thumbs = list.length > 1
-      ? `<div class="vm-thumbs">${list.map((s, i) => `<img src="${s}" alt="" class="${i === 0 ? 'on' : ''}" onclick="setViewMainImage(${i})">`).join('')}</div>`
+      ? `<div class="vm-thumbs">${list.map((s, i) => `<img src="${safeImageSrc(s)}" alt="" class="${i === 0 ? 'on' : ''}" onclick="setViewMainImage(${i})">`).join('')}</div>`
       : '';
-    container.innerHTML = `<img src="${list[0]}" alt="" id="vm-main-img">${thumbs}`;
+    container.innerHTML = `<img src="${safeImageSrc(list[0])}" alt="" id="vm-main-img">${thumbs}`;
     container.style.display = '';
   } else {
     container.innerHTML = '';
@@ -186,7 +213,6 @@ function setViewMainImage(i) {
 }
 
 function renderSaveCards(selectedId = '') {
-  try { if (selectedIdForMemo(arguments[0]) && arguments[0]) localStorage.setItem('necro_last_slot', arguments[0]); } catch (e) {}
   const container = document.getElementById('save-cards');
   if (!container) return;
 
@@ -206,13 +232,13 @@ function renderSaveCards(selectedId = '') {
     const s = sheets[id];
     const isSelected = id === selectedId;
     const thumbHtml = s.image
-      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      ? `<img src="${safeImageSrc(s.image)}" class="save-card-thumb" alt="">`
       : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
     const sub = (id === 'autosave_draft' && s.draftOfName)
       ? '元: ' + s.draftOfName
       : [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
     return `
-      <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard('${id}')" data-id="${id}">
+      <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard(this.dataset.id)" data-id="${escapeHtml(id)}">
         ${thumbHtml}
         <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
         <div class="save-card-sub">${escapeHtml(sub)}</div>
@@ -273,13 +299,13 @@ function renderCharSwitcherCards() {
     const s = sheets[id];
     const isCurrent = id === currentId;
     const thumbHtml = s.image
-      ? `<img src="${s.image}" class="save-card-thumb" alt="">`
+      ? `<img src="${safeImageSrc(s.image)}" class="save-card-thumb" alt="">`
       : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
     const sub = (id === 'autosave_draft' && s.draftOfName)
       ? '元: ' + s.draftOfName
       : [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
     return `
-      <div class="save-card ${isCurrent ? 'selected' : ''}" onclick="quickSwitchToCharacter('${id}')">
+      <div class="save-card ${isCurrent ? 'selected' : ''}" data-id="${escapeHtml(id)}" onclick="quickSwitchToCharacter(this.dataset.id)">
         ${thumbHtml}
         <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
         <div class="save-card-sub">${escapeHtml(sub)}</div>
@@ -300,9 +326,9 @@ function quickSwitchToCharacter(id) {
   pushUndoSnapshot(); // 切り替え前の編集内容を退避
   applyData(entry.data);
   isDirty = false;
+  adoptLoadedEntry(id, entry);
 
   closeCharSwitcher();
-  renderSaveCards(id);
   alert(`「${entry.name}」に切り替えました`);
 }
 
@@ -425,7 +451,7 @@ function renderImagePanel() {
   if (cnt) cnt.textContent = `（${list.length}/${IMG_MAX_COUNT}枚）`;
   const sel = document.getElementById('save-slot');
   const saved = !!(sel && sel.value);
-  const thumbs = list.map((src, i) => `<button type="button" class="img-thumb${i === 0 ? ' main' : ''}" onclick="openImageActions(${i})"><img src="${src}" alt=""><span class="img-badge">${i === 0 ? 'メイン' : (i + 1)}</span></button>`).join('');
+  const thumbs = list.map((src, i) => `<button type="button" class="img-thumb${i === 0 ? ' main' : ''}" onclick="openImageActions(${i})"><img src="${safeImageSrc(src)}" alt=""><span class="img-badge">${i === 0 ? 'メイン' : (i + 1)}</span></button>`).join('');
   const addBtn = list.length < IMG_MAX_COUNT
     ? `<button type="button" class="img-thumb img-add" onclick="document.getElementById('img-add-input').click()"><span class="img-add-plus">＋</span><span class="img-add-text">画像を追加</span></button>`
     : '';
@@ -479,7 +505,7 @@ function openImageActions(i) {
   const box = document.createElement('div');
   box.style.cssText = 'background:#fff;color:#222;max-width:360px;width:100%;border-radius:10px;padding:14px;font-size:.88rem;';
   const btn = 'display:block;width:100%;margin:0 0 8px;padding:10px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;font-size:.9rem;';
-  box.innerHTML = `<img src="${list[i]}" alt="" style="display:block;max-width:100%;max-height:220px;margin:0 auto 10px;border-radius:6px;">
+  box.innerHTML = `<img src="${safeImageSrc(list[i])}" alt="" style="display:block;max-width:100%;max-height:220px;margin:0 auto 10px;border-radius:6px;">
     ${i > 0 ? `<button type="button" data-k="main" style="${btn}">メイン画像にする</button>` : '<div style="text-align:center;margin-bottom:8px;color:#666;">いまのメイン画像です</div>'}
     <button type="button" data-k="replace" style="${btn}">別の画像に差し替える</button>
     <button type="button" data-k="delete" style="${btn}color:#b00;">この画像を削除する</button>
@@ -525,12 +551,14 @@ function restoreWorkOnLoad() {
     if (draft && draft.data && (!draft.draftOf || !hasDraftId || (sheets[draft.draftOf].savedAt || '') <= (draft.savedAt || ''))) {
       applyData(draft.data);
       if (!hasDraftId) pendingImages = entryImages(draft);
-      refreshSaveSlotOptions(hasDraftId ? draft.draftOf : '');
+      workingId = hasDraftId ? draft.draftOf : '';
+      refreshSaveSlotOptions(workingId);
       updateAutosaveStatusText('下書きを復元しました');
       return;
     }
     if (lastId && sheets[lastId] && sheets[lastId].data) {
       applyData(sheets[lastId].data);
+      workingId = lastId;
       refreshSaveSlotOptions(lastId);
     }
   } catch (e) {}
