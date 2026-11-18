@@ -441,7 +441,7 @@ function buildRangeCellHtml(inputClass, value, locked = false) {
   const free = v !== '' && !RANGE_PRESETS.includes(v);
   const opt = (val, label, sel) => `<option value="${escapeHtml(val)}" ${sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
   const options = opt('', '（未選択）', v === '' ) + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
-  return `<select class="range-sel" ${locked ? 'disabled' : ''} onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} style="${free ? '' : 'display:none;'}">`;
+  return `<select class="range-sel" ${locked ? 'disabled' : ''} style="${(locked && free) ? 'display:none;' : ''}" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} style="${free ? '' : 'display:none;'}">`;
 }
 function onRangeSelChange(sel) {
   const inp = sel.parentElement && sel.parentElement.querySelector('input[type="text"]');
