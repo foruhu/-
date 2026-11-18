@@ -518,3 +518,7 @@ body.view-mode #battle-memo { pointer-events: auto !important; background: #1d1d
 body.view-mode.view-locked #battle-memo { pointer-events: auto !important; }
 @media (pointer: coarse) { body #battle-memo { font-size: 16px !important; } }
 @media print { #sec-battle-memo { display: none !important; } }
+
+/* リンクの色：標準の青は、暗い背景でも、配色を「明」にして反転したときでも読みにくいので、見出しと同じ色にする */
+a, a:visited { color: #8ff; text-decoration: underline; }
+a:hover { color: #cff; }
