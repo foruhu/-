@@ -140,12 +140,21 @@ function buildCcfoliaPiece(data, useSaved) {
   return ccfoliaData;
 }
 
+// チャパレ・コマの編集画面：同時に1つだけ開き、Escキーでも閉じられるようにする
+function closeEditModals() {
+  document.querySelectorAll('#cp-modal, #ccf-modal').forEach(e => e.remove());
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.querySelector('#cp-modal, #ccf-modal')) closeEditModals();
+});
+
 // 「🎲 ココフォリアコマ」：メモ欄とステータスを編集してからコピーできる。「この内容を保存」でキャラクターに残る
 function exportCcfolia() {
   const data = getFullData();
   const piece = buildCcfoliaPiece(data, true);
   const isLocked = document.body.classList.contains('view-locked');
   const hasSaved = !!((data.ccfoliaMemo && data.ccfoliaMemo.trim()) || Array.isArray(data.ccfoliaStatus) || data.ccfoliaExtra);
+  closeEditModals();
   const ov = document.createElement('div');
   ov.id = 'ccf-modal';
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
@@ -1278,7 +1287,9 @@ function exportChatPalette() {
   const data = getFullData();
   const hasSaved = !!(data.chatPalette && data.chatPalette.trim());
   const isView = document.body.classList.contains('view-locked'); // 閲覧用URLで開いたときだけ、保存できない
+  closeEditModals();
   const ov = document.createElement('div');
+  ov.id = 'cp-modal';
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
   const box = document.createElement('div');
   box.style.cssText = 'background:#fff;color:#222;max-width:640px;width:100%;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.6;max-height:94vh;display:flex;flex-direction:column;gap:8px;';
