@@ -82,7 +82,7 @@ function autoMarkChouaiFromUses(silent) {
     let added = 0;
     const check = (tr, rawName) => {
       const name = norm(rawName);
-      if (!tr || name.length < 2 || basic.has(name) || tr.classList.contains('chouai-acq')) return;
+      if (!tr || name.length < 2 || basic.has(name) || tr.classList.contains('chouai-acq') || !tr.querySelector('.chouai-btn')) return;
       // 「(歪曲)」などの括弧書きを除いた名前でも照合する
       const short = name.replace(/[(（][^)）]*[)）]/g, '');
       if (memos.some(m => m.includes(name) || (short.length >= 2 && m.includes(short)))) {

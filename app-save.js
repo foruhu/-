@@ -815,7 +815,7 @@ function applyRowFlags(tbody, isBroken, isUsed, isChouai) {
   const rows = tbody.querySelectorAll('tr.part-row');
   const lastRow = rows[rows.length - 1];
   if (!lastRow) return;
-  if (isChouai) lastRow.classList.add('chouai-acq');
+  if (isChouai && lastRow.querySelector('.chouai-btn')) lastRow.classList.add('chouai-acq');
   if (isBroken) {
     const cb = lastRow.querySelector('.p-broken');
     if (cb) { cb.checked = true; togglePartBreak(cb); }
