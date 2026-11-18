@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=230">
+<link rel="stylesheet" href="style.css?v=231">
 </head>
 <body>
 
@@ -282,9 +282,9 @@
           <th style="width:13%;">区分</th>
           <th style="width:7%;" class="color-col">色</th>
           <th style="width:20%;">スキル名</th>
-          <th style="width:13%;">タイミング</th>
+          <th style="width:16%;">タイミング</th>
           <th style="width:10%;">コスト</th>
-          <th style="width:10%;">射程</th>
+          <th style="width:7%;">射程</th>
           <th style="width:12%;" class="col-op">操作</th>
         </tr>
       </thead>
@@ -707,6 +707,7 @@
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
       <li>2026/11/19 バックアップのお知らせを直しました。①「バックアップを取る」を押して書き出しに失敗しても、お知らせが閉じて「しばらく出さない」扱いになっていた(今は、成功したときだけ閉じます)。②パソコンの時計が進んだあとに戻されると、お知らせが出なくなっていた。あわせて、卓まとめ画像は、画像の保存の操作が済んでから画面を閉じるようにしました(作れなかったときは画面が残り、理由が出ます)。</li>
+      <li>2026/11/19 スキルの表とマニューバの表で、「射程」の列を少し細くして、そのぶん「タイミング」の列を広げました(スマホで「タイミング」が2行に折れたり、「アクション」が切れたりしにくくなります)。</li>
       <li>2026/11/19 固定バーとチェッカーの「+寵」の書き方を、「Lv1: 2/2(寵1)」の形に変えました(スキルも「メイン: 0/2(寵2)」の形です)。使い道から数えた点数がある場合は「(寵2・5点)」と出ます。</li>
       <li>2026/11/19 行の「寵」ボタンを、チェックボックスのように分かりやすくしました。印を付ける前は点線の「☐寵」、押すと金色の「☑寵」になります(以前は薄くて見えにくかったので、はっきり見える色にしました)。スキルの表とマニューバの上には、使い方の一行説明も出ます。</li>
       <li>2026/11/19 固定バーの「+寵」に、点数を付けるようにしました(例：メイン: 0/2+寵2(5点)、Lv1: 2/1+寵2(4点))。点数は、「寵愛点の使い道・強化履歴」に書いた使用点数から数えます(1行に名前が複数書かれているときは、名前の数で等分します。使い道に書いていない手動の印は、点数に入りません)。</li>
@@ -785,16 +786,16 @@
   </div>
 </div>
 
-<script src="data.js?v=230"></script>
-<script src="app-core.js?v=230"></script>
-<script src="app-parts.js?v=230"></script>
-<script src="app-skills.js?v=230"></script>
-<script src="app-save.js?v=230"></script>
-<script src="app-dict.js?v=230"></script>
-<script src="app-image.js?v=230"></script>
-<script src="app-look.js?v=230"></script>
-<script src="app-sheetprint.js?v=230"></script>
-<script src="app-share.js?v=230"></script>
-<script src="app-main.js?v=230"></script>
+<script src="data.js?v=231"></script>
+<script src="app-core.js?v=231"></script>
+<script src="app-parts.js?v=231"></script>
+<script src="app-skills.js?v=231"></script>
+<script src="app-save.js?v=231"></script>
+<script src="app-dict.js?v=231"></script>
+<script src="app-image.js?v=231"></script>
+<script src="app-look.js?v=231"></script>
+<script src="app-sheetprint.js?v=231"></script>
+<script src="app-share.js?v=231"></script>
+<script src="app-main.js?v=231"></script>
 </body>
 </html>

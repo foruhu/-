@@ -225,8 +225,8 @@ function renderPartsContainer() {
             <tr>
               <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:6%;" class="color-col">色</th><th style="width:11%;">配置部位</th>
               <th style="width:18%;">パーツ名</th><th style="width:9%;">分類</th>
-              <th style="width:6%;">Lv</th><th style="width:14%;">タイミング</th>
-              <th style="width:8%;">コスト</th><th style="width:8%;">射程</th>
+              <th style="width:6%;">Lv</th><th style="width:15%;">タイミング</th>
+              <th style="width:8%;">コスト</th><th style="width:7%;">射程</th>
               <th style="width:9%;" class="col-op">操作</th>
             </tr>
           </thead>

@@ -548,8 +548,8 @@ a:hover { color: #cff; }
 @media screen and (min-width: 385px) and (max-width: 899px) {
   /* 文字が切れやすい列に、最低限の幅をとる（名前の列がそのぶん細くなる。幅の狭い小型のスマホでは、名前が潰れるので行わない） */
   .maneuver-table td:has(> .p-cost) { min-width: 30px; }
-  .maneuver-table td:has(> .p-range), .maneuver-table td:has(> .skill-range) { min-width: 40px; }
-  .maneuver-table td:has(> .p-timing) { min-width: 50px; }
+  .maneuver-table td:has(> .p-range), .maneuver-table td:has(> .skill-range) { min-width: 34px; }
+  .maneuver-table td:has(> .p-timing) { min-width: 58px; }
 }
 
 #editing-name { font-weight: bold; color: #ffd0d0; font-size: .9rem; line-height: 1.3; padding: 1px 2px 3px; border-bottom: 1px dashed var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
