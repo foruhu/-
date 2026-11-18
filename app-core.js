@@ -165,7 +165,7 @@ function markDirty() {
 }
 
 function setupDirtyTracking() {
-  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input', 'img-add-input', 'img-replace-input']);
+  const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input', 'img-add-input', 'img-replace-input', 'backup-verify-input', 'backup-file-input', 'card-filter', 'card-sort']);
   document.addEventListener('input', (e) => {
     if (e.target && ignoreIds.has(e.target.id)) return;
     isDirty = true;
@@ -327,6 +327,7 @@ function renderSaveCards(selectedId = '') {
     if (a === 'autosave_draft') return -1;
     if (b === 'autosave_draft') return 1;
     const sa = sheets[a], sb = sheets[b];
+    if (!!sa.pinned !== !!sb.pinned) return sa.pinned ? -1 : 1; // ピン留めしたキャラは、並べ替えに関係なく先頭に出す
     if (mode === 'saved-asc') return (sa.savedAt || '').localeCompare(sb.savedAt || '');
     if (mode === 'name-asc') return cmpStr(sa.name, sb.name);
     if (mode === 'pl-asc') {
@@ -352,14 +353,16 @@ function renderSaveCards(selectedId = '') {
     const thumbHtml = s.image
       ? `<img src="${safeImageSrc(s.image)}" class="save-card-thumb" alt="">`
       : `<div class="save-card-thumb save-card-thumb-placeholder">🧍</div>`;
+    const dateStr = formatCardDate(s.savedAt);
     const sub = (id === 'autosave_draft' && s.draftOfName)
       ? '元: ' + s.draftOfName
       : [s.data && s.data.pos, s.data && s.data.mc, s.data && s.data.sc].filter(Boolean).join(' / ');
     return `
       <div class="save-card ${isSelected ? 'selected' : ''}" onclick="selectSaveCard(this.dataset.id)" data-id="${escapeHtml(id)}">
         ${thumbHtml}
-        <div class="save-card-name">${escapeHtml(s.name || '(無名)')}</div>
+        <div class="save-card-name">${s.pinned ? '📌' : ''}${escapeHtml(s.name || '(無名)')}</div>
         <div class="save-card-sub">${escapeHtml(sub)}</div>
+        <div class="save-card-date">${escapeHtml(dateStr)}</div>
       </div>
     `;
   }).join('');
@@ -758,4 +761,41 @@ function initCardTools() {
     const sortEl = document.getElementById('card-sort');
     if (v && sortEl && Array.from(sortEl.options).some(o => o.value === v)) sortEl.value = v;
   } catch (e) {}
+}
+
+// カードに添える保存日時（同じ名前のキャラを見分けるため）。今年なら「月/日 時:分」、去年以前なら年も付ける
+function formatCardDate(iso) {
+  try {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const md = (d.getMonth() + 1) + '/' + d.getDate();
+    return (d.getFullYear() !== new Date().getFullYear() ? d.getFullYear() + '/' : '') + md + ' ' + hm;
+  } catch (e) { return ''; }
+}
+
+// ピン留め：選んでいるキャラを、一覧の先頭に固定する／外す
+function togglePinSelectedSave() {
+  const select = document.getElementById('save-slot');
+  const id = select ? select.value : '';
+  if (!id) return alert('ピン留めするキャラクターをカードから選択してください');
+  if (id === 'autosave_draft') return alert('自動保存の下書きは、ピン留めできません');
+  const sheets = getSavedSheets();
+  const entry = sheets[id];
+  if (!entry) return alert('データが見つかりませんでした。一覧を開き直してください');
+  if (entry.pinned) delete entry.pinned; else entry.pinned = true;
+  if (!setSavedSheets(sheets)) return;
+  renderSaveCards(id);
+  showToast(entry.pinned ? '📌 ピン留めしました' : 'ピン留めを外しました');
+}
+
+function clearBattleMemo() {
+  const el = document.getElementById('battle-memo');
+  if (!el || el.readOnly || !el.value) return;
+  if (!confirm('戦闘メモを消します。よろしいですか？（「↩️ 元に戻す」で戻せます）')) return;
+  pushUndoSnapshot();
+  el.value = '';
+  autoResizeTextarea(el);
+  markDirty();
 }

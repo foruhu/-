@@ -66,6 +66,7 @@ tr.used input:not([type="checkbox"]), tr.used textarea, tr.used select { opacity
 .save-card-thumb { width: 78px; height: 78px; object-fit: cover; border-radius: 6px; display: block; margin: 0 auto 4px auto; background: #222228; }
 .save-card-thumb-placeholder { display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #555; }
 .save-card-name { font-size: .72rem; font-weight: bold; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-card-date { font-size: .58rem; color: #777; margin-top: 1px; }
 .save-card-sub { font-size: .62rem; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* --- 自動保存ステータス・元に戻すボタン --- */
@@ -128,6 +129,9 @@ body.view-mode th { color: #ddd; }
   text-align: center;
   text-align-last: center;
 }
+
+/* パソコンでは、選択肢の一覧にも欄の「透明な文字色」が引き継がれて、白い一覧に字が見えなくなるので、一覧の中の文字は読める色にする */
+.p-tag option, .skill-tag option { color: #111; background: #fff; }
 
 /* --- 左下固定：小さいアイコンボタン群（キャラ切替・表示/編集モード切替） --- */
 .corner-btn {
@@ -508,3 +512,9 @@ body.view-mode #ccf-modal input, body.view-mode #ccf-modal textarea { pointer-ev
 @media (pointer: coarse) {
   body.view-mode #cp-text, body.view-mode #ccf-modal input, body.view-mode #ccf-modal textarea { font-size: 16px !important; }
 }
+
+/* 戦闘メモは、表示モードでも書けるようにする（閲覧用URLでは書き込み不可のまま） */
+body.view-mode #battle-memo { pointer-events: auto !important; background: #1d1d24 !important; border: 1px solid #555 !important; }
+body.view-mode.view-locked #battle-memo { pointer-events: auto !important; }
+@media (pointer: coarse) { body #battle-memo { font-size: 16px !important; } }
+@media print { #sec-battle-memo { display: none !important; } }

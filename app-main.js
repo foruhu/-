@@ -380,3 +380,31 @@ function maybeShowWelcome() {
     ov.querySelector('#welcome-help').onclick = () => { done(); if (typeof openHelp === 'function') openHelp(); };
   } catch (e) { /* 出せなくても、ほかの動きには影響しない */ }
 }
+
+// どの機能が使われているかを、回数だけ、個人を特定しない形で数える（GoatCounter のイベント。キャラクターの内容や名前は送らない）。
+// 数える仕組みが無い（テスト版・広告ブロックなど）ときは、何もしない
+function trackFeature(name) {
+  try {
+    if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+      window.goatcounter.count({ path: 'feature/' + name, title: name, event: true });
+    }
+  } catch (e) { /* 数えられなくても、機能には影響しない */ }
+}
+(function wrapTrackedFeatures() {
+  const names = {
+    saveData: 'save', exportSheetImage: 'image', exportGroupImage: 'group-image', printSheetLayout: 'print',
+    exportCcfolia: 'ccfolia-piece', exportChatPalette: 'chat-palette', exportAllCharactersBackup: 'backup',
+    exportShareURL: 'share-url', exportViewURL: 'view-url', openHokanshoImport: 'hokansho-import', undoLastAction: 'undo',
+    redoLastAction: 'redo', renameSelectedSave: 'rename', togglePinSelectedSave: 'pin', openTrashList: 'trash',
+    onBackupVerifySelected: 'backup-verify', newBlankSheet: 'new-blank', duplicateSelectedSave: 'duplicate'
+  };
+  Object.keys(names).forEach(fn => {
+    const orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function () {
+      const a0 = arguments[0];
+      if (!(a0 && typeof a0 === 'object' && a0.returnCanvas)) trackFeature(names[fn]); // 卓まとめ画像の内部の描画は、数えない
+      return orig.apply(this, arguments);
+    };
+  });
+})();
