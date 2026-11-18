@@ -590,5 +590,6 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 /* キャラクター画像の横に置く「保管所から読み込む」ボタン(画像の枠と同じ大きさ) */
 .img-panel-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
 .img-hokansho { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-style: dashed; border-color: #8a5a2e; background: #2a1d10; color: #f0b070; font-family: inherit; line-height: 1.2; }
-.img-loadchar { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-style: dashed; border-color: #2e6a8a; background: #17182c; color: #9aa4ff; font-family: inherit; line-height: 1.2; }
-.img-loadchar, .img-hokansho { width: auto; min-width: 108px; padding: 0 6px; }
+.img-hokansho { width: auto; min-width: 170px; padding: 0 12px; background: #8a4a10 !important; color: #fff !important; border: 2px solid #ffb060 !important; box-shadow: 0 0 8px rgba(255,160,70,.55); }
+.img-hokansho .img-add-plus { font-size: 1.7rem; }
+.img-hokansho .img-add-text { font-size: .8rem; font-weight: bold; }
