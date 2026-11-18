@@ -134,7 +134,7 @@ function exportCcfolia() {
       ...(data.pieceColor ? { color: data.pieceColor } : {}),
       status: status,
       params: params,
-      commands: commandLines.join('\n')
+      commands: getChatPaletteText(data)
     }
   };
 
@@ -1138,14 +1138,69 @@ function runHokanshoImport() {
 }
 
 // チャパレ：ココフォリアのチャットパレットに貼り付ける文章だけをコピーする
+// チャパレの文章：自分で編集して保存した内容があればそれを、無ければ自動で作った内容を使う
+function getChatPaletteText(data) {
+  const saved = data && typeof data.chatPalette === 'string' ? data.chatPalette : '';
+  return saved.trim() ? saved : buildCcfoliaCommandLines(data).join('\n');
+}
+
+// 「💬 チャパレ」：編集画面を開く。ここで直して、コピー・保存ができる
 function exportChatPalette() {
-  const text = buildCcfoliaCommandLines(getFullData()).join('\n');
-  const done = () => alert('チャットパレット用の文章をコピーしました。\nココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。');
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(() => prompt('自動コピーに失敗しました。以下の文章を手動でコピーしてください：', text));
-  } else {
-    prompt('以下の文章をコピーして、ココフォリアのチャットパレット欄に貼り付けてください：', text);
-  }
+  const data = getFullData();
+  const hasSaved = !!(data.chatPalette && data.chatPalette.trim());
+  const isView = document.body.classList.contains('view-mode');
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;color:#222;max-width:640px;width:100%;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.6;max-height:94vh;display:flex;flex-direction:column;gap:8px;';
+  const btn = 'padding:8px 12px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;font-size:.84rem;cursor:pointer;';
+  box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">チャットパレットの編集</div>
+    <div id="cp-note" style="font-size:.76rem;color:#555;"></div>
+    <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
+      ${isView ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
+      <button type="button" data-k="reset" style="${btn}">自動生成に戻す</button>`}
+      <button type="button" data-k="close" style="${btn}margin-left:auto;">閉じる</button>
+    </div>`;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  const ta = box.querySelector('#cp-text');
+  const note = box.querySelector('#cp-note');
+  ta.value = getChatPaletteText(data);
+  let savedNow = hasSaved;
+  const setNote = (extra) => {
+    note.textContent = (savedNow
+      ? '保存した内容を表示しています。キャラクターの内容を変えたあとは、「自動生成に戻す」で作り直せます。'
+      : '今のキャラクターから自動で作った内容です。自由に書き換えられます。') + (extra || '');
+  };
+  setNote();
+  const copy = () => {
+    const text = ta.value;
+    const done = () => { note.textContent = 'コピーしました。ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
+    const fallback = () => { ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { note.textContent = '自動コピーに失敗しました。文章を選択して、手動でコピーしてください。'; } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
+    else fallback();
+  };
+  box.addEventListener('click', (e) => {
+    const k = e.target && e.target.getAttribute && e.target.getAttribute('data-k');
+    if (!k) return;
+    if (k === 'copy') copy();
+    else if (k === 'save') {
+      const h = document.getElementById('chat-palette-custom');
+      if (h) { h.value = ta.value; h.dispatchEvent(new Event('input', { bubbles: true })); }
+      savedNow = !!ta.value.trim();
+      setNote('（保存しました。キャラクターの「💾 保存」を押すと、保存済みキャラクターにも残ります）');
+    } else if (k === 'reset') {
+      if (!confirm('編集した内容を捨てて、今のキャラクターから作り直します。よろしいですか？\n（「この内容を保存」を押すまで、保存済みの内容は変わりません）')) return;
+      ta.value = buildCcfoliaCommandLines(getFullData()).join('\n');
+      const h = document.getElementById('chat-palette-custom');
+      if (h) { h.value = ''; h.dispatchEvent(new Event('input', { bubbles: true })); }
+      savedNow = false;
+      setNote('（自動生成に戻しました）');
+    } else if (k === 'close') ov.remove();
+  });
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
 }
 
 
