@@ -32,6 +32,7 @@ function updateBarChouaiParts() {
 
 function updateBarSkills() {
   try { updateBarChouaiParts(); } catch (e) {}
+  try { renderChouaiMarked(); } catch (e) {}
   const list = document.getElementById('bar-skill-list');
   const cnt = document.getElementById('bar-skill-counts');
   if (!list) return;
@@ -75,7 +76,10 @@ function updateBarSkills() {
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
-    if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra;
+    // 初期の取得数(寵愛で取ったものは除く)を超えたときは、理由を一言添える
+    const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > SKILL_INITIAL_LIMITS[k]).map(([k, l]) => `${l}${got[k]}/${SKILL_INITIAL_LIMITS[k]}`);
+    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
+    if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra + warn;
     const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     // 「ポジション 氷の心 無茶(寵)　メイン …」の形で、区分ごとにまとめて出す。寵愛で取ったスキルは名前の後ろに(寵)を付け、金色にする
     const groups = ['ポジション', 'メイン', 'サブ', ''].map(g => ({ g, items: labeled.filter(o => o.lab === g) })).filter(x => x.items.length);
@@ -85,6 +89,36 @@ function updateBarSkills() {
     }).join('　') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
   } catch (e) { list.innerHTML = ''; if (cnt) cnt.textContent = ''; }
+}
+
+// 「寵愛点の使い道」の下に、いま寵の印が付いているものを一覧する(使い道に書いていないもの・書いてあるのに印がないものは注意を付ける)
+function renderChouaiMarked() {
+  const box = document.getElementById('chouai-marked-box');
+  if (!box) return;
+  try {
+    const memos = chouaiMemoList();
+    const sk = [], pt = [], unmarked = [];
+    const eligible = tr => tr.querySelector('.chouai-btn') && !tr.classList.contains('no-chouai');
+    document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+      const v = tr.querySelector('.skill-name-select')?.value; if (!v || !eligible(tr)) return;
+      const cat = tr.querySelector('.skill-category')?.value || '';
+      const hit = chouaiNameHit(v, memos);
+      if (tr.classList.contains('chouai-acq')) sk.push({ t: v + (cat ? `（${cat}）` : ''), hit });
+      else if (hit) unmarked.push(v);
+    });
+    document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
+      const v = tr.querySelector('.p-name')?.value; if (!v || !eligible(tr)) return;
+      const loc = tr.querySelector('.p-location')?.value || '';
+      const hit = chouaiNameHit(v, memos);
+      if (tr.classList.contains('chouai-acq')) pt.push({ t: v + (loc ? `（${loc}）` : ''), hit });
+      else if (hit) unmarked.push(v);
+    });
+    const li = a => a.map(o => `<span style="color:#ffd24a;font-weight:bold;">${escapeHtml(o.t)}</span>${o.hit ? '' : '<span style="color:#ff9f43;" title="使い道に、この名前が書かれていません">⚠未記入</span>'}`).join('・') || '<span style="color:#888;">なし</span>';
+    let h = `<div><b style="color:#ffd24a;">寵が付いているもの</b></div><div>スキル：${li(sk)}</div><div>パーツ：${li(pt)}</div>`;
+    if (sk.some(o => !o.hit) || pt.some(o => !o.hit)) h += '<div style="color:#ff9f43;font-size:.76rem;">⚠未記入：寵の印はありますが、上の「使い道・強化履歴」にその名前が書かれていません(書き忘れの確認用です。手で付けた印ならそのままで構いません)。</div>';
+    if (unmarked.length) h += `<div style="color:#ff9f43;">使い道に書いてあるのに印がないもの：${unmarked.map(escapeHtml).join('・')}<span style="font-size:.76rem;">(「使い道から寵の印を付ける」で付けられます)</span></div>`;
+    box.innerHTML = h;
+  } catch (e) { box.innerHTML = '<span style="color:#888;">一覧を作れませんでした</span>'; }
 }
 
 // 「寵」ボタン：寵愛点で取得したスキル・パーツに、印を付ける/外す
@@ -587,6 +621,14 @@ function calcChouaiTotals() {
     currentSpan.textContent = current;
     currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
   }
+  try { // 固定バーにも、残りの寵愛点を出す(獲得も使用も0のときは出さない)
+    const row = document.getElementById('bar-chouai-pt-row'), el = document.getElementById('bar-chouai-pt');
+    if (row && el) {
+      row.style.display = (totalEarned || totalUsed) ? 'flex' : 'none';
+      el.innerHTML = `残り <b style="color:${current < 0 ? '#ff4444' : '#8ff'};">${current}</b> pt <span style="color:#aaa;font-size:.85em;">(獲得${totalEarned} − 使用${totalUsed})</span>`;
+    }
+  } catch (e) {}
+  try { renderChouaiMarked(); } catch (e) {}
 }
 
 // --- 保存・読込 ---
