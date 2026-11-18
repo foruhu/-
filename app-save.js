@@ -523,7 +523,7 @@ function updateBackupReminder() {
   }
   el.style.display = '';
   el.style.color = warn ? '#ffcf70' : '#9a9';
-  el.innerHTML = `${warn ? '⚠ ' : ''}${msg} <button type="button" class="char-switch-btn" style="margin-left:6px;" onclick="exportAllCharactersBackup()">バックアップを取る</button>`;
+  el.innerHTML = `${warn ? '⚠ ' : ''}${msg} <button type="button" class="char-switch-btn" style="margin-left:6px;width:auto;display:inline-block;" onclick="exportAllCharactersBackup()">バックアップを取る</button>`;
 }
 
 function onBackupFileSelected(event) {
@@ -831,7 +831,7 @@ function maybeShowBackupNudge() {
     const el = document.createElement('div');
     el.id = 'backup-nudge';
     el.setAttribute('role', 'alert');
-    el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:9000;background:#241416;color:#fff;border:1px solid #f0a0a0;border-radius:10px;padding:10px 12px;font-size:.82rem;box-shadow:0 4px 14px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;';
+    el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:10000;background:#241416;color:#fff;border:1px solid #f0a0a0;border-radius:10px;padding:10px 12px;font-size:.82rem;box-shadow:0 4px 14px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;';
     const msg = document.createElement('div');
     msg.textContent = last
       ? `最後のバックアップから${days}日たっています。キャラクターはこのブラウザの中にだけ保存されているので、ここでバックアップしておくと安心です。`

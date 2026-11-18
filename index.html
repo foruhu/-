@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=169">
+<link rel="stylesheet" href="style.css?v=171">
 </head>
 <body>
 
@@ -363,7 +363,7 @@
 
   <label style="margin-bottom:4px;">保存済みキャラクター（タップで選択）</label>
   <div id="card-tools" style="display:none; gap:6px; margin:0 0 6px 0; align-items:center;">
-    <input type="search" id="card-filter" placeholder="名前・PL・クラスで絞り込み" oninput="onCardToolsChange()" style="flex:1 1 auto; min-width:0; text-align:left;">
+    <input type="search" id="card-filter" placeholder="🔍 絞り込み" oninput="onCardToolsChange()" style="flex:1 1 auto; min-width:0; text-align:left;">
     <select id="card-sort" onchange="onCardToolsChange()" style="flex:0 0 auto; width:auto;" aria-label="並べ替え">
       <option value="saved-desc">保存が新しい順</option>
       <option value="saved-asc">保存が古い順</option>
@@ -478,7 +478,7 @@
   </div>
 
   <div style="font-size:0.7rem; color:#888; margin-top:8px;">
-    ※カードをタップしてキャラクターを選択すると、削除・複製のボタンが出てきます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
+    ※カードをタップしてキャラクターを選択すると、削除・複製・保存名の変更・ピン留めのボタンが出てきます。「新規保存」のまま保存すると名前を聞かれて新しいキャラとして保存されます。<br>
     ※自動保存は下書き枠にだけ保存されます（画面上部に「自動保存（下書き）」と表示されます）。選択中のキャラクターは「💾 保存」を押すまで変わりません。削除したキャラクターは「削除したキャラを復元」ボタンから復元できます（直近5件まで）。
   </div>
 </div>
@@ -702,16 +702,16 @@
   </div>
 </div>
 
-<script src="data.js?v=169"></script>
-<script src="app-core.js?v=169"></script>
-<script src="app-parts.js?v=169"></script>
-<script src="app-skills.js?v=169"></script>
-<script src="app-save.js?v=169"></script>
-<script src="app-dict.js?v=169"></script>
-<script src="app-image.js?v=169"></script>
-<script src="app-look.js?v=169"></script>
-<script src="app-sheetprint.js?v=169"></script>
-<script src="app-share.js?v=169"></script>
-<script src="app-main.js?v=169"></script>
+<script src="data.js?v=171"></script>
+<script src="app-core.js?v=171"></script>
+<script src="app-parts.js?v=171"></script>
+<script src="app-skills.js?v=171"></script>
+<script src="app-save.js?v=171"></script>
+<script src="app-dict.js?v=171"></script>
+<script src="app-image.js?v=171"></script>
+<script src="app-look.js?v=171"></script>
+<script src="app-sheetprint.js?v=171"></script>
+<script src="app-share.js?v=171"></script>
+<script src="app-main.js?v=171"></script>
 </body>
 </html>
