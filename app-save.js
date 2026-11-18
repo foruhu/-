@@ -782,7 +782,8 @@ function restorePartsFromData(parts) {
     if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[secId]) {
       DEFAULT_PARTS[secId].forEach((p, idx) => {
         const saved = savedBaseStates[idx];
-        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
+        // タイミングだけは、基本パーツでも選び直せるので、保存されている値を使う
+        addPartRow(tbody, p.name, p.type, p.level, (saved && typeof saved.timing === 'string') ? saved.timing : p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
         if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed);
       });
     }
