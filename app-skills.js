@@ -12,7 +12,23 @@ function onClassChange() {
   calcTotals();
 }
 
+// 固定バーに、いま取得しているスキルの名前を並べる(スキルを選んでいない行は数えない)
+function updateBarSkills() {
+  const list = document.getElementById('bar-skill-list');
+  if (!list) return;
+  try {
+    const names = [];
+    document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+      const v = tr.querySelector('select.skill-name-select')?.value;
+      if (v) names.push(v);
+    });
+    list.textContent = names.length ? names.join('・') : 'なし';
+    list.style.opacity = names.length ? '1' : '.6';
+  } catch (e) { list.textContent = ''; }
+}
+
 function calcTotals() {
+  try { updateBarSkills(); } catch (e) {}
   const getVal = id => parseInt(document.getElementById(id)?.value || document.getElementById(id)?.textContent, 10) || 0;
 
   const bonusSelected = document.querySelector('input[name="bonus"]:checked')?.value;

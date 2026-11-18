@@ -566,3 +566,6 @@ html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 
 /* 固定のパーツ(基本パーツ・一覧から選んだパーツ)の、無効にしているレベル・射程の選択欄も、同じ色で見せる */
 .maneuver-table select.p-level:disabled, .maneuver-table select.range-sel:disabled { opacity: 1; color: #fff; -webkit-text-fill-color: #fff; }
+
+/* 固定バーの「スキル」行：名前が多いときは折り返す */
+#bar-skill-list { font-size: .85em; word-break: break-all; }
