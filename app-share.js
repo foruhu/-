@@ -902,8 +902,8 @@ function parseHokanshoText(raw) {
       else if (key === 'ポジション') setField('pos', val);
       else if (key === 'クラス') {
         const cls = val.split(/\s*[\/／・]\s*/);
-        setField('mc', (cls[0] || '').trim());
-        setField('sc', (cls[1] || '').trim());
+        setField('mc', normClassName((cls[0] || '').trim()));
+        setField('sc', normClassName((cls[1] || '').trim()));
       }
       else if (key === '初期配置') setField('ps', val);
       else if (key === '行動値') r.fields.act = parseInt(hkToHalf(val), 10);

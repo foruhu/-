@@ -622,6 +622,21 @@ function newBlankSheet() {
 function applyData(data) {
   // 以前の誤字「よぷんなめ」が入っていたら、「よぶんなめ」に直して読み込む
   try { const js = JSON.stringify(data); const fx = fixKnownTyposInString(js); if (fx !== js) data = JSON.parse(fx); } catch (e) {}
+  // 以前の「サイケデリック」のキャラは、「サイケデリック(歪曲)」に読み替える(クラス名・スキルのクラス・スキル名)
+  try {
+    const PSY_OLD = 'サイケデリック', PSY_NEW = 'サイケデリック(歪曲)';
+    const old = ['mc', 'sc'].some(k => data && data[k] === PSY_OLD) || (data && Array.isArray(data.skills) && data.skills.some(s => s && s.category === PSY_OLD));
+    if (old) {
+      data = JSON.parse(JSON.stringify(data));
+      ['mc', 'sc'].forEach(k => { if (data[k] === PSY_OLD) data[k] = PSY_NEW; });
+      (data.skills || []).forEach(s => {
+        if (s && s.category === PSY_OLD) {
+          s.category = PSY_NEW;
+          if (typeof s.name === 'string' && s.name && !s.name.endsWith('(歪曲)') && SKILL_DATABASE[PSY_NEW].some(x => x.name === s.name + '(歪曲)')) s.name += '(歪曲)';
+        }
+      });
+    }
+  } catch (e) {}
   const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
   setVal('pl', data.pl); setVal('name', data.name);
