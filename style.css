@@ -576,7 +576,7 @@ html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 tr.chouai-acq .chouai-btn { background: #b8860b; color: #fff; border-color: #ffd24a; font-weight: bold; }
 tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #ffd24a; }
 html.theme-light tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #a07000; }
-@media print { .chouai-btn { display: none !important; } }
+@media print { tr:not(.chouai-acq) .chouai-btn { display: none; } }
 
 .bar-chouai { color: #ffd24a; white-space: nowrap; }
 html.theme-light .bar-chouai { color: #ffd24a; }
@@ -584,5 +584,5 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 /* 「寵」ボタンは、印が付いた行にだけ出す(印は「寵愛点の使い道」の記載から自動で付く。ボタンは外すとき用) */
 tr:not(.chouai-acq) .chouai-btn { display: none; }
 
-/* 寵の印は「寵愛点の使い道」から自動で付くので、手で押すボタンは出さない */
-.chouai-btn { display: none !important; }
+/* 「寵」ボタンは、印が付いた行にだけ出す(外すとき用。印は使い道の記載から付く) */
+tr:not(.chouai-acq) .chouai-btn { display: none; }
