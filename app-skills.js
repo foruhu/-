@@ -48,7 +48,7 @@ function updateBarSkills() {
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
       if (!v) return; // スキルを選んでいない行は数えない
-      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); return; } // 寵愛点で取ったものは、初期の取得数には数えない
+      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); } // 寵愛で取ったスキルも、取得数に数える(上限の枠にも足す)
       const cat = tr.querySelector('.skill-category')?.value || '';
       catCount[cat] = (catCount[cat] || 0) + 1;
     });
@@ -56,31 +56,35 @@ function updateBarSkills() {
     const pos = val('pos'), mc = val('mc'), sc = val('sc');
     const got = { pos: catCount[pos] || 0, mc: catCount[mc] || 0, sc: catCount[sc] || 0 };
     // メインクラスとサブクラスが同じクラスのときは、先にメインの2つ、残りをサブとして数える
-    if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, SKILL_INITIAL_LIMITS.mc); got.sc = Math.max(0, n - SKILL_INITIAL_LIMITS.mc); }
     // 寵愛で取ったスキルは、ポジション・メイン・サブごとに数える(同じクラスを重ねて選んだときは、ポジション→メイン→サブの順)
     const cc = { pos: 0, mc: 0, sc: 0 }; let chouaiSkills = 0, chouaiOther = 0;
     Object.keys(chouaiCat).forEach(c => {
       const n = chouaiCat[c], pp = chouaiCatPt[c] || 0; chouaiSkills += n;
       if (c && c === pos) { cc.pos += n; skillPt.pos += pp; } else if (c && c === mc) { cc.mc += n; skillPt.mc += pp; } else if (c && c === sc) { cc.sc += n; skillPt.sc += pp; } else chouaiOther += n;
     });
+    // 上限 = 初期に取れる数 + 寵愛で取ったスキルの数(取得数にも、寵愛で取ったものを含む)
+    const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc };
+    // メインクラスとサブクラスが同じクラスのときは、先にメインの枠、残りをサブとして数える
+    if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, cap.mc); got.sc = Math.max(0, n - cap.mc); }
     const skillRow = (label, key) => {
-      const lim = SKILL_INITIAL_LIMITS[key], n = got[key];
+      const lim = cap[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
-      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個</td><td><b>${n}</b> 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td>${st}</td></tr>`;
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
     };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
-    // 初期の取得数(寵愛で取ったものは除く)を超えたときは、理由を一言添える
-    const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > SKILL_INITIAL_LIMITS[k]).map(([k, l]) => `${l}${got[k]}/${SKILL_INITIAL_LIMITS[k]}`);
-    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
+    // 取得数が上限(寵愛で取った分を足したもの)を超えたときは、知らせる
+    const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > cap[k]).map(([k, l]) => `${l}${got[k]}/${cap[k]}`);
+    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印を付けると上限に足されます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
-    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">(寵${cc[k]}${skillPt[k] ? `・${Math.round(skillPt[k] * 10) / 10}点` : ''})</span>` : ''}</span>`).join(' | ');
+    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">(寵${cc[k]}${skillPt[k] ? `・${Math.round(skillPt[k] * 10) / 10}点` : ''})</span>` : ''}</span>`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
   } catch (e) { if (cnt) cnt.textContent = ''; }
+  try { fitBarRows(); } catch (e) {}
 }
 
 // 「寵愛点の使い道」の下に、いま寵の印が付いているものを一覧する(使い道に書いていないもの・書いてあるのに印がないものは注意を付ける)
@@ -281,6 +285,7 @@ function calcTotals() {
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
   if (typeof calcActionValue === 'function') calcActionValue();
+  try { fitBarRows(); } catch (e) {} // 固定バーの行を1行に収める
 }
 
 // 狂気点は 0〜4。4/4 になったら赤くして、発狂が近い（到達した）ことが分かるようにする
@@ -655,3 +660,21 @@ function refreshUnregisteredHints() {
     ta.placeholder = unregistered ? 'データ未登録（ルルブを見て、手入力できます）' : '効果メモ';
   });
 }
+
+
+// 固定バーの武装・変異・改造・スキルの行は、「(寵2・5点)」などで長くなっても、折り返さず1行に収まるよう、文字を少しずつ小さくする
+function fitBarRows() {
+  try {
+    const els = ['wep', 'mut', 'cyb'].map(k => document.getElementById(`used-${k}-lv1`)?.parentElement).concat([document.getElementById('bar-skill-line')]).filter(Boolean);
+    els.forEach(el => {
+      el.style.fontSize = '';
+      el.style.whiteSpace = 'nowrap'; // 折り返さずに、横幅がどれだけ要るかを測る
+      if (el.offsetParent === null) return; // 表示されていないときは、計測できない
+      const row = el.parentElement;
+      const avail = () => row.clientWidth - (el.previousElementSibling ? el.previousElementSibling.getBoundingClientRect().width : 0) - 8;
+      let px = parseFloat(getComputedStyle(el).fontSize) || 14, guard = 0;
+      while (el.getBoundingClientRect().width > avail() && px > 8 && guard++ < 40) { px -= 0.5; el.style.fontSize = px + 'px'; }
+    });
+  } catch (e) {}
+}
+window.addEventListener('resize', () => { try { fitBarRows(); } catch (e) {} });
