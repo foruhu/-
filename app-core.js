@@ -39,6 +39,24 @@ function detachWorkingSheet() {
     if (typeof updateViewModeImage === 'function') updateViewModeImage('');
   } catch (e) {}
 }
+// 画面の下に、短いメッセージを少しの間だけ出す（コピーしたときの合図など）
+let toastTimer = null;
+function showToast(msg) {
+  try {
+    let el = document.getElementById('app-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'app-toast';
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:88vw;z-index:100000;background:rgba(20,20,26,.96);color:#fff;border:1px solid #f0a0a0;border-radius:20px;padding:10px 18px;font-size:.9rem;font-weight:bold;box-shadow:0 4px 14px rgba(0,0,0,.6);pointer-events:none;text-align:center;transition:opacity .2s;';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2200);
+  } catch (e) {}
+}
 const AUTOSAVE_INTERVAL_MS = 20000; // 20秒ごとに未保存の変更があれば自動保存
 
 function pushUndoSnapshot() {
