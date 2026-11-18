@@ -706,9 +706,9 @@ function applyData(data) {
   if (memoryListEl) {
     memoryListEl.innerHTML = '';
     if (Array.isArray(data.memories) && data.memories.length > 0) {
-      data.memories.forEach(m => addMemoryEntry(m));
+      data.memories.forEach(m => addMemoryEntry(m, true));
     } else if (data.mem) {
-      addMemoryEntry(data.mem);
+      addMemoryEntry(data.mem, true);
     }
   }
 

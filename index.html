@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=171">
+<link rel="stylesheet" href="style.css?v=172">
 </head>
 <body>
 
@@ -214,11 +214,11 @@
   </div>
   <div class="non-battle" style="margin-bottom:6px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-      <label style="margin:0;">記憶のカケラ（入手した数だけ追加できます）</label>
+      <label style="margin:0;">記憶のカケラ（最大6個まで）</label>
       <button type="button" class="sec" id="memory-all-toggle" onclick="toggleAllMemoryDetails()" style="font-size:.7rem;padding:2px 6px;white-space:nowrap;">詳細をすべて折りたたむ</button>
     </div>
     <div id="memory-list"></div>
-    <button type="button" class="sec edit-only" onclick="addMemoryEntry()" style="width:100%;margin-top:2px;padding:4px;">+ 記憶のカケラ枠を追加</button>
+    <button type="button" class="sec edit-only" onclick="addMemoryEntry()" style="width:100%;margin-top:2px;padding:4px;">+ 記憶のカケラ枠を追加（最大6個）</button>
   </div>
   <div class="g2">
     <div>
@@ -638,7 +638,7 @@
       <li>印刷には、ページの最後に「Printed by ドール設計図館, (サイトのURL)」と小さく入ります。</li>
       <li>「🏁 戦闘終了」で、使用チェックをまとめて外せます。続けて「損傷しているパーツも修復するか」を聞かれます(「↩️ 元に戻す」で戻せます)。マニューバの見出しにあります。</li>
       <li>マニューバの下の「📝 戦闘メモ」は、戦闘中の一時メモ欄です。表示モードでも書けて、キャラクターと一緒に保存されます(印刷・画像には入りません)。「クリア」で消せます。</li>
-      <li>記憶のカケラは、数字・名前・詳細を分けて書けます。複数あるときは、体重や髪の色のように横に並びます(スマホでは2列)(以前に「名前：詳細」の1行で入れていたデータは、自動で名前と詳細に分かれます)。</li>
+      <li>記憶のカケラは、数字・名前・詳細を分けて書けます。複数あるときは、体重や髪の色のように横に並びます(スマホでは2列)(以前に「名前：詳細」の1行で入れていたデータは、自動で名前と詳細に分かれます)。追加できるのは最大6個までです(すでに6個を超えて保存してあるキャラは、そのまま読み込まれ、減らされません)。</li>
       <li>記憶のカケラの詳細は、長くなっても4行ぶんで止まり、中でスクロールできます(右下の角を引くと広げられます)。また、▾ボタンで1件ずつ、または「詳細をすべて折りたたむ」でまとめて折りたためます(折りたたんでいる間は、詳細の書き出しが1行だけ薄く出ます。押すと開きます。折りたたみの状態は保存されません。印刷では、すべて開いた状態で出ます)。</li>
       <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。保存前に、配色(暗い背景/白い背景)と内容(すべて/戦闘用)を選べます。iPhoneでは画像が開くので、長押しで保存します。</li>
       <li>「📚 卓まとめ画像」で、保存済みのキャラクターを2〜8人選んで、1枚の画像(PNG)に並べて保存できます。配色(暗い／白)と内容(戦闘用／すべて)も選べます。今編集している内容は、そのまま残ります。</li>
@@ -684,6 +684,7 @@
       <li>2026/11/18 不具合の修正：他の人から届いた共有データ・バックアップで、画面が乱れたり悪用されたりしないようにしました。編集中のキャラの下書きが別のキャラに付く問題、「新規作成」しても再読み込みで元に戻る問題、下書きカードで画像が消える問題、保存領域が足りないときに自動保存が削除済みキャラの復元用データを消す問題、保存データが壊れたときの上書きを直しました。パーツ名「よぷんなめ」は「よぶんなめ」に直しました。</li>
       <li>2026/11/18 初めて開いたときの短い案内、保存名の変更、一覧の並べ替え・絞り込み、卓まとめ画像、上書き保存前の変更点の表示、「↪️ やり直す」、バックアップのお知らせを追加しました。「↩️ 元に戻す」で、欄の書き換えも順にさかのぼれるようにしました。</li>
       <li>2026/11/18 「📌 ピン留め」、カードへの保存日時の表示、削除したキャラの一覧からの復元、バックアップの書き出し前の確認と「🔍 バックアップファイルを確認」、「📝 戦闘メモ」を追加しました。</li>
+      <li>2026/11/18 記憶のカケラの枠を、最大6個までにしました(すでに6個を超えて保存してあるキャラは、減らされません)。</li>
     </ul>
   </div>
 </div>
@@ -702,16 +703,16 @@
   </div>
 </div>
 
-<script src="data.js?v=171"></script>
-<script src="app-core.js?v=171"></script>
-<script src="app-parts.js?v=171"></script>
-<script src="app-skills.js?v=171"></script>
-<script src="app-save.js?v=171"></script>
-<script src="app-dict.js?v=171"></script>
-<script src="app-image.js?v=171"></script>
-<script src="app-look.js?v=171"></script>
-<script src="app-sheetprint.js?v=171"></script>
-<script src="app-share.js?v=171"></script>
-<script src="app-main.js?v=171"></script>
+<script src="data.js?v=172"></script>
+<script src="app-core.js?v=172"></script>
+<script src="app-parts.js?v=172"></script>
+<script src="app-skills.js?v=172"></script>
+<script src="app-save.js?v=172"></script>
+<script src="app-dict.js?v=172"></script>
+<script src="app-image.js?v=172"></script>
+<script src="app-look.js?v=172"></script>
+<script src="app-sheetprint.js?v=172"></script>
+<script src="app-share.js?v=172"></script>
+<script src="app-main.js?v=172"></script>
 </body>
 </html>

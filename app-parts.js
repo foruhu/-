@@ -308,9 +308,16 @@ function toggleAllMemoryDetails() {
 }
 
 // 「記憶のカケラ」の1枠（数字・名前・詳細＋削除）を作成する
-function addMemoryEntry(value = '') {
+// 記憶のカケラは、最大6個まで。「枠を追加」ボタンからの追加だけを止める（保存済みデータ・読み込み・取り込みでは、すでに6個を超えていても、削らずにそのまま読み込む）
+const MEMORY_MAX = 6;
+function addMemoryEntry(value = '', force = false) {
   const container = document.getElementById('memory-list');
   if (!container) return;
+  if (!force && container.querySelectorAll('.memory-entry').length >= MEMORY_MAX) {
+    if (typeof showToast === 'function') showToast('⚠ 記憶のカケラは最大' + MEMORY_MAX + '個までです');
+    else alert('記憶のカケラは最大' + MEMORY_MAX + '個までです');
+    return;
+  }
   const m = normalizeMemory(value);
 
   const row = document.createElement('div');
