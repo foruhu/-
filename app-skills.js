@@ -37,11 +37,14 @@ function updateBarSkills() {
   if (!list) return;
   try {
     const names = [];
+    const rowsInfo = [];
     const catCount = {};
     const chouaiCat = {};
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
       if (!v) return; // スキルを選んでいない行は数えない
+      const cat0 = tr.querySelector('.skill-category')?.value || '';
+      rowsInfo.push({ v, cat: cat0, ch: tr.classList.contains('chouai-acq') });
       if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; names.push(v + '（寵）'); return; } // 寵愛点で取ったものは、初期の取得数には数えない
       names.push(v);
       const cat = tr.querySelector('.skill-category')?.value || '';
@@ -58,12 +61,23 @@ function updateBarSkills() {
       const n = chouaiCat[c]; chouaiSkills += n;
       if (c && c === pos) cc.pos += n; else if (c && c === mc) cc.mc += n; else if (c && c === sc) cc.sc += n; else chouaiOther += n;
     });
+    // 名前の後ろに、ポジション・メイン・サブのどれのスキルかを付ける(同じクラスを重ねて選んだときは、メインの2つ→残りをサブ)
+    const seen = {};
+    const labeled = rowsInfo.map(r => {
+      let lab = '';
+      if (r.cat && r.cat === pos) lab = 'ポジション';
+      else if (r.cat && r.cat === mc && r.cat === sc) { if (r.ch) lab = 'メイン'; else { seen[r.cat] = (seen[r.cat] || 0) + 1; lab = seen[r.cat] <= SKILL_INITIAL_LIMITS.mc ? 'メイン' : 'サブ'; } }
+      else if (r.cat && r.cat === mc) lab = 'メイン';
+      else if (r.cat && r.cat === sc) lab = 'サブ';
+      const tags = [lab, r.ch ? '寵' : ''].filter(Boolean);
+      return r.v + (tags.length ? '（' + tags.join('・') + '）' : '');
+    });
     const part = (label, key) => `<span style="white-space:nowrap;">${key === 'pos' ? '' : '| '}${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</span>`;
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra;
-    list.textContent = names.length ? names.join('・') : 'なし';
+    list.textContent = labeled.length ? labeled.join('・') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
   } catch (e) { list.textContent = ''; if (cnt) cnt.textContent = ''; }
 }

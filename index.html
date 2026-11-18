@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=218">
+<link rel="stylesheet" href="style.css?v=219">
 </head>
 <body>
 
@@ -699,6 +699,7 @@
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
       <li>2026/11/19 バックアップのお知らせを直しました。①「バックアップを取る」を押して書き出しに失敗しても、お知らせが閉じて「しばらく出さない」扱いになっていた(今は、成功したときだけ閉じます)。②パソコンの時計が進んだあとに戻されると、お知らせが出なくなっていた。あわせて、卓まとめ画像は、画像の保存の操作が済んでから画面を閉じるようにしました(作れなかったときは画面が残り、理由が出ます)。</li>
+      <li>2026/11/19 固定バーの「スキル」の行の名前に、ポジション・メイン・サブのどれのスキルかを付けるようにしました(例：氷の心（メイン）・無茶（ポジション・寵）)。寵愛点で取ったものは「・寵」が付きます。</li>
       <li>2026/11/19 固定バーの「スキル」の行で、寵愛点で取ったスキルを、ポジション・メインクラス・サブクラスごとに「+寵1」のように出すようにしました(印を付けたスキルが、どの区分のものか分かります)。区分に当てはまらないスキルは、下の「寵愛で取得」に「その他スキル」と出ます。</li>
       <li>2026/11/19 さらに3件直しました。①「基本」「たからもの」のパーツの行に、また「寵」ボタンが出ていた(直前の修正の漏れ)。②保管所テキストを取り込むと、付けていた「寵」の印が全部消えていた(同じ区分・同じ名前のスキル／パーツは、印を引き継ぎます)。③保存済みキャラが自動保存の下書きだけのときにも、「バックアップはまだ取っていません」と出ていた。</li>
       <li>2026/11/19 不具合を7件直しました。①保存データの読み込みで、手で外した「寵」の印が勝手に付くことがあった(使い道が複数行のとき)。②保管所テキストの取り込み・保存データで、クラスのスキル(サイケデリック・断罪など)の名前が、新しい「(歪曲)」付きの名前にそろわなかった。③「(歪曲)」に改名したスキルの効果の自動入力(自分用の効果データ)が効かなくなっていた。④使い道に「祈り」「断罪」など2文字の名前だけを書いても、印が付かなかった。⑤「寵愛で業躯を習得」のように、助詞の直後にある名前で印が付かなかった。⑥印の付いたパーツの種別を「基本」「たからもの」に変えると、印とボタンの扱いが食い違った(変えると印が外れ、ボタンも隠れます)。⑦削除したキャラクターを復元すると、ピン留めが外れていた。</li>
@@ -765,16 +766,16 @@
   </div>
 </div>
 
-<script src="data.js?v=218"></script>
-<script src="app-core.js?v=218"></script>
-<script src="app-parts.js?v=218"></script>
-<script src="app-skills.js?v=218"></script>
-<script src="app-save.js?v=218"></script>
-<script src="app-dict.js?v=218"></script>
-<script src="app-image.js?v=218"></script>
-<script src="app-look.js?v=218"></script>
-<script src="app-sheetprint.js?v=218"></script>
-<script src="app-share.js?v=218"></script>
-<script src="app-main.js?v=218"></script>
+<script src="data.js?v=219"></script>
+<script src="app-core.js?v=219"></script>
+<script src="app-parts.js?v=219"></script>
+<script src="app-skills.js?v=219"></script>
+<script src="app-save.js?v=219"></script>
+<script src="app-dict.js?v=219"></script>
+<script src="app-image.js?v=219"></script>
+<script src="app-look.js?v=219"></script>
+<script src="app-sheetprint.js?v=219"></script>
+<script src="app-share.js?v=219"></script>
+<script src="app-main.js?v=219"></script>
 </body>
 </html>
