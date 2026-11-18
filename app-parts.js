@@ -34,7 +34,8 @@ function detectCategoryFromMemo(memoText) {
 
 function buildCategoryOptions(selected) {
   return MANEUVER_CATEGORIES.map(c =>
-    `<option value="${c}" ${c === selected ? 'selected' : ''}>${c || '（未選択）'}</option>`
+    // 選択肢の一覧でも、行に付くのと同じ色で見えるようにする（色が無い「未選択」は、既定の白）
+    `<option value="${c}" ${c === selected ? 'selected' : ''}${MANEUVER_CATEGORY_COLORS[c] ? ` style="background:${MANEUVER_CATEGORY_COLORS[c]};color:#fff;"` : ''}>${c || '（未選択）'}</option>`
   ).join('');
 }
 
