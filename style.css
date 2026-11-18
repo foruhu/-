@@ -594,3 +594,4 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 /* 印の付いていない行の「寵」ボタンは、目立たないよう薄くする(押せば印が付く)。印の付いた行は、これまでどおり金色で目立たせる */
 tr:not(.chouai-acq) .chouai-btn { opacity: .3; background: transparent; border-color: #5a4a22; color: #a89050; }
 tr:not(.chouai-acq) .chouai-btn:hover, tr:not(.chouai-acq) .chouai-btn:focus-visible { opacity: .9; }
+tr.no-chouai .chouai-btn { display: none !important; }

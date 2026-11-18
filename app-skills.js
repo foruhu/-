@@ -91,8 +91,8 @@ function chouaiNameHit(rawName, memos) {
   if (basic.has(name)) return false;
   const short = name.replace(/[(（][^)）]*[)）]/g, ''); // 「(歪曲)」などの括弧書きを除いた名前でも照合する
   const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const B = '[\\s、,，・「『（(\\[【/／:：+＋]', A = '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|も|の|取得|習得|獲得|購入|追加|入手|修復|強化|習)';
-  const cands = [name]; if (short.length >= 3 && short !== name) cands.push(short);
+  const B = '(?:[\\s、,，・「『（(\\[【/／:：+＋]|を|で|に|は|が|と|の|も|へ|や)', A = '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|も|の|取得|習得|獲得|購入|追加|入手|修復|強化|習)';
+  const cands = [name]; if (short.length >= 2 && short !== name) cands.push(short);
   return cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
 }
 // force=true(ボタン)のときは、いま一致している行すべてに印を付ける。通常は前回との差分だけを反映する
@@ -104,7 +104,7 @@ function autoMarkChouaiFromUses(silent, force) {
     const prev = (chouaiMemoSnap === null || force) ? cur : chouaiMemoSnap;
     let added = 0, removed = 0;
     const apply = (tr, rawName) => {
-      if (!tr || !tr.querySelector('.chouai-btn')) return; // 基本パーツ・たからもの行は対象外
+      if (!tr || !tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return; // 基本パーツ・たからもの行は対象外
       const now = chouaiNameHit(rawName, cur), before = chouaiNameHit(rawName, prev);
       const marked = tr.classList.contains('chouai-acq');
       if (now && (force || !before) && !marked) { tr.classList.add('chouai-acq'); added++; }
@@ -496,7 +496,6 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   `;
 
   tbody.appendChild(tr);
-  chouaiMemoSnap = chouaiMemoList(); // 読み込み・行追加では、印を付け外ししない
   markDirty();
   calcChouaiTotals();
 }
@@ -520,6 +519,7 @@ function addChouaiUseRow(used = 0, memo = '') {
   `;
 
   tbody.appendChild(tr);
+  chouaiMemoSnap = chouaiMemoList(); // 読み込み・行追加では、印を付け外ししない
   markDirty();
   calcChouaiTotals();
 }

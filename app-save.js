@@ -260,7 +260,8 @@ function moveToTrash(id, entry) {
     images: entryImages(entry),
     data: entry.data,
     deletedAt: new Date().toISOString(),
-    originalId: id
+    originalId: id,
+    pinned: entry.pinned ? true : undefined // 復元したとき、ピン留めも戻す
   });
   return setTrash(trash.slice(0, TRASH_LIMIT));
 }
@@ -279,6 +280,7 @@ function restoreDeletedSave() {
     savedAt: entry.savedAt || new Date().toISOString(),
     image: entry.image || null,
     images: entryImages(entry),
+    pinned: entry.pinned ? true : undefined,
     data: JSON.parse(JSON.stringify(entry.data || {}))
   };
   if (!setSavedSheets(sheets)) return;
@@ -816,7 +818,7 @@ function applyRowFlags(tbody, isBroken, isUsed, isChouai) {
   const rows = tbody.querySelectorAll('tr.part-row');
   const lastRow = rows[rows.length - 1];
   if (!lastRow) return;
-  if (isChouai && lastRow.querySelector('.chouai-btn')) lastRow.classList.add('chouai-acq');
+  if (isChouai && lastRow.querySelector('.chouai-btn') && !lastRow.classList.contains('no-chouai')) lastRow.classList.add('chouai-acq');
   if (isBroken) {
     const cb = lastRow.querySelector('.p-broken');
     if (cb) { cb.checked = true; togglePartBreak(cb); }
@@ -889,6 +891,7 @@ function restoreTrashEntry(index) {
     savedAt: entry.savedAt || new Date().toISOString(),
     image: entry.image || null,
     images: entryImages(entry),
+    pinned: entry.pinned ? true : undefined,
     data: JSON.parse(JSON.stringify(entry.data || {}))
   };
   if (!setSavedSheets(sheets)) return false; // 失敗したときは、ゴミ箱の中身は減らさない

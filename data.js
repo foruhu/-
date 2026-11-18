@@ -230,8 +230,12 @@ const LIMIT_TABLE_DATA = [
 // 以前の名前「サイケデリック」(サプリのクラスなので、「(歪曲)」を付けた名前に変えた)を、新しい名前にそろえる
 function normClassName(v) { return (v === 'サイケデリック') ? 'サイケデリック(歪曲)' : v; }
 
-// サプリ(歪曲)のスキル。以前の名前(「(歪曲)」なし)を、新しい名前にそろえる
-const SUPPLEMENT_SKILLS = { 'アリス': ['祈り', '輝く表情'], 'オートマトン': ['血の涙', '敵は敵'], 'ホリック': ['堕地獄', '狂気の果て'], 'コート': ['抑制', '憎まれ役'], 'ジャンク': ['楽園の守護者', '手負いの獣'], 'ソロリティ': ['姉妹のくちづけ', '心を鬼にして'] };
+// サプリ(歪曲)のスキル。以前の名前(「(歪曲)」なし)を、新しい名前にそろえる。
+// 区分(ポジション・クラス)の一覧に、その名前が無く「名前(歪曲)」がある場合だけ読み替える(クラスのスキルも、ポジションのスキルも同じ仕組み)
 function normSkillName(category, name) {
-  return (SUPPLEMENT_SKILLS[category] && SUPPLEMENT_SKILLS[category].includes(name)) ? name + '(歪曲)' : name;
+  try {
+    const list = SKILL_DATABASE[normClassName(category)];
+    if (list && typeof name === 'string' && name && !list.some(x => x.name === name) && list.some(x => x.name === name + '(歪曲)')) return name + '(歪曲)';
+  } catch (e) {}
+  return name;
 }

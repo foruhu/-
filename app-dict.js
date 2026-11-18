@@ -59,7 +59,29 @@ function mergeEffectDict(incoming) {
   if (!incoming || typeof incoming !== 'object') return 0;
   const dict = getEffectDict();
   let n = 0;
-  Object.keys(incoming).forEach(k => { if (!dict[k] && incoming[k] && incoming[k].memo) { dict[k] = incoming[k]; n++; } });
+  Object.keys(incoming).forEach(k0 => {
+    let k = k0;
+    const m = k0.match(/^s\|([^|]*)\|(.*)$/);
+    if (m) { const cat = normClassName(m[1]); k = effectKeySkill(cat, normSkillName(cat, m[2])); }
+    if (!dict[k] && incoming[k0] && incoming[k0].memo) { dict[k] = incoming[k0]; n++; }
+  });
   if (n) setEffectDict(dict);
   return n;
 }
+
+// 改名した(歪曲)のスキルは、効果辞書のキーが以前の名前のままだと引けなくなるので、新しい名前へ読み替える(新しい名前に既に入っているものは上書きしない)
+function migrateEffectDictNames() {
+  try {
+    const dict = getEffectDict();
+    let changed = false;
+    Object.keys(dict).forEach(key => {
+      const m = key.match(/^s\|([^|]*)\|(.*)$/);
+      if (!m) return;
+      const cat = normClassName(m[1]);
+      const nk = effectKeySkill(cat, normSkillName(cat, m[2]));
+      if (nk !== key) { if (!dict[nk]) dict[nk] = dict[key]; delete dict[key]; changed = true; }
+    });
+    if (changed) setEffectDict(dict);
+  } catch (e) {}
+}
+migrateEffectDictNames();
