@@ -488,3 +488,8 @@ body.battle-view .miren-mad-row td { padding: 0 2px 3px; }
 
 .img-bg-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-size: .8rem; }
 .img-bg-row input[type=color] { width: 44px; height: 28px; padding: 0; }
+
+/* パソコン幅：左下の固定ボタン（保存・切替・表示）が内容に重ならないよう、左右に専用の余白をあける（右はREADMEボタン用） */
+@media screen and (min-width: 900px) {
+  body { padding-left: 124px; padding-right: 138px; }
+}
