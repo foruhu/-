@@ -500,3 +500,6 @@ body.battle-view .miren-mad-row td { padding: 0 2px 3px; }
 
 /* チャパレ編集画面は、表示モードでも文字を編集できるようにする */
 body.view-mode #cp-text { pointer-events: auto !important; background: #fff !important; border-color: #999 !important; }
+
+/* ココフォリアコマの編集画面も、表示モードで入力できるようにする */
+body.view-mode #ccf-modal input, body.view-mode #ccf-modal textarea { pointer-events: auto !important; background: #fff !important; border-color: #999 !important; }

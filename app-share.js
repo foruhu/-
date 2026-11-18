@@ -48,8 +48,7 @@ function buildCcfoliaCommandLines(data) {
   return lines;
 }
 
-function exportCcfolia() {
-  const data = getFullData();
+function buildCcfoliaPiece(data, useSaved) {
 
   const actValue = parseInt(data.act, 10) || 0;
   const currentChouaiEl = document.getElementById('current-chouai');
@@ -130,27 +129,109 @@ function exportCcfolia() {
       initiative: actValue,
       externalUrl: '',
       iconUrl: '',
-      memo: memoLines.join('\n'),
+      memo: (useSaved && data.ccfoliaMemo && data.ccfoliaMemo.trim()) ? data.ccfoliaMemo : memoLines.join('\n'),
       ...(data.pieceColor ? { color: data.pieceColor } : {}),
-      status: status,
+      status: (useSaved && Array.isArray(data.ccfoliaStatus)) ? data.ccfoliaStatus : status,
       params: params,
-      commands: getChatPaletteText(data)
+      commands: useSaved ? getChatPaletteText(data) : commandLines.join('\n')
     }
   };
+  return ccfoliaData;
+}
 
-  const jsonText = JSON.stringify(ccfoliaData);
-
-  const finishCopy = () => {
-    alert('ココフォリア用のデータをクリップボードにコピーしました。\nココフォリアのルーム画面（盤面）に直接貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。\n\n※ファイルのドラッグ＆ドロップではなく「貼り付け」で読み込む形式です。');
+// 「🎲 ココフォリアコマ」：メモ欄とステータスを編集してからコピーできる。「この内容を保存」でキャラクターに残る
+function exportCcfolia() {
+  const data = getFullData();
+  const piece = buildCcfoliaPiece(data, true);
+  const isLocked = document.body.classList.contains('view-locked');
+  const hasSaved = !!((data.ccfoliaMemo && data.ccfoliaMemo.trim()) || Array.isArray(data.ccfoliaStatus));
+  const ov = document.createElement('div');
+  ov.id = 'ccf-modal';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;color:#222;max-width:680px;width:100%;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.6;max-height:94vh;overflow:auto;display:flex;flex-direction:column;gap:8px;';
+  const btn = 'padding:8px 12px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;font-size:.84rem;cursor:pointer;';
+  const inp = 'box-sizing:border-box;border:1px solid #999;border-radius:6px;padding:5px;color:#222;background:#fff;font-size:.84rem;';
+  box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">ココフォリアコマの編集</div>
+    <div id="ccf-note" style="font-size:.76rem;color:#555;"></div>
+    <div style="font-weight:bold;">ステータス <span style="font-weight:normal;font-size:.74rem;color:#666;">（名前・現在値／最大値）</span></div>
+    <div id="ccf-status" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <div><button type="button" data-k="addst" style="${btn}">＋ ステータスを追加</button></div>
+    <div style="font-weight:bold;">メモ欄</div>
+    <textarea id="ccf-memo" spellcheck="false" style="${inp}width:100%;min-height:200px;height:34vh;font-family:monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;"></textarea>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
+      ${isLocked ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
+      <button type="button" data-k="reset" style="${btn}">自動生成に戻す</button>`}
+      <button type="button" data-k="close" style="${btn}margin-left:auto;">閉じる</button>
+    </div>`;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  const memoEl = box.querySelector('#ccf-memo');
+  const stBox = box.querySelector('#ccf-status');
+  const note = box.querySelector('#ccf-note');
+  let savedNow = hasSaved;
+  const setNote = (extra) => {
+    note.textContent = (savedNow
+      ? '保存した内容を表示しています。キャラクターの内容を変えたあとは、「自動生成に戻す」で作り直せます。'
+      : '今のキャラクターから自動で作った内容です。自由に書き換えられます。') + (extra || '');
   };
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(jsonText).then(finishCopy).catch(() => {
-      prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
-    });
-  } else {
-    prompt('以下のデータをコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
-  }
+  const addRow = (st) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:4px;align-items:center;';
+    row.innerHTML = `<input type="text" class="ccf-st-label" placeholder="名前" style="${inp}flex:1 1 auto;min-width:0;">
+      <input type="number" class="ccf-st-value" placeholder="現在" style="${inp}flex:0 0 64px;width:64px;">
+      <span>/</span>
+      <input type="number" class="ccf-st-max" placeholder="最大" style="${inp}flex:0 0 64px;width:64px;">
+      <button type="button" data-k="delst" style="${btn}padding:6px 9px;">×</button>`;
+    row.querySelector('.ccf-st-label').value = st.label || '';
+    row.querySelector('.ccf-st-value').value = (st.value === undefined || st.value === null) ? '' : st.value;
+    row.querySelector('.ccf-st-max').value = (st.max === undefined || st.max === null) ? '' : st.max;
+    stBox.appendChild(row);
+  };
+  const fill = (pc) => {
+    memoEl.value = pc.data.memo || '';
+    stBox.innerHTML = '';
+    (pc.data.status || []).forEach(addRow);
+  };
+  const readStatus = () => Array.from(stBox.children).map(r => {
+    const num = (sel) => { const v = parseInt(r.querySelector(sel).value, 10); return Number.isFinite(v) ? v : 0; };
+    return { label: r.querySelector('.ccf-st-label').value.trim(), value: num('.ccf-st-value'), max: num('.ccf-st-max') };
+  }).filter(x => x.label);
+  const setHidden = (id, val) => { const h = document.getElementById(id); if (h) { h.value = val; h.dispatchEvent(new Event('input', { bubbles: true })); } };
+  fill(piece);
+  setNote();
+  const copy = () => {
+    const out = JSON.parse(JSON.stringify(piece));
+    out.data.memo = memoEl.value;
+    out.data.status = readStatus();
+    const jsonText = JSON.stringify(out);
+    const done = () => { note.textContent = 'コピーしました。ココフォリアのルーム画面（盤面）に貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。'; };
+    const manual = () => prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(jsonText).then(done).catch(manual);
+    else manual();
+  };
+  box.addEventListener('click', (e) => {
+    const k = e.target && e.target.getAttribute && e.target.getAttribute('data-k');
+    if (!k) return;
+    if (k === 'copy') copy();
+    else if (k === 'addst') addRow({ label: '', value: 0, max: 0 });
+    else if (k === 'delst') e.target.parentNode.remove();
+    else if (k === 'save') {
+      setHidden('ccf-memo-custom', memoEl.value);
+      setHidden('ccf-status-custom', JSON.stringify(readStatus()));
+      savedNow = true;
+      setNote('（保存しました。キャラクターの「💾 保存」を押すと、保存済みキャラクターにも残ります）');
+    } else if (k === 'reset') {
+      if (!confirm('編集した内容を捨てて、今のキャラクターから作り直します。よろしいですか？\n（「この内容を保存」を押すまで、保存済みの内容は変わりません）')) return;
+      fill(buildCcfoliaPiece(getFullData(), false));
+      setHidden('ccf-memo-custom', '');
+      setHidden('ccf-status-custom', '');
+      savedNow = false;
+      setNote('（自動生成に戻しました）');
+    } else if (k === 'close') ov.remove();
+  });
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
 }
 
 // --- 他のブラウザ・端末との共有（JSONファイル / 共有コード） ---
