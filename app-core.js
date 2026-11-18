@@ -537,7 +537,8 @@ function restoreWorkOnLoad() {
 }
 
 // 画像の背景色（透過画像の透明な部分に見える色）
-function applyImageBg() {
+function applyImageBg(skipHex) {
+  if (!skipHex) syncColorHex('img-bg-color', 'img-bg-hex');
   const c = document.getElementById('img-bg-color');
   if (c && c.dataset.set === '1') document.body.style.setProperty('--img-bg', c.value);
   else document.body.style.removeProperty('--img-bg');
@@ -549,4 +550,23 @@ function resetImageBg() {
   c.dispatchEvent(new Event('input', { bubbles: true }));
   c.dataset.set = '';
   applyImageBg();
+}
+
+// 色の入力欄(色見本)と、16進数の文字入力欄をそろえる。色を指定していないときは文字欄を空にする
+function syncColorHex(colorId, hexId) {
+  const c = document.getElementById(colorId), h = document.getElementById(hexId);
+  if (!c || !h) return;
+  h.value = c.dataset.set === '1' ? c.value : '';
+}
+// 文字入力欄に「#ff3366」「ff3366」「#f36」などを入れたとき、色見本に反映する
+function onColorHexInput(colorId, text) {
+  const c = document.getElementById(colorId);
+  if (!c) return;
+  let t = String(text || '').trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(t)) t = t.split('').map(x => x + x).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(t)) return;
+  c.value = '#' + t.toLowerCase();
+  c.dataset.set = '1';
+  if (colorId === 'piece-color') updatePieceColorNote(true);
+  else applyImageBg(true);
 }

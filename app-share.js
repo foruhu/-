@@ -1245,7 +1245,8 @@ function resetPieceColor() {
   updatePieceColorNote();
 }
 
-function updatePieceColorNote() {
+function updatePieceColorNote(skipHex) {
+  if (!skipHex) syncColorHex('piece-color', 'piece-color-hex');
   const pc = document.getElementById('piece-color');
   const note = document.getElementById('piece-color-note');
   if (!pc || !note) return;
