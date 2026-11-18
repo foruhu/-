@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール">
 <meta name="twitter:description" content="『永い後日談のネクロニカ』用 非公式キャラクターシート作成・保管ツール。スマホ対応。">
-<link rel="stylesheet" href="style.css?v=140">
+<link rel="stylesheet" href="style.css?v=141">
 </head>
 <body>
 
@@ -115,7 +115,7 @@
   <div id="image-panel" class="edit-only">
     <div class="img-panel-head">🖼 キャラクター画像 <span id="img-panel-count"></span></div>
     <div id="img-panel-list" class="img-panel-list"></div>
-    <div class="img-bg-row"><label for="img-bg-color">背景色</label><input type="color" id="img-bg-color" value="#222228" oninput="this.dataset.set='1'; applyImageBg()"><button type="button" class="char-switch-btn" onclick="resetImageBg()">指定なし</button><span class="img-panel-note" style="margin:0;">透過PNGの透明な部分に、この色が見えます</span></div>
+    <div class="img-bg-row"><label for="img-bg-color">背景色</label><input type="color" id="img-bg-color" value="#222228" oninput="this.dataset.set='1'; applyImageBg()"><button type="button" class="char-switch-btn" style="width:auto;flex:0 0 auto;" onclick="resetImageBg()">指定なし</button><span class="img-panel-note" style="margin:0;">透過PNGの透明な部分に、この色が見えます</span></div>
     <div id="img-panel-note" class="img-panel-note"></div>
   </div>
   <input type="file" id="img-add-input" accept="image/*" multiple style="display:none" onchange="onImagesAdded(event)">
@@ -192,7 +192,7 @@
     <div class="kv kv-wide"><label>享年/外見</label><input type="text" id="age"></div>
     <div class="kv kv-wide"><label>暗示</label><input type="text" id="hint"></div>
     <div class="kv kv-wide edit-only"><label>コマの色</label>
-      <span style="display:flex;align-items:center;gap:8px;"><input type="color" id="piece-color" value="#888888" style="width:48px;height:30px;padding:0;" oninput="this.dataset.set='1'"><button type="button" class="char-switch-btn" onclick="resetPieceColor()">指定なし</button><span id="piece-color-note" style="font-size:.72rem;color:#999;"></span></span></div>
+      <span style="display:flex;flex:1 1 auto;align-items:center;gap:8px;padding:4px 8px;flex-wrap:wrap;"><input type="color" id="piece-color" value="#888888" style="flex:0 0 64px;width:64px;height:32px;padding:2px;border:2px solid #aaa;border-radius:6px;cursor:pointer;" oninput="this.dataset.set='1'; updatePieceColorNote()"><button type="button" class="char-switch-btn" style="width:auto;flex:0 0 auto;" onclick="resetPieceColor()">指定なし</button><span id="piece-color-note" style="font-size:.8rem;color:#ccc;flex:1 1 100%;">色を指定していません（ココフォリアの初期色）</span></span></div>
     <div class="kv"><label>初期配置</label>
       <select id="ps">
         <option>煉獄</option><option>花園</option><option>楽園</option>
@@ -637,16 +637,16 @@
   </div>
 </div>
 
-<script src="data.js?v=140"></script>
-<script src="app-core.js?v=140"></script>
-<script src="app-parts.js?v=140"></script>
-<script src="app-skills.js?v=140"></script>
-<script src="app-save.js?v=140"></script>
-<script src="app-dict.js?v=140"></script>
-<script src="app-image.js?v=140"></script>
-<script src="app-look.js?v=140"></script>
-<script src="app-sheetprint.js?v=140"></script>
-<script src="app-share.js?v=140"></script>
-<script src="app-main.js?v=140"></script>
+<script src="data.js?v=141"></script>
+<script src="app-core.js?v=141"></script>
+<script src="app-parts.js?v=141"></script>
+<script src="app-skills.js?v=141"></script>
+<script src="app-save.js?v=141"></script>
+<script src="app-dict.js?v=141"></script>
+<script src="app-image.js?v=141"></script>
+<script src="app-look.js?v=141"></script>
+<script src="app-sheetprint.js?v=141"></script>
+<script src="app-share.js?v=141"></script>
+<script src="app-main.js?v=141"></script>
 </body>
 </html>

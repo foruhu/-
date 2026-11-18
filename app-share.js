@@ -1242,4 +1242,12 @@ function resetPieceColor() {
   pc.dataset.set = '';
   pc.dispatchEvent(new Event('input', { bubbles: true }));
   pc.dataset.set = '';
+  updatePieceColorNote();
+}
+
+function updatePieceColorNote() {
+  const pc = document.getElementById('piece-color');
+  const note = document.getElementById('piece-color-note');
+  if (!pc || !note) return;
+  note.textContent = pc.dataset.set === '1' ? `指定中：${pc.value}` : '色を指定していません（ココフォリアの初期色）';
 }

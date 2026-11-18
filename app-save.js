@@ -514,7 +514,7 @@ function applyData(data) {
 
   setVal('pl', data.pl); setVal('name', data.name);
   setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
-  { const pc = document.getElementById('piece-color'); if (pc) { pc.value = data.pieceColor || '#888888'; pc.dataset.set = data.pieceColor ? '1' : ''; } }
+  { const pc = document.getElementById('piece-color'); if (pc) { pc.value = data.pieceColor || '#888888'; pc.dataset.set = data.pieceColor ? '1' : ''; if (typeof updatePieceColorNote === 'function') updatePieceColorNote(); } }
   { const ib = document.getElementById('img-bg-color'); if (ib) { ib.value = data.imageBg || '#222228'; ib.dataset.set = data.imageBg ? '1' : ''; applyImageBg(); } }
   setVal('age', data.age); setVal('ps', data.ps || '煉獄');
   setVal('height', data.height); setVal('weight', data.weight);
