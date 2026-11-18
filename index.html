@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=196">
+<link rel="stylesheet" href="style.css?v=197">
 </head>
 <body>
 
@@ -76,6 +76,7 @@
         Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> | 
         Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span> | 
         Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span>
+        <span class="bar-chouai" id="bar-chouai-wep"></span>
       </span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -84,6 +85,7 @@
         Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span> | 
         Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span> | 
         Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span>
+        <span class="bar-chouai" id="bar-chouai-mut"></span>
       </span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -92,6 +94,7 @@
         Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span> | 
         Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> | 
         Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
+        <span class="bar-chouai" id="bar-chouai-cyb"></span>
       </span>
     </div>
     <div id="bar-skill-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
@@ -696,6 +699,7 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/18 固定バーの「武装・変異・改造」の行にも、寵愛点で取得したパーツの数(例：寵愛 1)を出すようにしました(取得数の計算には、これまでどおり含まれます)。</li>
       <li>2026/11/18 寵愛点で取得したスキル・パーツに、印を付けられるようにしました。スキルとマニューバの「操作」欄の「寵」ボタンを押すと、その行の左端に金色の印が付きます(もう一度押すと外れます。保存・読み込みしても残ります)。固定バーの「スキル」行では、寵愛点で取ったスキルは初期の取得数(ポジション1・メイン2・サブ1)に数えず、「寵愛で取得：スキル○・パーツ○」と別に出します。</li>
       <li>2026/11/18 画面上の固定バーの「武装・変異・改造」の下に、「スキル」の行を追加しました。初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する取得数(例：メイン 1/2)と、取得しているスキルの名前が出ます(上限を超えると赤くなります。スキルを選ぶ・消す・読み込むたびに更新されます)。</li>
       <li>2026/11/18 射程の欄が、2段(「自由枠」と文字欄)に重なって見えていたのを、1つの枠にしました。ふだんは「0・なし・自身」の選択欄で、「自由枠」を選ぶと、同じ場所が文字欄に切り替わります(文字欄を空にして枠の外を押すと、選択欄に戻ります)。「0〜1」など自由な値が入っているときは、最初から文字欄だけを表示します。</li>
@@ -742,16 +746,16 @@
   </div>
 </div>
 
-<script src="data.js?v=196"></script>
-<script src="app-core.js?v=196"></script>
-<script src="app-parts.js?v=196"></script>
-<script src="app-skills.js?v=196"></script>
-<script src="app-save.js?v=196"></script>
-<script src="app-dict.js?v=196"></script>
-<script src="app-image.js?v=196"></script>
-<script src="app-look.js?v=196"></script>
-<script src="app-sheetprint.js?v=196"></script>
-<script src="app-share.js?v=196"></script>
-<script src="app-main.js?v=196"></script>
+<script src="data.js?v=197"></script>
+<script src="app-core.js?v=197"></script>
+<script src="app-parts.js?v=197"></script>
+<script src="app-skills.js?v=197"></script>
+<script src="app-save.js?v=197"></script>
+<script src="app-dict.js?v=197"></script>
+<script src="app-image.js?v=197"></script>
+<script src="app-look.js?v=197"></script>
+<script src="app-sheetprint.js?v=197"></script>
+<script src="app-share.js?v=197"></script>
+<script src="app-main.js?v=197"></script>
 </body>
 </html>

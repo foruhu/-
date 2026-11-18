@@ -14,7 +14,24 @@ function onClassChange() {
 
 // 固定バーの「スキル」行：初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する、取得数と、取得しているスキルの名前
 const SKILL_INITIAL_LIMITS = { pos: 1, mc: 2, sc: 1 };
+// 固定バーの「武装・変異・改造」の行に、寵愛点で取得したパーツの数を添える(取得数の計算には、そのまま含まれる)
+function updateBarChouaiParts() {
+  const keys = { '武装': 'wep', '変異': 'mut', '改造': 'cyb' };
+  const n = { wep: 0, mut: 0, cyb: 0 };
+  try {
+    document.querySelectorAll('#parts-container tr.part-row.chouai-acq').forEach(tr => {
+      const k = keys[tr.querySelector('.p-type')?.value];
+      if (k) n[k]++;
+    });
+  } catch (e) {}
+  Object.keys(n).forEach(k => {
+    const el = document.getElementById('bar-chouai-' + k);
+    if (el) el.textContent = n[k] ? ` | 寵愛 ${n[k]}` : '';
+  });
+}
+
 function updateBarSkills() {
+  try { updateBarChouaiParts(); } catch (e) {}
   const list = document.getElementById('bar-skill-list');
   const cnt = document.getElementById('bar-skill-counts');
   if (!list) return;

@@ -577,3 +577,6 @@ tr.chouai-acq .chouai-btn { background: #b8860b; color: #fff; border-color: #ffd
 tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #ffd24a; }
 html.theme-light tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #a07000; }
 @media print { .chouai-btn { display: none !important; } }
+
+.bar-chouai { color: #ffd24a; white-space: nowrap; }
+html.theme-light .bar-chouai { color: #ffd24a; }
