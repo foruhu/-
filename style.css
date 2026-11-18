@@ -411,6 +411,7 @@ html.table-roomy .maneuver-table textarea { font-size: .8rem; line-height: 1.4; 
 /* 配色：明（画面全体の明暗を反転し、写真だけ元に戻す） */
 html.theme-light { filter: invert(1) hue-rotate(180deg); background: #fff; }
 html.theme-light img, html.theme-light video, html.theme-light canvas { filter: invert(1) hue-rotate(180deg); }
+html.theme-light input[type="color"] { filter: hue-rotate(180deg) invert(1); }
 @media print { html.theme-light { filter: none; } }
 .bar-tools { flex-wrap: wrap; }
 
