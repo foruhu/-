@@ -14,7 +14,7 @@ function onClassChange() {
 
 // 固定バーの「スキル」行：初期に取れる数(ポジション1・メインクラス2・サブクラス1)に対する、取得数と、取得しているスキルの名前
 const SKILL_INITIAL_LIMITS = { pos: 1, mc: 2, sc: 1 };
-// 寵愛点の使い道に書かれた点数を、寵の印が付いた行ごとに集計する(固定バーの「+寵1(3点)」用)
+// 寵愛点の使い道に書かれた点数を、寵の印が付いた行ごとに集計する(固定バーの「(寵1・3点)」用)
 //  ・使い道の1行に名前が1つだけ書かれていれば、その点数をその行に数える(複数書かれているときは、名前の数で等分する)
 function chouaiPointMap() {
   const map = new Map();
@@ -46,7 +46,7 @@ function updateBarChouaiParts() {
   } catch (e) {}
   ['wep', 'mut', 'cyb'].forEach(k => [1, 2, 3].forEach(lv => {
     const id = `${k}-lv${lv}`, el = document.getElementById('bar-chouai-' + id);
-    if (el) el.textContent = n[id] ? `+寵${n[id]}${pt[id] ? `(${Math.round(pt[id] * 10) / 10}点)` : ''}` : '';
+    if (el) el.textContent = n[id] ? `(寵${n[id]}${pt[id] ? `・${Math.round(pt[id] * 10) / 10}点` : ''})` : '';
   }));
 }
 
@@ -81,7 +81,7 @@ function updateBarSkills() {
     const skillRow = (label, key) => {
       const lim = SKILL_INITIAL_LIMITS[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
-      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個</td><td><b>${n}</b> 個${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</td><td>${st}</td></tr>`;
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個</td><td><b>${n}</b> 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td>${st}</td></tr>`;
     };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
@@ -91,7 +91,7 @@ function updateBarSkills() {
     const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
-    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">+寵${cc[k]}${skillPt[k] ? `(${Math.round(skillPt[k] * 10) / 10}点)` : ''}</span>` : ''}</span>`).join(' | ');
+    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > SKILL_INITIAL_LIMITS[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${SKILL_INITIAL_LIMITS[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">(寵${cc[k]}${skillPt[k] ? `・${Math.round(skillPt[k] * 10) / 10}点` : ''})</span>` : ''}</span>`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
@@ -275,7 +275,7 @@ function calcTotals() {
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
           <td>${maxAllowed} 個</td>
-          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">+寵${chouaiCounts[cat.name][lv]}</span>` : ''}</td>
+          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵${chouaiCounts[cat.name][lv]})</span>` : ''}</td>
           <td>${statusHtml}</td>
         `;
         limitTbody.appendChild(tr);
