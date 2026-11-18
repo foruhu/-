@@ -591,3 +591,6 @@ html.theme-light .bar-chouai { color: #ffd24a; }
 /* 「保管所テキストからキャラクターを読み込む」：キャラクター画像の枠の外に置く、横いっぱいのボタン */
 .hokansho-bar { display: block; width: 100%; margin: 0 0 12px 0; padding: 10px 12px; background: #8a4a10; color: #fff; border: 2px solid #ffb060; border-radius: 8px; font-size: .95rem; font-weight: bold; font-family: inherit; cursor: pointer; box-shadow: 0 0 8px rgba(255,160,70,.45); }
 .hokansho-bar:active { filter: brightness(1.15); }
+/* 印の付いていない行の「寵」ボタンは、目立たないよう薄くする(押せば印が付く)。印の付いた行は、これまでどおり金色で目立たせる */
+tr:not(.chouai-acq) .chouai-btn { opacity: .3; background: transparent; border-color: #5a4a22; color: #a89050; }
+tr:not(.chouai-acq) .chouai-btn:hover, tr:not(.chouai-acq) .chouai-btn:focus-visible { opacity: .9; }
