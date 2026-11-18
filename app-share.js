@@ -260,7 +260,7 @@ function exportCcfolia() {
     if (ex.faces.length) out.data.faces = ex.faces; else delete out.data.faces;
     const jsonText = JSON.stringify(out);
     const done = () => { showToast('✔ コピーしました'); note.textContent = 'コピーしました。ココフォリアのルーム画面（盤面）に貼り付け（Ctrl+V / Cmd+V）すると、キャラクターの駒が作成されます。'; };
-    const manual = () => prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText);
+    const manual = () => { showToast('⚠ 自動コピーに失敗しました。手動でコピーしてください'); prompt('自動コピーに失敗しました。以下のデータを手動でコピーし、ココフォリアの盤面に貼り付けてください：', jsonText); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(jsonText).then(done).catch(manual);
     else manual();
   };
@@ -1338,7 +1338,7 @@ function exportChatPalette() {
     // 「\\n」なし：文章中の「\\n」(改行の記号)を、半角スペースに置き換えてコピーする（編集欄の内容は変えない）
     const text = noNl ? ta.value.replace(/\\n/g, ' ') : ta.value;
     const done = () => { showToast(noNl ? '✔ 改行記号なしでコピーしました' : '✔ コピーしました'); note.textContent = (noNl ? '改行の記号を半角スペースに置き換えてコピーしました。' : 'コピーしました。') + 'ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
-    const fallback = () => { ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { note.textContent = '自動コピーに失敗しました。文章を選択して、手動でコピーしてください。'; } };
+    const fallback = () => { ta.focus(); ta.select(); try { if (!document.execCommand('copy')) throw new Error('copy failed'); done(); } catch (e) { note.textContent = '自動コピーに失敗しました。文章を選択して、手動でコピーしてください。'; showToast('⚠ コピーに失敗しました。手動でコピーしてください'); } };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
     else fallback();
   };
