@@ -518,6 +518,8 @@ function applyData(data) {
 
   setVal('pl', data.pl); setVal('name', data.name);
   setVal('pos', data.pos || 'アリス'); setVal('mc', data.mc || 'ロマネスク'); setVal('sc', data.sc || 'ロマネスク');
+  // 選択肢に無いクラス名(以前の「ホリック」など)が保存されていても、値が消えないよう選択肢に足す
+  ['mc', 'sc'].forEach(id => { const el = document.getElementById(id); const v = data[id]; if (el && v && el.value !== v) { const o = document.createElement('option'); o.textContent = v; el.appendChild(o); el.value = v; } });
   { const pc = document.getElementById('piece-color'); if (pc) { pc.value = data.pieceColor || '#888888'; pc.dataset.set = data.pieceColor ? '1' : ''; if (typeof updatePieceColorNote === 'function') updatePieceColorNote(); } }
   { const ib = document.getElementById('img-bg-color'); if (ib) { ib.value = data.imageBg || '#222228'; ib.dataset.set = data.imageBg ? '1' : ''; applyImageBg(); } }
   setVal('chat-palette-custom', data.chatPalette);
