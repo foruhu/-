@@ -72,14 +72,20 @@ function updateBarSkills() {
       else if (r.cat && r.cat === sc) lab = 'サブ';
       return { lab, v: r.v, ch: r.ch };
     });
-    const part = (label, key) => `<span style="white-space:nowrap;">${key === 'pos' ? '' : '| '}${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</span>`;
+    const skillRow = (label, key) => {
+      const lim = SKILL_INITIAL_LIMITS[key], n = got[key];
+      const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個</td><td><b>${n}</b> 個${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</td><td>${st}</td></tr>`;
+    };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     // 初期の取得数(寵愛で取ったものは除く)を超えたときは、理由を一言添える
     const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > SKILL_INITIAL_LIMITS[k]).map(([k, l]) => `${l}${got[k]}/${SKILL_INITIAL_LIMITS[k]}`);
     const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印で除きます)</span>` : '';
-    if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra + warn;
+    const tb = document.getElementById('skill-limit-tbody');
+    if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
+    if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
     const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     // 「ポジション 氷の心 無茶(寵)　メイン …」の形で、区分ごとにまとめて出す。寵愛で取ったスキルは名前の後ろに(寵)を付け、金色にする
     const groups = ['ポジション', 'メイン', 'サブ', ''].map(g => ({ g, items: labeled.filter(o => o.lab === g) })).filter(x => x.items.length);
