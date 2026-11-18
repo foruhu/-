@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=226">
+<link rel="stylesheet" href="style.css?v=227">
 </head>
 <body>
 
@@ -73,28 +73,25 @@
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#ff6b6b; font-weight:bold;">武装</span>
       <span>
-        Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span> | 
-        Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span> | 
-        Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span>
-        <span class="bar-chouai" id="bar-chouai-wep"></span>
+        Lv1: <span id="used-wep-lv1">0</span>/<span id="max-wep-lv1">0</span><span class="bar-chouai" id="bar-chouai-wep-lv1"></span> | 
+        Lv2: <span id="used-wep-lv2">0</span>/<span id="max-wep-lv2">0</span><span class="bar-chouai" id="bar-chouai-wep-lv2"></span> | 
+        Lv3: <span id="used-wep-lv3">0</span>/<span id="max-wep-lv3">0</span><span class="bar-chouai" id="bar-chouai-wep-lv3"></span>
       </span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#4dabf7; font-weight:bold;">変異</span>
       <span>
-        Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span> | 
-        Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span> | 
-        Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span>
-        <span class="bar-chouai" id="bar-chouai-mut"></span>
+        Lv1: <span id="used-mut-lv1">0</span>/<span id="max-mut-lv1">0</span><span class="bar-chouai" id="bar-chouai-mut-lv1"></span> | 
+        Lv2: <span id="used-mut-lv2">0</span>/<span id="max-mut-lv2">0</span><span class="bar-chouai" id="bar-chouai-mut-lv2"></span> | 
+        Lv3: <span id="used-mut-lv3">0</span>/<span id="max-mut-lv3">0</span><span class="bar-chouai" id="bar-chouai-mut-lv3"></span>
       </span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span style="color:#ffd43b; font-weight:bold;">改造</span>
       <span>
-        Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span> | 
-        Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span> | 
-        Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span>
-        <span class="bar-chouai" id="bar-chouai-cyb"></span>
+        Lv1: <span id="used-cyb-lv1">0</span>/<span id="max-cyb-lv1">0</span><span class="bar-chouai" id="bar-chouai-cyb-lv1"></span> | 
+        Lv2: <span id="used-cyb-lv2">0</span>/<span id="max-cyb-lv2">0</span><span class="bar-chouai" id="bar-chouai-cyb-lv2"></span> | 
+        Lv3: <span id="used-cyb-lv3">0</span>/<span id="max-cyb-lv3">0</span><span class="bar-chouai" id="bar-chouai-cyb-lv3"></span>
       </span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -708,6 +705,7 @@
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
       <li>2026/11/19 バックアップのお知らせを直しました。①「バックアップを取る」を押して書き出しに失敗しても、お知らせが閉じて「しばらく出さない」扱いになっていた(今は、成功したときだけ閉じます)。②パソコンの時計が進んだあとに戻されると、お知らせが出なくなっていた。あわせて、卓まとめ画像は、画像の保存の操作が済んでから画面を閉じるようにしました(作れなかったときは画面が残り、理由が出ます)。</li>
+      <li>2026/11/19 寵愛点で取ったパーツを、固定バーの武装・変異・改造の各レベルと、「レベル取得制限チェッカー」の「現在取得」に、「+寵」で出すようにしました(例：Lv1: 1/1+寵1)。スキルの「+寵」と同じ形・同じ金色です。</li>
       <li>2026/11/19 「レベル取得制限チェッカー」の「取得しているスキル」(スキル名の一覧)を消しました。スキルの取得数は、固定バーの「スキル」の行と、チェッカーの表で確認できます。</li>
       <li>2026/11/19 固定バーに「スキル」の行を戻しました。武装・変異・改造と同じ形で「ポジション: 取得数/上限 | メイン … | サブ …」と1行で出ます(寵愛で取った数は「+寵」、上限を超えると上限の数字が赤になります)。くわしい表と、取得しているスキルの名前は、これまでどおり「レベル取得制限チェッカー」にあります。</li>
       <li>2026/11/19 「レベル取得制限チェッカー」のスキル欄を、表の中の一番上(武装の上)に移し、同じ枠の表にしました。ポジション・メイン・サブごとに、規定上限・現在取得(寵愛で取った数は「+寵」)・判定(OK／未取得／超過)が出ます。取得しているスキルの名前は、表の下に出ます。</li>
@@ -782,16 +780,16 @@
   </div>
 </div>
 
-<script src="data.js?v=226"></script>
-<script src="app-core.js?v=226"></script>
-<script src="app-parts.js?v=226"></script>
-<script src="app-skills.js?v=226"></script>
-<script src="app-save.js?v=226"></script>
-<script src="app-dict.js?v=226"></script>
-<script src="app-image.js?v=226"></script>
-<script src="app-look.js?v=226"></script>
-<script src="app-sheetprint.js?v=226"></script>
-<script src="app-share.js?v=226"></script>
-<script src="app-main.js?v=226"></script>
+<script src="data.js?v=227"></script>
+<script src="app-core.js?v=227"></script>
+<script src="app-parts.js?v=227"></script>
+<script src="app-skills.js?v=227"></script>
+<script src="app-save.js?v=227"></script>
+<script src="app-dict.js?v=227"></script>
+<script src="app-image.js?v=227"></script>
+<script src="app-look.js?v=227"></script>
+<script src="app-sheetprint.js?v=227"></script>
+<script src="app-share.js?v=227"></script>
+<script src="app-main.js?v=227"></script>
 </body>
 </html>

@@ -17,17 +17,18 @@ const SKILL_INITIAL_LIMITS = { pos: 1, mc: 2, sc: 1 };
 // 固定バーの「武装・変異・改造」の行に、寵愛点で取得したパーツの数を添える(取得数の計算には、そのまま含まれる)
 function updateBarChouaiParts() {
   const keys = { '武装': 'wep', '変異': 'mut', '改造': 'cyb' };
-  const n = { wep: 0, mut: 0, cyb: 0 };
+  const n = {};
   try {
     document.querySelectorAll('#parts-container tr.part-row.chouai-acq').forEach(tr => {
       const k = keys[tr.querySelector('.p-type')?.value];
-      if (k) n[k]++;
+      const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
+      if (k && lv >= 1 && lv <= 3) { const id = `${k}-lv${lv}`; n[id] = (n[id] || 0) + 1; }
     });
   } catch (e) {}
-  Object.keys(n).forEach(k => {
-    const el = document.getElementById('bar-chouai-' + k);
-    if (el) el.textContent = n[k] ? ` | 寵愛 ${n[k]}` : '';
-  });
+  ['wep', 'mut', 'cyb'].forEach(k => [1, 2, 3].forEach(lv => {
+    const id = `${k}-lv${lv}`, el = document.getElementById('bar-chouai-' + id);
+    if (el) el.textContent = n[id] ? `+寵${n[id]}` : '';
+  }));
 }
 
 function updateBarSkills() {
@@ -187,12 +188,14 @@ function calcTotals() {
   if (document.getElementById('total-cyb')) document.getElementById('total-cyb').textContent = totals.cyb;
 
   const currentCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
+  const chouaiCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // 寵愛で取ったパーツの数(取得数に含まれる)
 
   document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const type = tr.querySelector('.p-type')?.value;
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
     if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
       currentCounts[type][lv]++;
+      if (tr.classList.contains('chouai-acq')) chouaiCounts[type][lv]++;
     }
   });
 
@@ -251,7 +254,7 @@ function calcTotals() {
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
           <td>${maxAllowed} 個</td>
-          <td><b>${current}</b> 個</td>
+          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">+寵${chouaiCounts[cat.name][lv]}</span>` : ''}</td>
           <td>${statusHtml}</td>
         `;
         limitTbody.appendChild(tr);
