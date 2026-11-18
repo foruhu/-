@@ -33,21 +33,15 @@ function updateBarChouaiParts() {
 function updateBarSkills() {
   try { updateBarChouaiParts(); } catch (e) {}
   try { renderChouaiMarked(); } catch (e) {}
-  const list = document.getElementById('bar-skill-list');
   const cnt = document.getElementById('bar-skill-counts');
-  if (!list) return;
+  if (!cnt && !document.getElementById('bar-skill-line')) return;
   try {
-    const names = [];
-    const rowsInfo = [];
     const catCount = {};
     const chouaiCat = {};
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
       if (!v) return; // スキルを選んでいない行は数えない
-      const cat0 = tr.querySelector('.skill-category')?.value || '';
-      rowsInfo.push({ v, cat: cat0, ch: tr.classList.contains('chouai-acq') });
-      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; names.push(v + '（寵）'); return; } // 寵愛点で取ったものは、初期の取得数には数えない
-      names.push(v);
+      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; return; } // 寵愛点で取ったものは、初期の取得数には数えない
       const cat = tr.querySelector('.skill-category')?.value || '';
       catCount[cat] = (catCount[cat] || 0) + 1;
     });
@@ -61,16 +55,6 @@ function updateBarSkills() {
     Object.keys(chouaiCat).forEach(c => {
       const n = chouaiCat[c]; chouaiSkills += n;
       if (c && c === pos) cc.pos += n; else if (c && c === mc) cc.mc += n; else if (c && c === sc) cc.sc += n; else chouaiOther += n;
-    });
-    // 名前の後ろに、ポジション・メイン・サブのどれのスキルかを付ける(同じクラスを重ねて選んだときは、メインの2つ→残りをサブ)
-    const seen = {};
-    const labeled = rowsInfo.map(r => {
-      let lab = '';
-      if (r.cat && r.cat === pos) lab = 'ポジション';
-      else if (r.cat && r.cat === mc && r.cat === sc) { if (r.ch) lab = 'メイン'; else { seen[r.cat] = (seen[r.cat] || 0) + 1; lab = seen[r.cat] <= SKILL_INITIAL_LIMITS.mc ? 'メイン' : 'サブ'; } }
-      else if (r.cat && r.cat === mc) lab = 'メイン';
-      else if (r.cat && r.cat === sc) lab = 'サブ';
-      return { lab, v: r.v, ch: r.ch };
     });
     const skillRow = (label, key) => {
       const lim = SKILL_INITIAL_LIMITS[key], n = got[key];
@@ -89,15 +73,7 @@ function updateBarSkills() {
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
-    const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    // 「ポジション 氷の心 無茶(寵)　メイン …」の形で、区分ごとにまとめて出す。寵愛で取ったスキルは名前の後ろに(寵)を付け、金色にする
-    const groups = ['ポジション', 'メイン', 'サブ', ''].map(g => ({ g, items: labeled.filter(o => o.lab === g) })).filter(x => x.items.length);
-    list.innerHTML = groups.length ? groups.map(x => {
-      const nm = x.items.map(o => o.ch ? `<span style="color:#ffd24a;font-weight:bold;">${esc(o.v)}(寵)</span>` : esc(o.v)).join(' ');
-      return `<span style="display:inline-block;">${x.g ? `<b style="color:#c9a7ff;">${x.g}</b> ` : ''}${nm}</span>`;
-    }).join('　') : 'なし';
-    list.style.opacity = names.length ? '1' : '.6';
-  } catch (e) { list.innerHTML = ''; if (cnt) cnt.textContent = ''; }
+  } catch (e) { if (cnt) cnt.textContent = ''; }
 }
 
 // 「寵愛点の使い道」の下に、いま寵の印が付いているものを一覧する(使い道に書いていないもの・書いてあるのに印がないものは注意を付ける)

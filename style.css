@@ -568,7 +568,6 @@ html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 .maneuver-table select.p-level:disabled, .maneuver-table select.range-sel:disabled { opacity: 1; color: #fff; -webkit-text-fill-color: #fff; }
 
 /* 固定バーの「スキル」行：名前が多いときは折り返す */
-#bar-skill-list { font-size: .95em; word-break: break-all; opacity: .9; }
 
 /* 寵愛点で取得したスキル・パーツ：「寵」ボタンと、行の左端の金色の印 */
 .op-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 2px; }
