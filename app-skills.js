@@ -70,16 +70,19 @@ function updateBarSkills() {
       else if (r.cat && r.cat === mc) lab = 'メイン';
       else if (r.cat && r.cat === sc) lab = 'サブ';
       const tags = [lab, r.ch ? '寵' : ''].filter(Boolean);
-      return r.v + (tags.length ? '（' + tags.join('・') + '）' : '');
+      const txt = r.v + (tags.length ? '（' + tags.join('・') + '）' : '');
+      return r.ch ? { t: txt, ch: true } : { t: txt, ch: false };
     });
     const part = (label, key) => `<span style="white-space:nowrap;">${key === 'pos' ? '' : '| '}${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}${cc[key] ? `<span style="color:#ffd24a;">+寵${cc[key]}</span>` : ''}</span>`;
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' ') + extra;
-    list.textContent = labeled.length ? labeled.join('・') : 'なし';
+    const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // 寵愛で取ったスキルは、金色(寵の印と同じ色)で出す
+    list.innerHTML = labeled.length ? labeled.map(o => o.ch ? `<span style="color:#ffd24a;font-weight:bold;">${esc(o.t)}</span>` : esc(o.t)).join('・') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
-  } catch (e) { list.textContent = ''; if (cnt) cnt.textContent = ''; }
+  } catch (e) { list.innerHTML = ''; if (cnt) cnt.textContent = ''; }
 }
 
 // 「寵」ボタン：寵愛点で取得したスキル・パーツに、印を付ける/外す
