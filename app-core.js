@@ -395,7 +395,18 @@ function resizeImageToDataURL(file, maxDim = 360, quality = 0.75) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        // 透明な部分がある画像は、透明を保てる形式(WebP、無ければPNG)で保存する（JPEGだと黒くなるため）
+        let hasAlpha = false;
+        try {
+          const px = ctx.getImageData(0, 0, width, height).data;
+          for (let k = 3; k < px.length; k += 4) { if (px[k] < 250) { hasAlpha = true; break; } }
+        } catch (e) {}
+        if (hasAlpha) {
+          const w = canvas.toDataURL('image/webp', quality);
+          resolve(w.startsWith('data:image/webp') ? w : canvas.toDataURL('image/png'));
+        } else {
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        }
       };
       img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
       img.src = e.target.result;
@@ -523,4 +534,19 @@ function restoreWorkOnLoad() {
       refreshSaveSlotOptions(lastId);
     }
   } catch (e) {}
+}
+
+// 画像の背景色（透過画像の透明な部分に見える色）
+function applyImageBg() {
+  const c = document.getElementById('img-bg-color');
+  if (c && c.dataset.set === '1') document.body.style.setProperty('--img-bg', c.value);
+  else document.body.style.removeProperty('--img-bg');
+}
+function resetImageBg() {
+  const c = document.getElementById('img-bg-color');
+  if (!c) return;
+  c.value = '#222228';
+  c.dispatchEvent(new Event('input', { bubbles: true }));
+  c.dataset.set = '';
+  applyImageBg();
 }

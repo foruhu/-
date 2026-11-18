@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ドール設計図館｜ネクロニカ用 非公式キャラクターシート作成・保管ツール">
 <meta name="twitter:description" content="『永い後日談のネクロニカ』用 非公式キャラクターシート作成・保管ツール。スマホ対応。">
-<link rel="stylesheet" href="style.css?v=139">
+<link rel="stylesheet" href="style.css?v=140">
 </head>
 <body>
 
@@ -115,6 +115,7 @@
   <div id="image-panel" class="edit-only">
     <div class="img-panel-head">🖼 キャラクター画像 <span id="img-panel-count"></span></div>
     <div id="img-panel-list" class="img-panel-list"></div>
+    <div class="img-bg-row"><label for="img-bg-color">背景色</label><input type="color" id="img-bg-color" value="#222228" oninput="this.dataset.set='1'; applyImageBg()"><button type="button" class="char-switch-btn" onclick="resetImageBg()">指定なし</button><span class="img-panel-note" style="margin:0;">透過PNGの透明な部分に、この色が見えます</span></div>
     <div id="img-panel-note" class="img-panel-note"></div>
   </div>
   <input type="file" id="img-add-input" accept="image/*" multiple style="display:none" onchange="onImagesAdded(event)">
@@ -597,6 +598,7 @@
       <li>共有URL・閲覧用URLを作るときは、「サーバーに保存する(短いURL)」か「サーバーに保存しない(長いURL)」かを選べます。サーバーに保存する場合は、キャラのデータが外部のデータベースに保存されます(URLを知っている人だけが見られます)。保存できなかったときは理由が出て、長いURLにするかどうか確認されます。</li>
       <li>「🔗 発行した共有URLの控え」(出力・共有の中)に、この端末で作った共有URL・閲覧用URLが並び、「コピー」でもう一度URLを取り出せます。URLを作る前に、保存する・しないを選ぶ画面が出ます（控えに並ぶのは、サーバーに保存したURLだけです）。以前作ったURLは「URLを貼って加える」で控えに入れられます。</li>
       <li>「JSON出力」は、ファイルで別端末に移す方法です。上のバーの「🎲 ココフォリアコマ」で駒用のデータを、「💬 チャパレ」でチャットパレットに貼る文章をコピーできます(コマのメモ欄には名前・クラス・行動値・記憶のかけら・部位ごとのパーツ名が、ステータス欄には行動値・「○○への未練」ごとの狂気点(0〜4)と、「せぼね」など貯めて使うパーツのストック欄(0/0)が入ります。チャパレは先頭に判定コマンド、続けてポジション・クラスのスキルと頭・腕・胴・脚のマニューバが「【名前】\n《T:タイミング／C:コスト／R:射程》\n効果」の形で並び、攻撃マニューバには行頭に 1na が付きます。ココフォリアのルームのシステムは「ネクロニカ」にしてください。コマの色は、基本情報の「コマの色」で選べます)。</li>
+      <li>キャラクター画像の背景色は、画像の欄の「背景色」で選べます(透過PNGの透明な部分に見えます。以前に入れた透過画像は、すでに黒く保存されているため入れ直してください)。</li>
       <li>「全キャラをバックアップ」で、保存済みの全キャラを1つのファイルに書き出せます。ブラウザのデータが消えた時や機種変更の保険として、時々取っておくのがおすすめです。最後に取ってからの日数が、キャラクター管理に表示されます(14日以上たつと色が変わります)。</li>
       <li>データ未登録のスキル・パーツに自分で書いた効果は、このブラウザに覚えられます。次からは、同じスキル・パーツを選ぶと自動で入ります(「全キャラをバックアップ」にも一緒に入ります)。</li>
       <li>「保管所テキストから読み込む」(キャラクター管理の「削除したキャラを復元」の隣)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ。効果メモや名前に「たからもの」とあるもの、シートの「たからもの」欄と同じ名前のもの、以前に分類を「たからもの」にしたことがある名前のもの、このシートのパーツ一覧に無くてタイミングがオート・コストなし・射程なしのものは、分類が「たからもの」になります)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
@@ -635,16 +637,16 @@
   </div>
 </div>
 
-<script src="data.js?v=139"></script>
-<script src="app-core.js?v=139"></script>
-<script src="app-parts.js?v=139"></script>
-<script src="app-skills.js?v=139"></script>
-<script src="app-save.js?v=139"></script>
-<script src="app-dict.js?v=139"></script>
-<script src="app-image.js?v=139"></script>
-<script src="app-look.js?v=139"></script>
-<script src="app-sheetprint.js?v=139"></script>
-<script src="app-share.js?v=139"></script>
-<script src="app-main.js?v=139"></script>
+<script src="data.js?v=140"></script>
+<script src="app-core.js?v=140"></script>
+<script src="app-parts.js?v=140"></script>
+<script src="app-skills.js?v=140"></script>
+<script src="app-save.js?v=140"></script>
+<script src="app-dict.js?v=140"></script>
+<script src="app-image.js?v=140"></script>
+<script src="app-look.js?v=140"></script>
+<script src="app-sheetprint.js?v=140"></script>
+<script src="app-share.js?v=140"></script>
+<script src="app-main.js?v=140"></script>
 </body>
 </html>
