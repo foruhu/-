@@ -1286,10 +1286,10 @@ function exportChatPalette() {
   box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">チャットパレットの編集</div>
     <div id="cp-note" style="font-size:.76rem;color:#555;"></div>
     <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:Consolas,'Courier New',Menlo,monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
-    <div style="font-size:.74rem;color:#555;background:#f4f4f4;border-radius:6px;padding:6px 8px;">「\\n」は、ココフォリアで<b>改行</b>として使われる記号です。このまま貼ると、発言したときに【名前】・《タイミング／コスト／射程》・効果が、1行ずつ改行されて表示されます。「「\\n」なしでコピー」を使うと、「\\n」が半角スペースになり、1行で表示されます（ココフォリアで改行が効かないときなどに使います）。</div>
+    <div style="font-size:.74rem;color:#555;background:#f4f4f4;border-radius:6px;padding:6px 8px;">「<span style="font-family:Consolas,'Courier New',Menlo,monospace;">\\n</span>」は、ココフォリアで<b>改行</b>として使われる記号です。このまま貼ると、発言したときに【名前】・《タイミング／コスト／射程》・効果が、1行ずつ改行されて表示されます。「「<span style="font-family:Consolas,'Courier New',Menlo,monospace;">\\n</span>」なしでコピー」を使うと、「<span style="font-family:Consolas,'Courier New',Menlo,monospace;">\\n</span>」が半角スペースになり、1行で表示されます（ココフォリアで改行が効かないときなどに使います）。</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
-      <button type="button" data-k="copy2" style="${btn}background:#e6f4ea;border-color:#2e8a6a;">📋 「\\n」なしでコピー</button>
+      <button type="button" data-k="copy2" style="${btn}background:#e6f4ea;border-color:#2e8a6a;">📋 「<span style="font-family:Consolas,'Courier New',Menlo,monospace;">\\n</span>」なしでコピー</button>
       ${isView ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
       <button type="button" data-k="reset" style="${btn}">自動生成に戻す</button>`}
       <button type="button" data-k="close" style="${btn}margin-left:auto;">閉じる</button>
@@ -1309,7 +1309,7 @@ function exportChatPalette() {
   const copy = (noNl) => {
     // 「\\n」なし：文章中の「\\n」(改行の記号)を、半角スペースに置き換えてコピーする（編集欄の内容は変えない）
     const text = noNl ? ta.value.replace(/\\n/g, ' ') : ta.value;
-    const done = () => { note.textContent = (noNl ? '「\\n」を半角スペースに置き換えてコピーしました。' : 'コピーしました。') + 'ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
+    const done = () => { note.textContent = (noNl ? '改行の記号を半角スペースに置き換えてコピーしました。' : 'コピーしました。') + 'ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
     const fallback = () => { ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { note.textContent = '自動コピーに失敗しました。文章を選択して、手動でコピーしてください。'; } };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
     else fallback();
