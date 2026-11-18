@@ -241,7 +241,8 @@ function calcTotals() {
       const chBonus = baseLimit - noCh + chMarks; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
       const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
-      if (chBar) chBar.textContent = chBonusTxt;
+      const chPt = (chouaiPts[cat.name] && chouaiPts[cat.name][lv]) || 0; // 寵のパーツに使った点数(使い道の記録から)
+      if (chBar) chBar.textContent = chBonus ? `(寵${chBonus}${chPt ? `・${Math.round(chPt * 10) / 10}点` : ''})` : ''; // 固定バーだけ点数も出す
       const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
 
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
@@ -270,7 +271,7 @@ function calcTotals() {
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
           <td>${maxAllowed} 個${chBonusTxt ? `<span style="color:#ffd24a;">${chBonusTxt}</span>` : ''}</td>
-          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵取得${chouaiCounts[cat.name][lv]}${chouaiPts[cat.name][lv] ? `・${Math.round(chouaiPts[cat.name][lv] * 10) / 10}点` : ''})</span>` : ''}</td>
+          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵取得${chouaiCounts[cat.name][lv]})</span>` : ''}</td>
           <td>${statusHtml}</td>
         `;
         limitTbody.appendChild(tr);
