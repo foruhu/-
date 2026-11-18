@@ -544,7 +544,7 @@ a:hover { color: #cff; }
 
 /* スマホ：マニューバ表の入力欄の左右の余白を小さくして、「アクション」などが切れずに見えるようにする */
 @media screen and (max-width: 899px) {
-  .p-name, .p-timing, .p-cost, .p-range, .p-level { padding-left: 1px !important; padding-right: 1px !important; }
+  .p-name, .p-timing, .p-cost, .p-range, .p-level, select.range-sel { padding-left: 1px !important; padding-right: 1px !important; }
   .p-type, .p-location { padding-left: 1px !important; padding-right: 1px !important; }
   .p-timing, .p-cost, .p-range { text-align: center !important; }
 }
@@ -559,3 +559,10 @@ a:hover { color: #cff; }
 .maneuver-table select.p-timing { font-size: .72rem; }
 .maneuver-table select.p-timing:disabled { opacity: 1; color: #fff; -webkit-text-fill-color: #fff; }
 html.table-roomy .maneuver-table select.p-timing { font-size: .8rem; }
+
+.maneuver-table select.p-level { font-size: .8rem; }
+
+/* 射程(選択式＋自由枠) */
+.maneuver-table select.range-sel { font-size: .72rem; }
+html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
+.maneuver-table td select.range-sel + input { margin-top: 2px; }

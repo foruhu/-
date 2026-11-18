@@ -266,7 +266,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td><select class="skill-name-select" onchange="onSkillSelect(this)"><option value="">-- スキルを選択 --</option></select></td>
     <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" class="skill-cost" value="${escapeHtml(cost)}"></td>
-    <td><input type="text" class="skill-range" value="${escapeHtml(range)}"></td>
+    <td>${buildRangeCellHtml('skill-range', range)}</td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></td>
   `;
   tbody.appendChild(tr);
@@ -320,7 +320,7 @@ function onSkillSelect(selectElem) {
   if (!skillName) {
     if (timingInput) setTimingSelectValue(timingInput, '');
     if (costInput) costInput.value = '';
-    if (rangeInput) rangeInput.value = '';
+    if (rangeInput) { rangeInput.value = ''; syncRangeSelect(rangeInput); }
     if (textarea) { textarea.value = ''; autoResizeTextarea(textarea); }
     if (tagSelect) {
       tagSelect.value = '';
@@ -338,7 +338,7 @@ function onSkillSelect(selectElem) {
       }
       if (timingInput) setTimingSelectValue(timingInput, parsed.timing);
       if (costInput) costInput.value = parsed.cost;
-      if (rangeInput) rangeInput.value = parsed.range;
+      if (rangeInput) { rangeInput.value = parsed.range; syncRangeSelect(rangeInput); }
       if (textarea) { textarea.value = parsed.effect; autoResizeTextarea(textarea); }
       const detected = detectCategoryFromMemo(parsed.effect);
       if (tagSelect) {

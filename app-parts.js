@@ -433,6 +433,47 @@ function onExtraPartSelect(secId, selectElem) {
   selectElem.value = '';
 }
 
+// 射程は「0・なし・自身」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
+// 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
+const RANGE_PRESETS = ['0', 'なし', '自身'];
+function buildRangeCellHtml(inputClass, value) {
+  const v = (value === undefined || value === null) ? '' : String(value);
+  const free = v !== '' && !RANGE_PRESETS.includes(v);
+  const opt = (val, label, sel) => `<option value="${escapeHtml(val)}" ${sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+  const options = opt('', '（未選択）', v === '' ) + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
+  return `<select class="range-sel" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" style="${free ? '' : 'display:none;'}">`;
+}
+function onRangeSelChange(sel) {
+  const inp = sel.parentElement && sel.parentElement.querySelector('input[type="text"]');
+  if (!inp) return;
+  if (sel.value === '自由枠') {
+    if (RANGE_PRESETS.includes(inp.value)) inp.value = '';
+    inp.style.display = '';
+    try { inp.focus(); } catch (e) {}
+  } else {
+    inp.value = sel.value;
+    inp.style.display = 'none';
+  }
+  inp.dispatchEvent(new Event('change', { bubbles: true })); // 効果の記憶・編集の記録などに、変更を伝える
+}
+// 文字欄の値を、プログラムから書き換えたあと、選択欄の表示を合わせる
+function syncRangeSelect(inp) {
+  const sel = inp && inp.parentElement && inp.parentElement.querySelector('select.range-sel');
+  if (!sel) return;
+  const v = inp.value || '';
+  const free = v !== '' && !RANGE_PRESETS.includes(v);
+  sel.value = free ? '自由枠' : v;
+  inp.style.display = free ? '' : 'none';
+}
+
+// レベルは1・2・3から選ぶ(保存データにそれ以外の値があっても、選択肢に加えて失わない)
+function buildLevelOptionsHtml(selected) {
+  const cur = String(selected === undefined || selected === null || selected === '' ? '1' : selected);
+  const list = ['1', '2', '3'];
+  if (!list.includes(cur)) list.push(cur);
+  return list.map(v => `<option value="${escapeHtml(v)}" ${v === cur ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+}
+
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
   const tr = document.createElement('tr');
   tr.className = 'part-row';
@@ -453,10 +494,10 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
         ${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
-    <td><input type="number" value="${escapeHtml(level)}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
+    <td><select class="p-level" onchange="calcTotals()">${buildLevelOptionsHtml(level)}</select></td>
     <td><select class="p-timing" onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
-    <td><input type="text" value="${escapeHtml(range)}" class="p-range" ${readOnlyAttr}></td>
+    <td>${buildRangeCellHtml('p-range', range)}</td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
   `;
   tbody.appendChild(tr);
