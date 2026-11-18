@@ -756,6 +756,7 @@ function applyData(data) {
   const useTbody = document.getElementById('chouai-use-tbody');
   if (useTbody) {
     useTbody.innerHTML = '';
+    chouaiMemoSnap = null; // 読み込み直しでは、印を付け外ししない
     if (data.chouaiUses) {
       data.chouaiUses.forEach(u => addChouaiUseRow(u.used, u.memo));
     }

@@ -72,39 +72,53 @@ function toggleChouaiAcq(btn) {
   btn.dispatchEvent(new Event('change', { bubbles: true })); // 元に戻す・未保存の印などに、変更を伝える
 }
 
-// 「寵愛点の使い道」の文章にスキル名・パーツ名が出てくる行へ、「寵」の印を付ける(付けるだけ。外すのは行の「寵」ボタン)
+// 「寵愛点の使い道・強化履歴」と連動して、スキル・パーツの行の「寵」の印を付け外しする
+//  ・使い道に名前が書かれた(新しく一致した)行 → 印を付ける
+//  ・書かれていた名前が消えた・書き換わった・行を削除した → その行の印を外す
+//  ・使い道と関係なく手で付けた印は、そのまま残す
 let chouaiSyncing = false;
-function autoMarkChouaiFromUses(silent) {
+let chouaiMemoSnap = null; // 前回の使い道の文章(差分で「新しく書かれた/消えた」を判定する)
+function chouaiNorm(s) { return String(s || '').normalize('NFKC').replace(/\s+/g, ''); }
+function chouaiMemoList() {
+  return Array.from(document.querySelectorAll('#chouai-use-tbody .use-memo')).map(i => chouaiNorm(i.value)).filter(Boolean);
+}
+// 名前が、区切り(、・「」スペースなど)や「を習得」「取得」などで区切られた単語として書かれているときだけ一致(別の語の一部は対象外)
+function chouaiNameHit(rawName, memos) {
+  const name = chouaiNorm(rawName);
+  if (name.length < 2 || !memos.length) return false;
+  const basic = new Set();
+  try { Object.values(DEFAULT_PARTS).forEach(a => a.forEach(p => basic.add(chouaiNorm(p.name)))); } catch (e) {}
+  if (basic.has(name)) return false;
+  const short = name.replace(/[(（][^)）]*[)）]/g, ''); // 「(歪曲)」などの括弧書きを除いた名前でも照合する
+  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const B = '[\\s、,，・「『（(\\[【/／:：+＋]', A = '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|も|の|取得|習得|獲得|購入|追加|入手|修復|強化|習)';
+  const cands = [name]; if (short.length >= 3 && short !== name) cands.push(short);
+  return cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
+}
+// force=true(ボタン)のときは、いま一致している行すべてに印を付ける。通常は前回との差分だけを反映する
+function autoMarkChouaiFromUses(silent, force) {
   if (chouaiSyncing) return 0;
   chouaiSyncing = true;
   try {
-    const norm = s => String(s || '').normalize('NFKC').replace(/\s+/g, '');
-    const memos = Array.from(document.querySelectorAll('#chouai-use-tbody .use-memo')).map(i => norm(i.value)).filter(Boolean);
-    const basic = new Set();
-    try { Object.values(DEFAULT_PARTS).forEach(a => a.forEach(p => basic.add(norm(p.name)))); } catch (e) {}
-    let changed = 0;
+    const cur = chouaiMemoList();
+    const prev = (chouaiMemoSnap === null || force) ? cur : chouaiMemoSnap;
+    let added = 0, removed = 0;
     const apply = (tr, rawName) => {
       if (!tr || !tr.querySelector('.chouai-btn')) return; // 基本パーツ・たからもの行は対象外
-      const name = norm(rawName);
-      let hit = false;
-      if (name.length >= 2 && !basic.has(name)) {
-        const short = name.replace(/[(（][^)）]*[)）]/g, ''); // 「(歪曲)」などの括弧書きを除いた名前でも照合する
-        // 名前が、区切り(、・「」スペースなど)や「を習得」「取得」などで区切られた単語として書かれているときだけ一致とする(別の語の一部は対象外)
-        const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const B = '[\\s、,，・「『（(\\[【/／:：+＋]', A = '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|も|の|取得|習得|獲得|購入|追加|入手|修復|強化|習)';
-        const cands = [name]; if (short.length >= 3 && short !== name) cands.push(short);
-        hit = cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
-      }
-      if (hit && !tr.classList.contains('chouai-acq')) { tr.classList.add('chouai-acq'); changed++; }
+      const now = chouaiNameHit(rawName, cur), before = chouaiNameHit(rawName, prev);
+      const marked = tr.classList.contains('chouai-acq');
+      if (now && (force || !before) && !marked) { tr.classList.add('chouai-acq'); added++; }
+      else if (!now && before && marked) { tr.classList.remove('chouai-acq'); removed++; }
     };
     document.querySelectorAll('#skill-tbody tr').forEach(tr => apply(tr, tr.querySelector('.skill-name-select')?.value));
     document.querySelectorAll('#parts-container tr.part-row').forEach(tr => apply(tr, tr.querySelector('.p-name')?.value));
-    if (changed) {
+    chouaiMemoSnap = cur;
+    if (added || removed) {
       try { calcTotals(); } catch (e) {}
       if (typeof markDirty === 'function') markDirty();
     }
-    if (!silent) showToast(changed ? `使い道の記載から、${changed}件に寵愛の印を付けました` : '新しく印を付けられる行はありませんでした(すでに印済み、または名前が記載にありません)');
-    return changed;
+    if (!silent) showToast((added || removed) ? `使い道の記載に合わせて、印を ${added}件付け・${removed}件外しました` : '印を付け外しする行はありませんでした(すでに印済み、または名前が記載にありません)');
+    return added + removed;
   } catch (e) {
     if (!silent) showToast('判定に失敗しました：' + (e && e.message ? e.message : e));
     return 0; // 判定に失敗しても、ほかの計算は止めない
@@ -482,6 +496,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   `;
 
   tbody.appendChild(tr);
+  chouaiMemoSnap = chouaiMemoList(); // 読み込み・行追加では、印を付け外ししない
   markDirty();
   calcChouaiTotals();
 }
@@ -497,7 +512,7 @@ function addChouaiUseRow(used = 0, memo = '') {
       <input type="number" class="used-pts" value="${escapeHtml(Number(used) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #ff88c2; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
     <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="use-memo" onchange="autoMarkChouaiFromUses(true)" oninput="calcChouaiTotals()" value="${escapeHtml(memo)}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
+      <input type="text" class="use-memo" oninput="calcChouaiTotals()" value="${escapeHtml(memo)}" placeholder="例: 武装基本値+1、基本パーツ修復" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
     </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
@@ -511,6 +526,7 @@ function addChouaiUseRow(used = 0, memo = '') {
 
 // --- 3. 寵愛点計算処理 ---
 function calcChouaiTotals() {
+  try { autoMarkChouaiFromUses(true); } catch (e) {}
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;
