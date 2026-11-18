@@ -541,3 +541,15 @@ a:hover { color: #cff; }
 @media (pointer: coarse) {
   body.typing .fixed-save, body.typing .corner-btn, body.typing .fixed-readme { display: none !important; }
 }
+
+/* スマホ：マニューバ表の入力欄の左右の余白を小さくして、「アクション」などが切れずに見えるようにする */
+@media screen and (max-width: 899px) {
+  .p-name, .p-timing, .p-cost, .p-range, .p-level { padding-left: 1px !important; padding-right: 1px !important; }
+  .p-type, .p-location { padding-left: 1px !important; padding-right: 1px !important; }
+  .p-timing, .p-cost, .p-range { text-align: center !important; }
+}
+@media screen and (min-width: 385px) and (max-width: 899px) {
+  /* 文字が切れやすい列に、最低限の幅をとる（名前の列がそのぶん細くなる。幅の狭い小型のスマホでは、名前が潰れるので行わない） */
+  .maneuver-table td:has(> .p-cost), .maneuver-table td:has(> .p-range) { min-width: 30px; }
+  .maneuver-table td:has(> .p-timing) { min-width: 50px; }
+}
