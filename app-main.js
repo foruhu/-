@@ -24,7 +24,11 @@ function lockViewOnly() {
 function applyBattleView(on) {
   document.body.classList.toggle('battle-view', on);
   const b = document.getElementById('battle-toggle');
-  if (b) b.textContent = on ? '⚔️ 戦闘用：ON' : '⚔️ 戦闘用：OFF';
+  if (b) {
+    b.textContent = on ? '⚔️ 戦闘用：ON ✔' : '⚔️ 戦闘用：OFF';
+    b.classList.toggle('on', on);
+    b.classList.toggle('off', !on);
+  }
 }
 function toggleBattleView() {
   const on = !document.body.classList.contains('battle-view');
