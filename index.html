@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=209">
+<link rel="stylesheet" href="style.css?v=210">
 </head>
 <body>
 
@@ -132,8 +132,11 @@
     <div class="img-panel-head">🖼 キャラクター画像 <span id="img-panel-count"></span></div>
     <div class="img-panel-row">
       <div id="img-panel-list" class="img-panel-list"></div>
+      <button type="button" class="img-thumb img-loadchar edit-only" onclick="openCharSwitcher()" title="保存してあるキャラクターを選んで読み込みます">
+        <span class="img-add-plus">📂</span><span class="img-add-text">キャラクターを<br>読み込む</span>
+      </button>
       <button type="button" class="img-thumb img-hokansho edit-only" onclick="openHokanshoImport()" title="キャラクター保管所の「テキスト出力」を貼り付けて読み込みます">
-        <span class="img-add-plus">📝</span><span class="img-add-text">保管所から<br>読み込む</span>
+        <span class="img-add-plus">📝</span><span class="img-add-text">保管所テキスト<br>から読み込む</span>
       </button>
     </div>
     <div class="img-bg-row"><label for="img-bg-color">背景色</label><input type="color" id="img-bg-color" value="#222228" oninput="this.dataset.set='1'; applyImageBg()"><input type="text" id="img-bg-hex" placeholder="#222228" maxlength="7" autocomplete="off" style="flex:0 0 96px;width:96px;" oninput="onColorHexInput('img-bg-color', this.value)"><button type="button" class="char-switch-btn" style="width:auto;flex:0 0 auto;" onclick="resetImageBg()">指定なし</button><span class="img-panel-note" style="margin:0;">透過PNGの透明な部分に、この色が見えます</span></div>
@@ -681,7 +684,7 @@
       <li>書き出したファイルは、クラウドやメールなど、このブラウザとは別の場所にも置いておくと安心です。「🔍 バックアップファイルを確認」で、ファイルが読めるか・何人入っているか・今のブラウザと同じ内容かを、復元せずに確かめられます。</li>
       <li>保存済みのキャラがいて、14日以上バックアップを取っていない(または一度も取っていない)ときは、開いたときに画面の下でお知らせします。「あとで」を押すと、7日間は出ません。</li>
       <li>データ未登録のスキル・パーツに自分で書いた効果は、このブラウザに覚えられます。次からは、同じスキル・パーツを選ぶと自動で入ります(「全キャラをバックアップ」にも一緒に入ります)。</li>
-      <li>「保管所テキストから読み込む」(基本情報のいちばん上、「キャラクター画像」の横にある「📝 保管所から読み込む」)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ。効果メモや名前に「たからもの」とあるもの、シートの「たからもの」欄と同じ名前のもの、以前に分類を「たからもの」にしたことがある名前のもの、このシートのパーツ一覧に無くてタイミングがオート・コストなし・射程なしのものは、分類が「たからもの」になります)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
+      <li>「保管所テキストから読み込む」(基本情報のいちばん上、「キャラクター画像」の横にある「📝 保管所テキストから読み込む」。その隣の「📂 キャラクターを読み込む」では、保存してあるキャラクターを選んで読み込めます)で、キャラクター保管所の「テキスト出力」を貼り付けると、キャラ名・身長・体重・髪/瞳/肌の色・クラス・スキル・マニューバ(パーツ。効果メモや名前に「たからもの」とあるもの、シートの「たからもの」欄と同じ名前のもの、以前に分類を「たからもの」にしたことがある名前のもの、このシートのパーツ一覧に無くてタイミングがオート・コストなし・射程なしのものは、分類が「たからもの」になります)・記憶のカケラ・未練(発狂時の名前・効果を含む)・セッション履歴(獲得寵愛)が反映されます(テキストに入っている項目だけが上書きされ、「↩️ 元に戻す」で戻せます)。強化値は、ボーナス(+1する列)と寵愛による修正を反映します。メインクラス・サブクラス・合計と最大行動値は自動計算のため、テキストと違う場合は読み込み結果に表示されます。読み込めなかった行と、シートに欄が無い成長履歴の文章は、ページ下部の「メモ」欄に追記されます(今のメモは消えません)。</li>
       <li>「↩️ 削除したキャラを復元」では、削除したキャラの一覧(新しいものから最大5件)が開き、好きなものを選んで復元したり、完全に削除したりできます。</li>
     </ul>
 
@@ -702,6 +705,7 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/19 キャラクター画像の横に、保存してあるキャラクターを選んで読み込む「📂 キャラクターを読み込む」ボタンを足しました(押すと、キャラクターの切替と同じ一覧が開きます)。あわせて、隣のボタンの表示を「保管所テキストから読み込む」に直し、画像の読み込みと間違えにくくしました。</li>
       <li>2026/11/18 「保管所テキストから読み込む」ボタンを、基本情報のいちばん上の「キャラクター画像」の横(画像の一覧の右)に置きました。左下の固定ボタンと、キャラクター管理の中のボタンは無くしました。</li>
       <li>2026/11/18 画面の左下に、「📝 保管所読込」ボタンを常に表示するようにしました(編集画面のとき。押すと「保管所テキストから読み込む」の画面が開きます)。</li>
       <li>2026/11/18 「保管所テキストから読み込む」ボタンを、キャラクター管理の「ブラウザに保存」「データを読み込む」のすぐ下に移し、横いっぱいの大きなボタンにしました(これまでは「削除したキャラを復元」の隣にありました)。</li>
@@ -761,16 +765,16 @@
   </div>
 </div>
 
-<script src="data.js?v=209"></script>
-<script src="app-core.js?v=209"></script>
-<script src="app-parts.js?v=209"></script>
-<script src="app-skills.js?v=209"></script>
-<script src="app-save.js?v=209"></script>
-<script src="app-dict.js?v=209"></script>
-<script src="app-image.js?v=209"></script>
-<script src="app-look.js?v=209"></script>
-<script src="app-sheetprint.js?v=209"></script>
-<script src="app-share.js?v=209"></script>
-<script src="app-main.js?v=209"></script>
+<script src="data.js?v=210"></script>
+<script src="app-core.js?v=210"></script>
+<script src="app-parts.js?v=210"></script>
+<script src="app-skills.js?v=210"></script>
+<script src="app-save.js?v=210"></script>
+<script src="app-dict.js?v=210"></script>
+<script src="app-image.js?v=210"></script>
+<script src="app-look.js?v=210"></script>
+<script src="app-sheetprint.js?v=210"></script>
+<script src="app-share.js?v=210"></script>
+<script src="app-main.js?v=210"></script>
 </body>
 </html>
