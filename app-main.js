@@ -316,3 +316,26 @@ let fitTimer2 = null;
   document.addEventListener('change', e => { if (e.target && e.target.closest && e.target.closest('.maneuver-table, #sec-miren')) scheduleFitCellTexts(); });
   window.addEventListener('resize', scheduleFitCellTexts);
 })();
+
+// 数値入力欄の min / max は、矢印ボタンにしか効かず、キーボードで直接打つと範囲外の値（例：-5）が通ってしまう。
+// 入力された時点（oninput より先）と、入力を確定した時点で、範囲内に収める。
+(function () {
+  function clampNumberInput(el, final) {
+    if (!el || el.tagName !== 'INPUT' || el.type !== 'number' || el.readOnly) return false;
+    if (el.value === '' || el.validity.badInput) return false;
+    const v = Number(el.value);
+    if (!isFinite(v)) return false;
+    const hasMin = el.min !== '' && isFinite(Number(el.min));
+    const hasMax = el.max !== '' && isFinite(Number(el.max));
+    let nv = v;
+    // 入力の途中（例：最小1の欄に「1」を打つ前の「0」）を邪魔しないよう、入力中は「0以上のはずの欄の負の値」だけ直し、確定時にすべて直す
+    if (hasMin && v < Number(el.min) && (final || Number(el.min) <= 0)) nv = Number(el.min);
+    if (hasMax && v > Number(el.max) && final) nv = Number(el.max);
+    if (nv !== v) { el.value = String(nv); return true; }
+    return false;
+  }
+  document.addEventListener('input', function (e) { clampNumberInput(e.target, false); }, true);
+  document.addEventListener('change', function (e) {
+    if (clampNumberInput(e.target, true)) e.target.dispatchEvent(new Event('input', { bubbles: true }));
+  }, true);
+})();
