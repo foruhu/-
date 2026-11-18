@@ -54,7 +54,8 @@ function updateBarSkills() {
     if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, SKILL_INITIAL_LIMITS.mc); got.sc = Math.max(0, n - SKILL_INITIAL_LIMITS.mc); }
     const part = (label, key) => `${label} <b style="color:${got[key] > SKILL_INITIAL_LIMITS[key] ? '#ff8888' : (got[key] === SKILL_INITIAL_LIMITS[key] ? '#8ff' : '#ffd0d0')};">${got[key]}</b>/${SKILL_INITIAL_LIMITS[key]}`;
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
-    const extra = (chouaiSkills || chouaiParts) ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：スキル<b>${chouaiSkills}</b>・パーツ<b>${chouaiParts}</b></span>` : '';
+    const cParts = [chouaiSkills ? `スキル<b>${chouaiSkills}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
+    const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     if (cnt) cnt.innerHTML = [part('ポジション', 'pos'), part('メイン', 'mc'), part('サブ', 'sc')].join(' | ') + extra;
     list.textContent = names.length ? names.join('・') : 'なし';
     list.style.opacity = names.length ? '1' : '.6';
