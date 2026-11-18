@@ -275,7 +275,7 @@ function calcTotals() {
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
           <td>${maxAllowed} 個${chBonusTxt ? `<span style="color:#ffd24a;">${chBonusTxt}</span>` : ''}</td>
-          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵取得${chouaiCounts[cat.name][lv]})</span>` : ''}</td>
+          <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵${chouaiCounts[cat.name][lv]})</span>` : ''}</td>
           <td>${statusHtml}</td>
         `;
         limitTbody.appendChild(tr);
