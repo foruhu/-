@@ -454,7 +454,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
       </select>
     </td>
     <td><input type="number" value="${escapeHtml(level)}" min="1" max="3" class="p-level" ${disabledAttr} onchange="calcTotals()"></td>
-    <td><input type="text" value="${escapeHtml(timing)}" class="p-timing" ${readOnlyAttr} oninput="updatePartUsedCheckboxVisibility(this.closest('tr'))"></td>
+    <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
     <td><input type="text" value="${escapeHtml(range)}" class="p-range" ${readOnlyAttr}></td>
     <td class="col-op"><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></td>
