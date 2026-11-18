@@ -56,7 +56,7 @@ function exportSheetImage(opts) {
   if (d.hint) text('暗示: ' + d.hint, PAD, 14, C.text);
 
   // 未練
-  const miren = d.list.filter(m => m.target || m.emotion || m.madness || m.madName);
+  const miren = d.list.filter(m => m.target || m.emotion || m.madness || m.madName || m.madEffect);
   const tres = d.treasures.filter(t => t.name || t.content);
   if (tres.length || miren.length) {
     heading('たからもの・未練');
@@ -101,9 +101,11 @@ function exportSheetImage(opts) {
   const H = y + PAD - 10;
 
   const cv = document.createElement('canvas');
-  cv.width = W * SC; cv.height = H * SC;
+  // 縦に長いシートでも、ブラウザのキャンバスの上限（面積約1600万px・1辺16384px）を超えないよう、倍率を下げる
+  const SCe = Math.max(0.5, Math.min(SC, 16000 / H, Math.sqrt(16000000 / (W * H))));
+  cv.width = Math.floor(W * SCe); cv.height = Math.floor(H * SCe);
   const ctx = cv.getContext('2d');
-  ctx.scale(SC, SC);
+  ctx.scale(SCe, SCe);
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = C.card; ctx.fillRect(10, 10, W - 20, H - 20);
   ctx.textBaseline = 'alphabetic';
@@ -113,7 +115,7 @@ function exportSheetImage(opts) {
     if (o.strike) { const w = ctx.measureText(o.s).width; ctx.strokeStyle = o.color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(o.x, o.y - 5); ctx.lineTo(o.x + w, o.y - 5); ctx.stroke(); }
   });
 
-  const fname = (d.name || 'character') + (battle ? '_戦闘用' : '').replace(/[\\/:*?"<>|]/g, '_') + '.png';
+  const fname = ((d.name || 'character') + (battle ? '_戦闘用' : '')).replace(/[\\/:*?"<>|]/g, '_') + '.png';
   cv.toBlob(blob => {
     if (!blob) { alert('画像を作れませんでした'); return; }
     const url = URL.createObjectURL(blob);

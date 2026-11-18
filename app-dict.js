@@ -50,7 +50,8 @@ function learnEffects() {
 }
 
 document.addEventListener('change', function (e) {
-  if (e.target && e.target.matches && e.target.matches('.skill-memo, .p-memo')) learnEffects();
+  // 効果の文章だけでなく、タイミング・コスト・射程を直したときも覚え直す（古い値が自動入力され続けないように）
+  if (e.target && e.target.matches && e.target.matches('.skill-memo, .p-memo, .skill-timing, .skill-cost, .skill-range, .p-timing, .p-cost, .p-range')) learnEffects();
 });
 
 // バックアップに入れる／復元時に混ぜる（今ある内容は上書きしない）

@@ -24,8 +24,8 @@ function buildCcfoliaCommandLines(data) {
   const attackPrefix = p => {
     const memo = one(p.memo);
     if (!(p.tag === '攻撃' || /(肉弾|白兵|射撃|砲撃)(攻撃)?[0-9０-９]|攻撃[0-9０-９]/.test(memo))) return '';
-    const m = memo.match(/出目\+(\d+)/);
-    return m ? `1na+${m[1]}` : '1na';
+    const m = memo.match(/出目[+＋]\s*([0-9０-９]+)/);
+    return m ? `1na+${m[1].replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))}` : '1na';
   };
   // 4行目のあとに、✅❌をコピーするための行を1つ置く（パレットを編集するとき、ここからコピーして行の頭に貼る）
   const lines = ['nm 【未練決定】', '1nc 【対話判定】', '1nc 【狂気判定】', '1nc 【行動判定】', '✅使用済み／❌損傷済み'];
@@ -527,8 +527,10 @@ async function exportViewURL() {
       recordShare(token, data.name, true);
       url = location.origin + location.pathname + '#tok=' + token;
     } catch (err) {
-      if (!confirm('サーバーに保存できませんでした。\n（' + (err && err.message ? err.message : err) + '）\n\n代わりに、保存しない長いURLで作りますか？')) return;
-      url = location.origin + location.pathname + '#view=' + encoded;
+      if (!confirm('サーバーに保存できませんでした。\n（' + (err && err.message ? err.message : err) + '）\n\n代わりに、保存しない長いURLで作りますか？\n（サムネイル画像は含みません）')) return;
+      let encodedNoImg = encoded;
+      try { const d2 = Object.assign({}, data); delete d2.shareImage; encodedNoImg = await encodeShareString(JSON.stringify(d2)); } catch (e2) {}
+      url = location.origin + location.pathname + '#view=' + encodedNoImg;
     }
   }
 
@@ -1005,10 +1007,11 @@ function applyHokanshoParsed(p) {
   const f = p.fields;
 
   if (f.name) data.name = f.name;
-  if (f.age !== undefined) data.age = f.age;
-  if (f.hint !== undefined) data.hint = f.hint;
+  // 空欄の行は、シート全体のテキストのときだけ空にする（一部だけ貼ったときは、今の値を残す）
+  if (f.age !== undefined && (f.age !== '' || plan.full)) data.age = f.age;
+  if (f.hint !== undefined && (f.hint !== '' || plan.full)) data.hint = f.hint;
   Object.keys(HK_APPEARANCE_NAMES).forEach(k => {
-    if (f[k] !== undefined) { data[k] = f[k]; if (f[k]) rep.appearance++; }
+    if (f[k] !== undefined && (f[k] !== '' || plan.full)) { data[k] = f[k]; if (f[k]) rep.appearance++; }
   });
   [['pos', 'ポジション'], ['mc', 'メインクラス'], ['sc', 'サブクラス'], ['ps', '初期配置']].forEach(([key, label]) => {
     if (!f[key]) return;
@@ -1106,7 +1109,11 @@ function applyHokanshoParsed(p) {
       if (en.bonus.hasNumbers) rep.notes.push('強化値のボーナス：数字の位置から武装・変異・改造のどの列か判断できなかったため、今の設定のままにしました。');
     } else if (idx >= 0) {
       data.bonus = ['wep', 'mut', 'cyb'][idx]; rep.enhanceApplied.push(`ボーナス＝${COLS[idx]}`);
+    } else if (plan.full) {
+      data.bonus = 'wep'; // シート全体のテキストでボーナスの印が無いときは、前のドールのボーナスを残さず初期値に戻す
     }
+  } else if (plan.full) {
+    data.bonus = 'wep';
   }
   if (en.chouai) {
     if (en.chouai.ambiguous) {

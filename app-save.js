@@ -343,8 +343,10 @@ function saveData() {
     const existing = sheets[id];
     const existingName = existing ? existing.name : '(無名)';
     if (!confirm(`「${existingName}」に上書き保存します。よろしいですか？`)) return;
+    // 保存名がドール名そのものだったとき（自分で別の名前を付けていないとき）は、ドール名を変えたら保存名も新しいドール名にする
+    const followDollName = !!(existing && existing.data && existing.data.name && existing.data.name === existing.name && data.name);
     sheets[id] = {
-      name: existingName,
+      name: followDollName ? data.name : existingName,
       pl: data.pl || '',
       savedAt: new Date().toISOString(),
       image: existing ? existing.image || null : null,
@@ -406,7 +408,7 @@ function deleteSelectedSave() {
   if (!moveToTrash(id, entry) && !confirm('保存領域がいっぱいで、ゴミ箱に入れられません。このまま削除すると、元に戻せません。それでも削除しますか？')) return;
   delete sheets[id];
   if (!setSavedSheets(sheets)) return;
-  if (workingId === id) setWorkingId('');
+  if (workingId === id) { setWorkingId(''); pendingImages = entryImages(entry); } // 画面に残っている内容を新規保存したとき、画像も付くようにする
   refreshSaveSlotOptions('');
   alert(`「${entry.name}」を削除しました。\n「削除したキャラを復元」ボタンから復元できます。`);
 }

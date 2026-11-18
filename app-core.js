@@ -217,7 +217,7 @@ function renderSaveCards(selectedId = '') {
   if (!container) return;
 
   updateSelectedActionsVisibility(selectedId);
-  updateViewModeImage(selectedId);
+  updateViewModeImage((workingId && getSavedSheets()[workingId]) ? workingId : '');
   renderImagePanel();
 
   const sheets = getSavedSheets();
@@ -378,9 +378,9 @@ function entryImages(e) {
   return e.image ? [e.image] : [];
 }
 
+// 画像の設定は、一覧で選択しているカードではなく、いま編集しているキャラ(workingId)に対して行う
 function currentImageList() {
-  const sel = document.getElementById('save-slot');
-  const id = sel ? sel.value : '';
+  const id = (workingId && getSavedSheets()[workingId]) ? workingId : '';
   if (id) return entryImages(getSavedSheets()[id]);
   return pendingImages.slice();
 }
@@ -388,7 +388,7 @@ function currentImageList() {
 // 画像の並びを保存する（保存済みキャラなら本体へ、未保存なら保留分へ）。うまくいったら true
 function writeImageList(list) {
   const sel = document.getElementById('save-slot');
-  const id = sel ? sel.value : '';
+  const id = (workingId && getSavedSheets()[workingId]) ? workingId : '';
   if (id) {
     const sheets = getSavedSheets();
     if (!sheets[id]) return false;
@@ -399,7 +399,7 @@ function writeImageList(list) {
     pendingImages = list.slice();
     try { performAutosave(); } catch (e) {}
   }
-  renderSaveCards(id);
+  renderSaveCards(sel ? sel.value : '');
   return true;
 }
 
@@ -449,8 +449,7 @@ function renderImagePanel() {
   const list = currentImageList();
   const cnt = document.getElementById('img-panel-count');
   if (cnt) cnt.textContent = `（${list.length}/${IMG_MAX_COUNT}枚）`;
-  const sel = document.getElementById('save-slot');
-  const saved = !!(sel && sel.value);
+  const saved = !!(workingId && getSavedSheets()[workingId]);
   const thumbs = list.map((src, i) => `<button type="button" class="img-thumb${i === 0 ? ' main' : ''}" onclick="openImageActions(${i})"><img src="${safeImageSrc(src)}" alt=""><span class="img-badge">${i === 0 ? 'メイン' : (i + 1)}</span></button>`).join('');
   const addBtn = list.length < IMG_MAX_COUNT
     ? `<button type="button" class="img-thumb img-add" onclick="document.getElementById('img-add-input').click()"><span class="img-add-plus">＋</span><span class="img-add-text">画像を追加</span></button>`
