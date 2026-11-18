@@ -1288,6 +1288,7 @@ function exportChatPalette() {
     <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:Consolas,'Courier New',Menlo,monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
+      <button type="button" data-k="copy2" style="${btn}background:#e6f4ea;border-color:#2e8a6a;">📋 「\\n」なしでコピー</button>
       ${isView ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
       <button type="button" data-k="reset" style="${btn}">自動生成に戻す</button>`}
       <button type="button" data-k="close" style="${btn}margin-left:auto;">閉じる</button>
@@ -1304,9 +1305,10 @@ function exportChatPalette() {
       : '今のキャラクターから自動で作った内容です。自由に書き換えられます。') + (extra || '');
   };
   setNote();
-  const copy = () => {
-    const text = ta.value;
-    const done = () => { note.textContent = 'コピーしました。ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
+  const copy = (noNl) => {
+    // 「\\n」なし：文章中の「\\n」(改行の記号)を、半角スペースに置き換えてコピーする（編集欄の内容は変えない）
+    const text = noNl ? ta.value.replace(/\\n/g, ' ') : ta.value;
+    const done = () => { note.textContent = (noNl ? '「\\n」を半角スペースに置き換えてコピーしました。' : 'コピーしました。') + 'ココフォリアのキャラクター編集画面の「チャットパレット」欄に貼り付けてください。'; };
     const fallback = () => { ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { note.textContent = '自動コピーに失敗しました。文章を選択して、手動でコピーしてください。'; } };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
     else fallback();
@@ -1314,7 +1316,8 @@ function exportChatPalette() {
   box.addEventListener('click', (e) => {
     const k = e.target && e.target.getAttribute && e.target.getAttribute('data-k');
     if (!k) return;
-    if (k === 'copy') copy();
+    if (k === 'copy') copy(false);
+    else if (k === 'copy2') copy(true);
     else if (k === 'save') {
       const h = document.getElementById('chat-palette-custom');
       if (h) { h.value = ta.value; h.dispatchEvent(new Event('input', { bubbles: true })); }
