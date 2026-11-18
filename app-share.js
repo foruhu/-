@@ -277,6 +277,7 @@ function exportCcfolia() {
       setHidden('ccf-status-custom', JSON.stringify(readStatus()));
       setHidden('ccf-extra-custom', JSON.stringify(readExtra()));
       savedNow = true;
+      showToast('✔ 保存しました');
       setNote('（保存しました。キャラクターの「💾 保存」を押すと、保存済みキャラクターにも残ります）');
     } else if (k === 'reset') {
       if (!confirm('編集した内容を捨てて、今のキャラクターから作り直します。よろしいですか？\n（「この内容を保存」を押すまで、保存済みの内容は変わりません）')) return;
@@ -1350,6 +1351,7 @@ function exportChatPalette() {
       const h = document.getElementById('chat-palette-custom');
       if (h) { h.value = ta.value; h.dispatchEvent(new Event('input', { bubbles: true })); }
       savedNow = !!ta.value.trim();
+      showToast('✔ 保存しました');
       setNote('（保存しました。キャラクターの「💾 保存」を押すと、保存済みキャラクターにも残ります）');
     } else if (k === 'reset') {
       if (!confirm('編集した内容を捨てて、今のキャラクターから作り直します。よろしいですか？\n（「この内容を保存」を押すまで、保存済みの内容は変わりません）')) return;
