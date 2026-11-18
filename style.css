@@ -497,3 +497,6 @@ body.battle-view .miren-mad-row td { padding: 0 2px 3px; }
 /* 戦闘用ボタン：ON（絞り込み中）は赤く塗りつぶし、OFFは灰色の枠だけにして、状態が一目で分かるようにする */
 #battle-toggle.on { background: #7a1f1f; color: #fff; border: 2px solid #ff6a6a; font-weight: bold; }
 #battle-toggle.off { background: transparent; color: #999; border: 1px dashed #666; font-weight: normal; }
+
+/* チャパレ編集画面は、表示モードでも文字を編集できるようにする */
+body.view-mode #cp-text { pointer-events: auto !important; background: #fff !important; border-color: #999 !important; }

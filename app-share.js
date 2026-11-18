@@ -1148,7 +1148,7 @@ function getChatPaletteText(data) {
 function exportChatPalette() {
   const data = getFullData();
   const hasSaved = !!(data.chatPalette && data.chatPalette.trim());
-  const isView = document.body.classList.contains('view-mode');
+  const isView = document.body.classList.contains('view-locked'); // 閲覧用URLで開いたときだけ、保存できない
   const ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;';
   const box = document.createElement('div');
