@@ -170,7 +170,7 @@ function exportCcfolia() {
     <div><button type="button" data-k="addfa" style="${btn}">＋ 差分を追加</button></div>
     <div style="font-size:.72rem;color:#777;">※画像は、インターネット上のURLで指定します。この画面の画像（端末に保存したもの）は使えません。</div>
     <div style="font-weight:bold;">メモ欄</div>
-    <textarea id="ccf-memo" spellcheck="false" style="${inp}width:100%;min-height:200px;height:34vh;font-family:monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;"></textarea>
+    <textarea id="ccf-memo" spellcheck="false" style="${inp}width:100%;min-height:200px;height:34vh;font-family:Consolas,'Courier New',Menlo,monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;"></textarea>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
       ${isLocked ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
@@ -1285,7 +1285,7 @@ function exportChatPalette() {
   const btn = 'padding:8px 12px;border:1px solid #888;border-radius:8px;background:#f4f4f4;color:#222;font-size:.84rem;cursor:pointer;';
   box.innerHTML = `<div style="font-weight:bold;font-size:.95rem;">チャットパレットの編集</div>
     <div id="cp-note" style="font-size:.76rem;color:#555;"></div>
-    <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
+    <textarea id="cp-text" spellcheck="false" style="width:100%;flex:1 1 auto;min-height:240px;height:48vh;box-sizing:border-box;font-family:Consolas,'Courier New',Menlo,monospace;font-size:.82rem;line-height:1.5;white-space:pre;overflow:auto;border:1px solid #999;border-radius:6px;padding:6px;color:#222;background:#fff;"></textarea>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" data-k="copy" style="${btn}background:#e6f4ea;border-color:#2e8a6a;font-weight:bold;">📋 コピー</button>
       ${isView ? '' : `<button type="button" data-k="save" style="${btn}">💾 この内容を保存</button>
