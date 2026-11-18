@@ -131,6 +131,7 @@ function exportCcfolia() {
       externalUrl: '',
       iconUrl: '',
       memo: memoLines.join('\n'),
+      ...(data.pieceColor ? { color: data.pieceColor } : {}),
       status: status,
       params: params,
       commands: commandLines.join('\n')
@@ -1232,3 +1233,13 @@ async function addShareByURL() {
   } catch (err) { alert('読み込めませんでした。\n' + err.message); }
 }
 window.addEventListener('load', () => setTimeout(renderShareList, 0));
+
+// コマの色を「指定なし」に戻す（ココフォリア側の初期色になる）
+function resetPieceColor() {
+  const pc = document.getElementById('piece-color');
+  if (!pc) return;
+  pc.value = '#888888';
+  pc.dataset.set = '';
+  pc.dispatchEvent(new Event('input', { bubbles: true }));
+  pc.dataset.set = '';
+}
