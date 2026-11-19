@@ -1025,6 +1025,8 @@ function applyHokanshoParsed(p) {
   // 取り込む前に付けていた「寵」の印は、同じ区分・同じ名前のスキル／パーツへ引き継ぐ(保管所テキストには印が入っていないため)
   const oldChouaiSkills = new Set((data.skills || []).filter(x => x && x.isChouai).map(x => x.category + '|' + x.name));
   const oldChouaiParts = new Set((data.parts || []).filter(x => x && x.isChouai).map(x => x.location + '|' + x.name));
+  const oldOtherSkills = new Set((data.skills || []).filter(x => x && x.isOther).map(x => x.category + '|' + x.name));
+  const oldOtherParts = new Set((data.parts || []).filter(x => x && x.isOther).map(x => x.location + '|' + x.name));
   // スキル（区分＝ポジション/メインクラス/サブクラスの今の設定）
   if (plan.skills) data.skills = p.skills.map(s => {
     const category = data[s.slot];
@@ -1032,7 +1034,7 @@ function applyHokanshoParsed(p) {
     const known = typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category] && SKILL_DATABASE[category].some(x => x.name === s.name);
     if (!known) rep.customSkills.push(`${HK_SLOT_LABEL[s.slot]}「${s.name}」`);
     rep.skills++;
-    return { category: category, name: s.name, timing: s.timing, cost: s.cost, range: s.range, memo: s.memo, tag: detectCategoryFromMemo(s.memo), isUsed: false, isChouai: oldChouaiSkills.has(category + '|' + s.name) };
+    return { category: category, name: s.name, timing: s.timing, cost: s.cost, range: s.range, memo: s.memo, tag: detectCategoryFromMemo(s.memo), isUsed: false, isChouai: oldChouaiSkills.has(category + '|' + s.name), isOther: oldOtherSkills.has(category + '|' + s.name) };
   });
 
   // パーツ：基本パーツは常に自動配置されるので数えるだけ。それ以外はdata.jsと名前で照合して種別・Lvを補う
@@ -1071,7 +1073,8 @@ function applyHokanshoParsed(p) {
       data.parts.push({
         isBroken: false, isUsed: false, location: HK_SEC_TO_LOC[pt.sec], name: pt.name, type: type, level: String(level),
         timing: pt.timing, cost: pt.cost, range: pt.range, memo: pt.memo, isEditable: editable, tag: detectCategoryFromMemo(pt.memo),
-        isChouai: type !== '基本' && type !== 'たからもの' && oldChouaiParts.has(HK_SEC_TO_LOC[pt.sec] + '|' + pt.name)
+        isChouai: type !== '基本' && type !== 'たからもの' && oldChouaiParts.has(HK_SEC_TO_LOC[pt.sec] + '|' + pt.name),
+        isOther: type !== '基本' && type !== 'たからもの' && oldOtherParts.has(HK_SEC_TO_LOC[pt.sec] + '|' + pt.name)
       });
       rep.partsExtra++;
     });

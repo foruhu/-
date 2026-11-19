@@ -52,7 +52,8 @@ function getFullData() {
       memo: memo,
       tag: tr.querySelector('.skill-tag')?.value || '',
       isUsed: tr.querySelector('.skill-used')?.checked || false,
-      isChouai: tr.classList.contains('chouai-acq')
+      isChouai: tr.classList.contains('chouai-acq'),
+      isOther: tr.classList.contains('other-acq')
     });
   });
 
@@ -75,7 +76,8 @@ function getFullData() {
         memo: memo,
         isEditable: !tr.querySelector('.p-name')?.hasAttribute('readonly'),
         tag: tr.querySelector('.p-tag')?.value || '',
-        isChouai: tr.classList.contains('chouai-acq')
+        isChouai: tr.classList.contains('chouai-acq'),
+        isOther: tr.classList.contains('other-acq')
       });
     }
   });
@@ -713,6 +715,7 @@ function applyData_(data) {
         }
 
         addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed, !!s.isChouai);
+        if (s.isOther) { const rr = document.querySelectorAll('#skill-tbody tr.skill-row'); const lr = rr[rr.length - 1]; if (lr && !s.isChouai) lr.classList.add('other-acq'); }
       });
     }
   }
@@ -794,7 +797,7 @@ function restorePartsFromData(parts) {
       DEFAULT_PARTS[secId].forEach((p, idx) => {
         const saved = savedBaseStates[idx];
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
-        if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed, saved.isChouai);
+        if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed, saved.isChouai, saved.isOther);
       });
     }
   });
@@ -813,18 +816,19 @@ function restorePartsFromData(parts) {
     if (!tbody) return;
 
     addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId], p.tag || '');
-    applyRowFlags(tbody, p.isBroken, p.isUsed, p.isChouai);
+    applyRowFlags(tbody, p.isBroken, p.isUsed, p.isChouai, p.isOther);
   });
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
 }
 
 // 追加したばかりの行（tbodyの最後の行）に損傷・使用チェックの状態を反映する
-function applyRowFlags(tbody, isBroken, isUsed, isChouai) {
+function applyRowFlags(tbody, isBroken, isUsed, isChouai, isOther) {
   const rows = tbody.querySelectorAll('tr.part-row');
   const lastRow = rows[rows.length - 1];
   if (!lastRow) return;
   if (isChouai && lastRow.querySelector('.chouai-btn') && !lastRow.classList.contains('no-chouai')) lastRow.classList.add('chouai-acq');
+  else if (isOther && lastRow.querySelector('.other-btn') && !lastRow.classList.contains('no-chouai')) lastRow.classList.add('other-acq');
   if (isBroken) {
     const cb = lastRow.querySelector('.p-broken');
     if (cb) { cb.checked = true; togglePartBreak(cb); }

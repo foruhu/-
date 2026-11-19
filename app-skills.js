@@ -42,7 +42,7 @@ function updateBarSkills() {
   if (!cnt && !document.getElementById('bar-skill-line')) return;
   try {
     const catCount = {};
-    const chouaiCat = {}, chouaiCatPt = {};
+    const chouaiCat = {}, chouaiCatPt = {}, otherCat = {};
     const skillPt = { pos: 0, mc: 0, sc: 0 };
     const pmap = chouaiPointMap();
     const memosNow = chouaiMemoList();
@@ -51,6 +51,7 @@ function updateBarSkills() {
       if (!v) return; // スキルを選んでいない行は数えない
       if (chouaiCounts_(tr, memosNow)) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); } // 寵愛で取ったスキルも、取得数に数える(上限の枠にも足す)
       const cat = tr.querySelector('.skill-category')?.value || '';
+      if (tr.classList.contains('other-acq')) otherCat[cat] = (otherCat[cat] || 0) + 1; // シナリオ中に獲得(その他)
       catCount[cat] = (catCount[cat] || 0) + 1;
     });
     const val = id => (document.getElementById(id)?.value || '');
@@ -63,14 +64,16 @@ function updateBarSkills() {
       const n = chouaiCat[c], pp = chouaiCatPt[c] || 0; chouaiSkills += n;
       if (c && c === pos) { cc.pos += n; skillPt.pos += pp; } else if (c && c === mc) { cc.mc += n; skillPt.mc += pp; } else if (c && c === sc) { cc.sc += n; skillPt.sc += pp; } else chouaiOther += n;
     });
-    // 上限 = 初期に取れる数 + 寵愛で取ったスキルの数(取得数には、寵のスキルも1個として数える)
-    const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc };
+    const oc = { pos: 0, mc: 0, sc: 0 };
+    Object.keys(otherCat).forEach(c => { const n = otherCat[c]; if (c && c === pos) oc.pos += n; else if (c && c === mc) oc.mc += n; else if (c && c === sc) oc.sc += n; });
+    // 上限 = 初期に取れる数 + 寵愛で取ったスキルの数 + その他(シナリオ中獲得)の数(取得数には、寵のスキルも1個として数える)
+    const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos + oc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc + oc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc + oc.sc };
     // メインクラスとサブクラスが同じクラスのときは、先にメインの枠、残りをサブとして数える
     if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, cap.mc); got.sc = Math.max(0, n - cap.mc); }
     const skillRow = (label, key) => {
       const lim = cap[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
-      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}${oc[key] ? `<span style="color:#5fd0c0;">(他${oc[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
     };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
@@ -119,10 +122,21 @@ function renderChouaiMarked() {
 }
 
 // 「寵」ボタン：寵愛点で取得したスキル・パーツに、印を付ける/外す
+// 「他」＝シナリオ中に獲得したもの(寵愛点は使わず、上限だけ1増える)。「寵」とは同時に付かない
+function toggleOtherAcq(btn) {
+  const tr = btn && btn.closest('tr');
+  if (!tr) return;
+  tr.classList.toggle('other-acq');
+  if (tr.classList.contains('other-acq')) tr.classList.remove('chouai-acq');
+  btn.setAttribute('aria-pressed', tr.classList.contains('other-acq') ? 'true' : 'false');
+  try { calcTotals(); } catch (e) {}
+  btn.dispatchEvent(new Event('change', { bubbles: true }));
+}
 function toggleChouaiAcq(btn) {
   const tr = btn && btn.closest('tr');
   if (!tr) return;
   tr.classList.toggle('chouai-acq');
+  if (tr.classList.contains('chouai-acq')) tr.classList.remove('other-acq');
   btn.setAttribute('aria-pressed', tr.classList.contains('chouai-acq') ? 'true' : 'false');
   try { calcTotals(); } catch (e) {}
   btn.dispatchEvent(new Event('change', { bubbles: true })); // 元に戻す・未保存の印などに、変更を伝える
@@ -156,6 +170,7 @@ function chouaiNameHit(rawName, memos) {
 function chouaiCounts_(tr, memos) {
   try {
     if (tr.classList.contains('chouai-acq')) return true;
+    if (tr.classList.contains('other-acq')) return false;
     if (!tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return false;
     const name = tr.querySelector('.skill-name-select')?.value || tr.querySelector('.p-name')?.value || '';
     return !!name && chouaiNameHit(name, memos);
@@ -180,6 +195,7 @@ function autoMarkChouaiFromUses(silent, force) {
     let added = 0, removed = 0;
     const apply = (tr, rawName) => {
       if (!tr || !tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return; // 基本パーツ・たからもの行は対象外
+      if (tr.classList.contains('other-acq')) return; // 「他」の行は、使い道から寵を付けない
       const name = rawName || '';
       const fresh = tr.dataset.chSeen !== name; // 新しい行、または名前が変わった行
       tr.dataset.chSeen = name;
@@ -225,6 +241,7 @@ function calcTotals() {
   const chouaiPts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
   const chouaiPtMap = chouaiPointMap();
   const memosNow2 = chouaiMemoList();
+  const otherCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // シナリオ中に獲得(その他)のパーツの数
   const chouaiCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // 寵愛で取ったパーツの数(取得数に含まれる)
 
   document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
@@ -232,6 +249,7 @@ function calcTotals() {
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
     if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
       currentCounts[type][lv]++;
+      if (tr.classList.contains('other-acq')) otherCounts[type][lv]++;
       if (chouaiCounts_(tr, memosNow2)) { chouaiCounts[type][lv]++; chouaiPts[type][lv] += chouaiPtMap.get(tr) || 0; }
     }
   });
@@ -264,12 +282,14 @@ function calcTotals() {
 
       const chMarks = (chouaiCounts[cat.name] && chouaiCounts[cat.name][lv]) || 0; // 寵愛点で取ったパーツは、上限の枠に足す
       const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
-      const baseMax = baseLimit + autoBonus + chMarks;
+      const otMarks = (otherCounts[cat.name] && otherCounts[cat.name][lv]) || 0;
+      const baseMax = baseLimit + autoBonus + chMarks + otMarks;
       const maxAllowed = baseMax; // 上限＝規定の上限＋寵愛で取ったもの(寵の印が付いている、または使い道に名前が書いてあるもの)。それ以上は超過
       // 上限(maxAllowed)のうち、「寵愛による修正」の欄で増えた(減った)分
       const chInput = getVal('chouai-' + cat.key);
       const noCh = chInput ? ((typeof getLimitByVal === 'function') ? getLimitByVal(cat.total - chInput) : { lv1:0, lv2:0, lv3:0 })[`lv${lv}`] || 0 : baseLimit;
-      const chBonus = baseLimit - noCh + chMarks; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
+      const chBonus = baseLimit - noCh + chMarks; // (その他は含めない)
+      const otTxt = otMarks ? `<span style="color:#5fd0c0;">(他${otMarks})</span>` : ''; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
       const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
       const chPt = (chouaiPts[cat.name] && chouaiPts[cat.name][lv]) || 0; // 寵のパーツに使った点数(使い道の記録から)
@@ -300,7 +320,7 @@ function calcTotals() {
         tr.innerHTML = `
           <td><b>${cat.name}</b> (総${cat.total})</td>
           <td>Lv ${lv}</td>
-          <td>${maxAllowed} 個${chBonusTxt ? `<span style="color:#ffd24a;">${chBonusTxt}</span>` : ''}</td>
+          <td>${maxAllowed} 個${chBonusTxt ? `<span style="color:#ffd24a;">${chBonusTxt}</span>` : ''}${otTxt}</td>
           <td><b>${current}</b> 個${chouaiCounts[cat.name][lv] ? `<span style="color:#ffd24a;">(寵${chouaiCounts[cat.name][lv]})</span>` : ''}</td>
           <td>${statusHtml}</td>
         `;
@@ -478,7 +498,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" class="skill-cost" value="${escapeHtml(cost)}"></td>
     <td>${buildRangeCellHtml('skill-range', range)}</td>
-    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></span></td>
+    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した(その他)」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">他</button><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></span></td>
   `;
   if (isChouai) tr.classList.add('chouai-acq');
   tbody.appendChild(tr);

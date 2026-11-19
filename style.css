@@ -602,3 +602,11 @@ tr:not(.chouai-acq) .chouai-btn:hover, tr:not(.chouai-acq) .chouai-btn:focus-vis
 .chouai-note { font-size: .72rem; color: #c9b27a; margin: 4px 2px 0; line-height: 1.5; }
 .chouai-note b { color: #ffd24a; }
 tr.no-chouai .chouai-btn { display: none !important; }
+
+/* 「他」＝シナリオ中に獲得したもの(寵愛点は使わず、上限だけ1増える) */
+.other-btn { background: transparent; color: #5fd0c0; border: 1px dashed #3e9d90; border-radius: 3px; font-size: .68rem; padding: 1px 3px; cursor: pointer; line-height: 1.2; white-space: nowrap; opacity: .85; }
+.other-btn:hover, .other-btn:focus-visible { opacity: 1; background: #12302c; }
+tr.other-acq .other-btn { background: #1f8f80; color: #fff; border: 1px solid #5fd0c0; font-weight: bold; opacity: 1; }
+tr.other-acq > td:first-child { box-shadow: inset 4px 0 0 #5fd0c0; }
+html.theme-light tr.other-acq > td:first-child { box-shadow: inset 4px 0 0 #0f7a6c; }
+tr.no-chouai .other-btn { display: none !important; }
