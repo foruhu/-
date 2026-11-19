@@ -427,7 +427,7 @@ function onExtraPartSelect(secId, selectElem, acquired) {
   let partData = null;
 
   if (val === 'custom') {
-    partData = { name: '新規パーツ', type: '', level: '', timing: '', cost: '', range: '', memo: '', isEditable: true }; // 自由枠は、分類・Lv・タイミング・コスト・射程を、最初は未選択にする
+    partData = { name: '新規パーツ', type: '', level: 1, timing: '', cost: '', range: '', memo: '', isEditable: true }; // 自由枠は、分類・タイミング・射程を最初は未選択、コストは空にする(Lvは1)
   } else if (val.startsWith('common_')) {
     const p = COMMON_EXTRA_PARTS[parseInt(val.split('_')[1], 10)];
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
@@ -437,7 +437,7 @@ function onExtraPartSelect(secId, selectElem, acquired) {
   }
 
   if (partData && val !== 'custom' && isEffectlessListedPart(partData.name)) {
-    partData = { ...partData, type: '', level: '' }; // 効果が書かれていないパーツは、分類・Lvも空にして、自分で選べるようにする(上限の数には、選ぶまで入らない)
+    partData = { ...partData, type: '' }; // 効果が書かれていないパーツは、分類を空にして、自分で選べるようにする(Lvは元の数値のまま。分類を選ぶまで、上限の数には入らない)
   }
   if (partData) {
     // データ未登録のパーツは、前に自分で書いた効果があれば入れる
@@ -550,7 +550,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
         ${type === '' ? '<option value="" selected>（未選択）</option>' : ''}${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
-    <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${type === '' ? '<option value="" selected>未選択</option>' + ['1','2','3'].map(v => `<option value="${v}">${v}</option>`).join('') : buildLevelOptionsHtml(level)}</select></td>
+    <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${buildLevelOptionsHtml(level)}</select></td>
     <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
     <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>

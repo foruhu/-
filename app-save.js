@@ -69,7 +69,7 @@ function getFullData() {
         location: tr.querySelector('.p-location')?.value || '',
         name: name,
         type: tr.querySelector('.p-type') ? tr.querySelector('.p-type').value : '基本',
-        level: (tr.querySelector('.p-type')?.value === 'たからもの' || tr.querySelector('.p-level')?.value === '') ? '' : (tr.querySelector('.p-level')?.value || '1'),
+        level: (tr.querySelector('.p-type')?.value === 'たからもの') ? '' : (tr.querySelector('.p-level')?.value || '1'),
         timing: tr.querySelector('.p-timing')?.value || '',
         cost: tr.querySelector('.p-cost')?.value || '',
         range: tr.querySelector('.p-range')?.value || '',
