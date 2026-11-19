@@ -202,10 +202,9 @@ function updateExtraPartOptions() {
       const acqSel = secDiv.querySelector('.acq-select');
       if (acqSel) {
         const freeMap = { '武装': { 1: 99, 2: 99, 3: 99 }, '変異': { 1: 99, 2: 99, 3: 99 }, '改造': { 1: 99, 2: 99, 3: 99 } };
-        let o2 = `<option value="">+ 【${sec.title}】にシナリオ獲得を追加...</option>`;
+        let o2 = `<option value="">+ 【${sec.title}】にシナリオ獲得を追加...</option><option value="custom">-- 自由枠を追加(自分で書く) --</option>`;
         if (EXTRA_PARTS_DB[sec.id]) o2 += generateOptionGroup(EXTRA_PARTS_DB[sec.id], freeMap, sec.id, `【${sec.title}専用パーツ】`);
         if (COMMON_EXTRA_PARTS.length > 0) o2 += generateOptionGroup(COMMON_EXTRA_PARTS, freeMap, 'common', '【共通・汎用パーツ】');
-        o2 += `<option value="custom">-- 自由入力枠を追加 --</option>`;
         acqSel.innerHTML = o2;
       }
     } catch (e) { /* 獲得用の選択欄を作れなくても、ふつうの追加欄は使える */ }
