@@ -237,6 +237,7 @@ function renderPartsContainer() {
         <select class="add-part-select edit-only" onchange="onExtraPartSelect('${sec.id}', this)">
           <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
         </select>
+        <label class="acq-toggle edit-only${typeof addAsAcquired !== 'undefined' && addAsAcquired ? ' on' : ''}" title="ONにして足したパーツは、シナリオ中に獲得したものとして、最初から「獲得」の印が付きます(上限が1増えます)"><input type="checkbox" class="acq-toggle-cb" onchange="onAcqToggle(this)"${typeof addAsAcquired !== 'undefined' && addAsAcquired ? ' checked' : ''}> シナリオ中に獲得したものとして追加</label>
       </div>
     `;
     container.appendChild(secDiv);
@@ -397,6 +398,13 @@ function placeTreasureEntry(button) {
   alert(`「${name}」を${location}のパーツとして配置しました`);
 }
 
+// 「シナリオ中に獲得したものとして追加」のスイッチ(4つの部位で共通。ONのままにしておける。保存はしない)
+let addAsAcquired = false;
+function onAcqToggle(cb) {
+  addAsAcquired = !!(cb && cb.checked);
+  document.querySelectorAll('.acq-toggle-cb').forEach(x => { x.checked = addAsAcquired; });
+  document.querySelectorAll('.acq-toggle').forEach(l => l.classList.toggle('on', addAsAcquired));
+}
 function onExtraPartSelect(secId, selectElem) {
   const val = selectElem.value;
   if (!val) return;
@@ -429,6 +437,13 @@ function onExtraPartSelect(secId, selectElem) {
       return;
     }
     addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName, detectCategoryFromMemo(partData.memo));
+    if (addAsAcquired) { // 「獲得として追加」がONのときは、足したパーツに「獲得」の印を付ける(基本・たからものは対象外)
+      try {
+        const rows = tbody.querySelectorAll('tr.part-row');
+        const last = rows[rows.length - 1];
+        if (last && last.querySelector('.other-btn') && !last.classList.contains('no-chouai')) { last.classList.add('other-acq'); last.classList.remove('chouai-acq'); calcTotals(); }
+      } catch (e) { /* 印が付けられなくても、パーツは足されている(あとから「獲得」ボタンで付けられる) */ }
+    }
   }
   selectElem.value = '';
 }

@@ -617,3 +617,8 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
 
 /* 「寵」ボタンは出さない(寵の印は、使い道に名前を書くと自動で付く。コードは互換のために残す) */
 .chouai-btn { display: none !important; }
+
+/* 「シナリオ中に獲得したものとして追加」のスイッチ */
+.acq-toggle { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 8px; font-size: .78rem; color: #5fd0c0; border: 1px dashed #3e9d90; border-radius: 12px; cursor: pointer; user-select: none; }
+.acq-toggle.on { background: #1f8f80; color: #fff; border: 1px solid #5fd0c0; font-weight: bold; }
+.acq-toggle input { margin: 0; }
