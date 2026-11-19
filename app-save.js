@@ -624,7 +624,12 @@ function newBlankSheet() {
   if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
 }
 
+// 読み込み中は寵の印を自動で付けず、終わったら今ある行を「見た行」として覚える(失敗しても必ず元に戻す)
 function applyData(data) {
+  chouaiLoading = true;
+  try { return applyData_(data); } finally { try { chouaiSeedRows(); } catch (e) {} chouaiLoading = false; }
+}
+function applyData_(data) {
   // 以前の誤字「よぷんなめ」が入っていたら、「よぶんなめ」に直して読み込む
   try { const js = JSON.stringify(data); const fx = fixKnownTyposInString(js); if (fx !== js) data = JSON.parse(fx); } catch (e) {}
   // 以前の「サイケデリック」のキャラは、「サイケデリック(歪曲)」に読み替える(クラス名・スキルのクラス・スキル名)

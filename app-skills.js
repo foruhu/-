@@ -151,8 +151,18 @@ function chouaiNameHit(rawName, memos) {
   return cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
 }
 // force=true(ボタン)のときは、いま一致している行すべてに印を付ける。通常は前回との差分だけを反映する
+let chouaiLoading = false; // データの読み込み中は、印を自動では付けない(前の内容の使い道が残っていることがあるため)
+// いまある行の名前を「見た名前」として覚える(読み込み直後に呼ぶ。覚えた行は、新しい行とは扱わない)
+function chouaiSeedRows() {
+  try {
+    document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => { tr.dataset.chSeen = tr.querySelector('.skill-name-select')?.value || ''; });
+    document.querySelectorAll('#parts-container tr.part-row').forEach(tr => { tr.dataset.chSeen = tr.querySelector('.p-name')?.value || ''; });
+  } catch (e) {}
+}
+// force=true(ボタン)のときは、いま一致している行すべてに印を付ける。通常は、①使い道に新しく書かれた名前、
+// ②新しく追加した・名前を変えた行の名前が使い道にあるとき、に印を付ける(手で外した印は、勝手に付け直さない)
 function autoMarkChouaiFromUses(silent, force) {
-  if (chouaiSyncing) return 0;
+  if (chouaiSyncing || chouaiLoading) return 0;
   chouaiSyncing = true;
   try {
     const cur = chouaiMemoList();
@@ -160,10 +170,13 @@ function autoMarkChouaiFromUses(silent, force) {
     let added = 0, removed = 0;
     const apply = (tr, rawName) => {
       if (!tr || !tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return; // 基本パーツ・たからもの行は対象外
+      const name = rawName || '';
+      const fresh = tr.dataset.chSeen !== name; // 新しい行、または名前が変わった行
+      tr.dataset.chSeen = name;
       const now = chouaiNameHit(rawName, cur), before = chouaiNameHit(rawName, prev);
       const marked = tr.classList.contains('chouai-acq');
-      if (now && (force || !before) && !marked) { tr.classList.add('chouai-acq'); added++; }
-      else if (!now && before && marked) { tr.classList.remove('chouai-acq'); removed++; }
+      if (now && (force || fresh || !before) && !marked) { tr.classList.add('chouai-acq'); added++; }
+      else if (!now && before && marked && !fresh) { tr.classList.remove('chouai-acq'); removed++; }
     };
     document.querySelectorAll('#skill-tbody tr').forEach(tr => apply(tr, tr.querySelector('.skill-name-select')?.value));
     document.querySelectorAll('#parts-container tr.part-row').forEach(tr => apply(tr, tr.querySelector('.p-name')?.value));
@@ -183,6 +196,7 @@ function autoMarkChouaiFromUses(silent, force) {
 }
 
 function calcTotals() {
+  try { autoMarkChouaiFromUses(true); } catch (e) {} // 名前を選ぶ・変える・行を足すたびに、使い道と照らして寵の印を付ける
   try { updateBarSkills(); } catch (e) {}
   const getVal = id => parseInt(document.getElementById(id)?.value || document.getElementById(id)?.textContent, 10) || 0;
 
