@@ -19,8 +19,7 @@ function buildCcfoliaCommandLines(data) {
     const spec = `《T:${x.timing || ''}／C:${x.cost || ''}／R:${x.range || ''}》`;
     // 損傷しているパーツは、名前の前に ❌ を付ける（攻撃の 1na は先頭のまま）
     const mark = x.isBroken ? '❌' : '';
-    const ch = x.isChouai ? '(寵)' : ''; // 寵愛点で取ったものは、名前の後ろに(寵)を付ける
-    return `${prefix ? prefix + ' ' : ''}${mark}【${x.name}】${ch}\\n${spec}\\n${one(x.memo)}`;
+    return `${prefix ? prefix + ' ' : ''}${mark}【${x.name}】\\n${spec}\\n${one(x.memo)}`;
   };
   const attackPrefix = p => {
     const memo = one(p.memo);
