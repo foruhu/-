@@ -409,8 +409,8 @@ function saveData() {
   }
 
   // 新規保存が完了したら、自動保存の下書き枠は不要になるので片付ける
-  if (wasNew && sheets['autosave_draft']) {
-    delete sheets['autosave_draft'];
+  if (sheets['autosave_draft'] && (wasNew || !sheets['autosave_draft'].draftOf || sheets['autosave_draft'].draftOf === id)) {
+    delete sheets['autosave_draft']; // 保存したキャラの下書きは、もう要らない
   }
 
   if (!setSavedSheets(sheets)) return; // 失敗したときは、保存したと表示しない（isDirty も、画像も、そのまま）

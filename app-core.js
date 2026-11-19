@@ -183,12 +183,15 @@ function markDirty() {
 
 function setupDirtyTracking() {
   const ignoreIds = new Set(['save-slot', 'json-file-input', 'thumb-file-input', 'img-add-input', 'img-replace-input', 'backup-verify-input', 'backup-file-input', 'card-filter', 'card-sort']);
+  const ignoreBox = '#card-tools, #cp-modal, #ccf-modal, #char-switch-overlay, #help-overlay, #hokansho-overlay, .backup-box'; // 一覧の絞り込みや、読み込み・書き出しの画面の入力は、キャラの変更ではない
   document.addEventListener('input', (e) => {
     if (e.target && ignoreIds.has(e.target.id)) return;
+    if (e.target && e.target.closest && e.target.closest(ignoreBox)) return;
     isDirty = true;
   });
   document.addEventListener('change', (e) => {
     if (e.target && ignoreIds.has(e.target.id)) return;
+    if (e.target && e.target.closest && e.target.closest(ignoreBox)) return;
     isDirty = true;
     if (!e.target || !e.target.closest || !e.target.closest('#card-tools, #cp-modal, #ccf-modal')) recordEditForUndo();
   });
@@ -211,14 +214,21 @@ function updateAutosaveStatusText(text) {
 }
 
 // 自動保存はしない。未保存の変更があるあいだ、保存ボタンをチカチカ光らせて、押し忘れを防ぐ
-let savePendingShown = null;
+// (変更から30秒たつと光り始める。裏では、20秒ごとに下書きだけを控える=保険。保存済みのキャラは書き換えない)
+const SAVE_BLINK_DELAY_MS = 30000;
+let savePendingShown = null, dirtySince = 0, lastDraftAt = 0;
 function refreshSavePending() {
   try {
-    const on = !!isDirty && !document.body.classList.contains('view-locked');
-    if (on === savePendingShown) return;
-    savePendingShown = on;
-    document.querySelectorAll('.fixed-save, .action-btn.c-green').forEach(b => b.classList.toggle('save-pending', on));
-    updateAutosaveStatusText(on ? '⚠ 未保存' : '');
+    const dirty = !!isDirty && !document.body.classList.contains('view-locked');
+    const now = Date.now();
+    if (!dirty) { dirtySince = 0; } else if (!dirtySince) { dirtySince = now; lastDraftAt = now; } // 変更し始めてから20秒後に、最初の下書きを控える
+    if (dirty && now - lastDraftAt >= AUTOSAVE_INTERVAL_MS) { lastDraftAt = now; performAutosave(true); } // 下書きの控え(静かに)
+    const blink = dirty && now - dirtySince >= SAVE_BLINK_DELAY_MS;
+    const key = (dirty ? 'd' : '') + (blink ? 'b' : '');
+    if (key === savePendingShown) return;
+    savePendingShown = key;
+    document.querySelectorAll('.fixed-save, .action-btn.c-green').forEach(b => b.classList.toggle('save-pending', blink));
+    updateAutosaveStatusText(dirty ? '⚠ 未保存' : '');
   } catch (e) { /* 光らせられなくても、保存そのものは使える */ }
 }
 function startAutosaveTimer() {
@@ -231,7 +241,7 @@ function startAutosaveTimer() {
 // 下書きには元になったキャラの id と名前を残す（draftOf / draftOfName）。
 // 下書き保存だけでは「保存」したことにならないが、閉じる前の警告が毎回出て煩わしくならないよう、
 // 下書きへ保存できたら isDirty は false にする。その代わり、状態表示で「下書き」であることを明示する。
-function performAutosave() {
+function performAutosave(silent) {
   try {
     const data = getFullData();
     const select = document.getElementById('save-slot');
@@ -258,8 +268,7 @@ function performAutosave() {
       updateAutosaveStatusText('⚠ 自動保存できません（保存領域がいっぱいです）');
       return;
     }
-    isDirty = false;
-    updateAutosaveStatusText('自動保存（下書き） ' + formatTimeHM(new Date()));
+    if (!silent) { isDirty = false; updateAutosaveStatusText('自動保存（下書き） ' + formatTimeHM(new Date())); } // 静かな控えのときは、「未保存」のまま(保存ボタンを押すまで)
     renderSaveCards(select ? select.value : '');
   } catch (e) {
     // 自動保存の失敗はアラートを出さず静かに諦める（次のタイミングで再試行される）
@@ -709,6 +718,25 @@ function openImageActions(i) {
       writeImageList(cur);
     }
   });
+}
+
+// 「保存した状態に戻す」：いま編集している内容を捨てて、最後に「💾 保存」した内容に戻す(「↩️ 元に戻す」で、捨てる前に戻せる)
+function revertToSaved() {
+  try {
+    const sheets = getSavedSheets();
+    const entry = workingId ? sheets[workingId] : null;
+    if (!entry || !entry.data) return alert('このキャラクターは、まだ一度も保存していないので、戻す先がありません。');
+    if (!isDirty) return alert('変更はありません。最後に保存した状態のままです。');
+    if (!confirm(`「${entry.name || '(無名)'}」を、最後に保存した状態に戻します。\n今の未保存の変更は捨てられます(「↩️ 元に戻す」で取り消せます)。よろしいですか？`)) return;
+    pushUndoSnapshot();
+    applyData(entry.data);
+    isDirty = false;
+    adoptLoadedEntry(workingId, entry);
+    try { const sh = getSavedSheets(); if (sh['autosave_draft']) { delete sh['autosave_draft']; setSavedSheets(sh, true); renderSaveCards(workingId); } } catch (e) {}
+    alert('最後に保存した状態に戻しました');
+  } catch (e) {
+    alert('戻せませんでした。もう一度お試しください。');
+  }
 }
 
 // 「選択中のキャラ」を覚えておく対象か（下書きは対象外）
