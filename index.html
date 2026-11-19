@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=270">
+<link rel="stylesheet" href="style.css?v=271">
 </head>
 <body>
 
@@ -712,6 +712,7 @@
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
       <li>2026/11/19 セッション履歴(獲得寵愛)の「メモ（参加日など）」を、各行の2段目に移し、折りたためるようにしました(「▸メモ」を押すと開閉します。書いてある行は開き、空の行は閉じて始まります。閉じているときは、メモの先頭が薄く出ます)。保存・読み込み・書き出しの形は変わりません。</li>
       <li>2026/11/19 「寵」の印・表記は、「寵愛点の使い道」に名前が書いてあるときだけ付けるようにしました(書いてないものは付かず、書き換えると外れます。以前に保存した印も、使い道に書いてなければ読み込み時に外れます)。</li>
+      <li>2026/11/20 パーツ追加の「自由枠を追加」で足した行も、分類・Lv・タイミング・射程を「未選択」、コストを空にして始めるようにしました(以前は「武装・Lv1・アクション・コスト1・射程0」が入っていました)。分類とLvを選ぶまでは、取得数・上限の数には入りません。</li>
       <li>2026/11/20 効果が書かれていないパーツ(一覧にあるが、タイミング・コスト・射程が空のもの)は、足すと分類・Lv・タイミング・射程が「（未選択）」、コストが空になり、自分で選んだり書いたりできます(名前は変えられません)。分類とLvを選ぶまでは、取得数・上限の数には入りません。書いた内容は保存され、読み込んでも書いたままです。</li>
       <li>2026/11/20 「寵愛点の使い道」に名前を書いたパーツが、パーツの追加欄に出てこないことがあったのを直しました(そのレベルの枠がいっぱいだと、一覧から消えていました)。使い道に書いてあるものは、枠がいっぱいでも一覧に出ます(「(使い道に記載)」と付きます)。足すと、寵の印が付いて、上限が増えます。</li>
       <li>2026/11/20 「たからもの」のパーツには、レベルがないので、Lvの欄を「-」にして選べないようにしました(種別を「たからもの」に変えたときも同じです。古い保存データのたからものも、読み込むと「-」になります)。</li>
@@ -826,16 +827,16 @@
   </div>
 </div>
 
-<script src="data.js?v=270"></script>
-<script src="app-core.js?v=270"></script>
-<script src="app-parts.js?v=270"></script>
-<script src="app-skills.js?v=270"></script>
-<script src="app-save.js?v=270"></script>
-<script src="app-dict.js?v=270"></script>
-<script src="app-image.js?v=270"></script>
-<script src="app-look.js?v=270"></script>
-<script src="app-sheetprint.js?v=270"></script>
-<script src="app-share.js?v=270"></script>
-<script src="app-main.js?v=270"></script>
+<script src="data.js?v=271"></script>
+<script src="app-core.js?v=271"></script>
+<script src="app-parts.js?v=271"></script>
+<script src="app-skills.js?v=271"></script>
+<script src="app-save.js?v=271"></script>
+<script src="app-dict.js?v=271"></script>
+<script src="app-image.js?v=271"></script>
+<script src="app-look.js?v=271"></script>
+<script src="app-sheetprint.js?v=271"></script>
+<script src="app-share.js?v=271"></script>
+<script src="app-main.js?v=271"></script>
 </body>
 </html>

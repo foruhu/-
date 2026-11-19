@@ -427,7 +427,7 @@ function onExtraPartSelect(secId, selectElem, acquired) {
   let partData = null;
 
   if (val === 'custom') {
-    partData = { name: '新規パーツ', type: '武装', level: 1, timing: 'アクション', cost: '1', range: '0', memo: '', isEditable: true };
+    partData = { name: '新規パーツ', type: '', level: '', timing: '', cost: '', range: '', memo: '', isEditable: true }; // 自由枠は、分類・Lv・タイミング・コスト・射程を、最初は未選択にする
   } else if (val.startsWith('common_')) {
     const p = COMMON_EXTRA_PARTS[parseInt(val.split('_')[1], 10)];
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
@@ -558,6 +558,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   `;
   tbody.appendChild(tr);
   unlockEffectlessPart(tr, name, isEditable);
+  if (type === '') tr.querySelectorAll('.range-sel option[value=""]').forEach(o => { o.textContent = '（未選択）'; }); // 分類が未選択の行は、射程の空も「（未選択）」と表示する
   syncTreasureLevel(tr);
   syncChouaiEligibility(tr);
   updatePartUsedCheckboxVisibility(tr);
