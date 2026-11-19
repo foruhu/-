@@ -837,7 +837,7 @@ function syncTreasureLevel(tr) {
     const lv = tr.querySelector('.p-level');
     if (!lv) return;
     if (type === 'たからもの') {
-      lv.innerHTML = '<option value="">-</option>';
+      lv.innerHTML = '<option value="">未選択</option>';
       lv.value = '';
       lv.disabled = true;
       tr.classList.add('treasure-nolevel');
