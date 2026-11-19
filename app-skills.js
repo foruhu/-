@@ -131,11 +131,12 @@ function renderChouaiMarked() {
   if (!box) return;
   try {
     const memos = chouaiMemoList();
-    const sk = [], pt = [], unmarked = [];
+    const sk = [], pt = [], unmarked = [], oth = [];
     const eligible = tr => tr.querySelector('.chouai-btn') && !tr.classList.contains('no-chouai');
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('.skill-name-select')?.value; if (!v || !eligible(tr)) return;
       const cat = tr.querySelector('.skill-category')?.value || '';
+      if (tr.classList.contains('other-acq')) { oth.push(v + (cat ? `（${cat}）` : '')); return; } // 「他」の行は、寵ではないので別に出す
       const hit = chouaiNameHit(v, memos);
       if (tr.classList.contains('chouai-acq')) sk.push({ t: v + (cat ? `（${cat}）` : ''), hit });
       else if (hit) unmarked.push(v);
@@ -143,6 +144,7 @@ function renderChouaiMarked() {
     document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
       const v = tr.querySelector('.p-name')?.value; if (!v || !eligible(tr)) return;
       const loc = tr.querySelector('.p-location')?.value || '';
+      if (tr.classList.contains('other-acq')) { oth.push(v + (loc ? `（${loc}）` : '')); return; }
       const hit = chouaiNameHit(v, memos);
       if (tr.classList.contains('chouai-acq')) pt.push({ t: v + (loc ? `（${loc}）` : ''), hit });
       else if (hit) unmarked.push(v);
@@ -150,7 +152,8 @@ function renderChouaiMarked() {
     const li = a => a.map(o => `<span style="color:#ffd24a;font-weight:bold;">${escapeHtml(o.t)}</span>${o.hit ? '' : '<span style="color:#ff9f43;" title="使い道に、この名前が書かれていません">⚠未記入</span>'}`).join('・') || '<span style="color:#888;">なし</span>';
     let h = `<div><b style="color:#ffd24a;">寵が付いているもの</b></div><div>スキル：${li(sk)}</div><div>パーツ：${li(pt)}</div>`;
     if (sk.some(o => !o.hit) || pt.some(o => !o.hit)) h += '<div style="color:#ff9f43;font-size:.76rem;">⚠未記入：寵の印はありますが、上の「使い道・強化履歴」にその名前が書かれていません(書き忘れの確認用です。手で付けた印ならそのままで構いません)。</div>';
-    if (unmarked.length) h += `<div style="color:#ff9f43;">使い道に書いてあるのに印がないもの：${unmarked.map(escapeHtml).join('・')}<span style="font-size:.76rem;">(読み込み直すか、名前を書き直すと付きます)</span></div>`;
+    if (unmarked.length) h += `<div style="color:#ff9f43;">使い道に書いてあるのに印がないもの：${unmarked.map(escapeHtml).join('・')}<span style="font-size:.76rem;">(行を足す・名前を選び直すと付きます)</span></div>`;
+    if (oth.length) h += `<div><b style="color:#5fd0c0;">他(シナリオ中に獲得)</b>：${oth.map(escapeHtml).join('・')}</div>`;
     box.innerHTML = h;
   } catch (e) { box.innerHTML = '<span style="color:#888;">一覧を作れませんでした</span>'; }
 }
