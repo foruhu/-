@@ -100,7 +100,7 @@ function updateBarSkills() {
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     // 取得数が上限(寵愛で取った分を足したもの)を超えたときは、知らせる
     const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > cap[k]).map(([k, l]) => `${l}${got[k]}/${cap[k]}`);
-    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、使い道に名前を書くか、「寵」の印を付けると、上限に足されます)</span>` : '';
+    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、使い道に名前を書くと、上限に足されます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
     if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span></span>`).join(' | ');
@@ -121,7 +121,7 @@ function renderOverList(partItems) {
     const byLabel = {};
     items.forEach(it => { (byLabel[it.label] = byLabel[it.label] || []).push(it.name); });
     box.style.display = '';
-    box.innerHTML = `<b style="color:#ff6666;">⚠ 上限を超えているマニューバ(${items.length}件)</b><br>` + Object.keys(byLabel).map(l => `${escapeHtml(l)}：${byLabel[l].map(n => `【${escapeHtml(n)}】`).join('')}`).join('<br>') + `<br><span style="color:#aaa;font-size:.85em;">寵愛点で取ったものは使い道に名前を書くか「寵」、シナリオ中に獲得したものは「他」を押すと、上限に数えます。</span>`;
+    box.innerHTML = `<b style="color:#ff6666;">⚠ 上限を超えているマニューバ(${items.length}件)</b><br>` + Object.keys(byLabel).map(l => `${escapeHtml(l)}：${byLabel[l].map(n => `【${escapeHtml(n)}】`).join('')}`).join('<br>') + `<br><span style="color:#aaa;font-size:.85em;">寵愛点で取ったものは使い道に名前を書く、シナリオ中に獲得したものは「他」を押すと、上限に数えます。</span>`;
   } catch (e) { box.innerHTML = ''; }
 }
 
@@ -150,7 +150,7 @@ function renderChouaiMarked() {
     const li = a => a.map(o => `<span style="color:#ffd24a;font-weight:bold;">${escapeHtml(o.t)}</span>${o.hit ? '' : '<span style="color:#ff9f43;" title="使い道に、この名前が書かれていません">⚠未記入</span>'}`).join('・') || '<span style="color:#888;">なし</span>';
     let h = `<div><b style="color:#ffd24a;">寵が付いているもの</b></div><div>スキル：${li(sk)}</div><div>パーツ：${li(pt)}</div>`;
     if (sk.some(o => !o.hit) || pt.some(o => !o.hit)) h += '<div style="color:#ff9f43;font-size:.76rem;">⚠未記入：寵の印はありますが、上の「使い道・強化履歴」にその名前が書かれていません(書き忘れの確認用です。手で付けた印ならそのままで構いません)。</div>';
-    if (unmarked.length) h += `<div style="color:#ff9f43;">使い道に書いてあるのに印がないもの：${unmarked.map(escapeHtml).join('・')}<span style="font-size:.76rem;">(「使い道から寵の印を付ける」で付けられます)</span></div>`;
+    if (unmarked.length) h += `<div style="color:#ff9f43;">使い道に書いてあるのに印がないもの：${unmarked.map(escapeHtml).join('・')}<span style="font-size:.76rem;">(読み込み直すか、名前を書き直すと付きます)</span></div>`;
     box.innerHTML = h;
   } catch (e) { box.innerHTML = '<span style="color:#888;">一覧を作れませんでした</span>'; }
 }
@@ -189,7 +189,13 @@ function chouaiMemoList() {
 // 名前が、区切り(、・「」スペースなど)や「を習得」「取得」などで区切られた単語として書かれているときだけ一致(別の語の一部は対象外)
 function chouaiNameHit(rawName, memos) {
   const name = chouaiNorm(rawName);
-  if (name.length < 2 || !memos.length) return false;
+  if (!name || !memos.length) return false;
+  if (name.length < 2) { // 1文字の名前(「斧」など)は、区切りで囲まれているときだけ一致(別の語の一部にならないように、前の側は助詞を区切りに数えない)
+    const e1 = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re1 = new RegExp('(?:^|[\\s、,，・「『（(\\[【/／:：+＋])' + e1 + '(?:$|[\\s、,，・」』）)\\]】/／:：+＋]|を|に|で|は|が|と|取得|習得|獲得|購入|追加)');
+    try { if (DEFAULT_PARTS && Object.values(DEFAULT_PARTS).some(a => a.some(p => chouaiNorm(p.name) === name))) return false; } catch (e) {}
+    return memos.some(m => re1.test(m));
+  }
   const basic = new Set();
   try { Object.values(DEFAULT_PARTS).forEach(a => a.forEach(p => basic.add(chouaiNorm(p.name)))); } catch (e) {}
   if (basic.has(name)) return false;
@@ -203,8 +209,7 @@ function chouaiNameHit(rawName, memos) {
 // 寵愛で取ったものとして数えるか：寵の印が付いている、または使い道に名前が書いてある(基本パーツ・たからものは対象外)
 function chouaiCounts_(tr, memos) {
   try {
-    if (tr.classList.contains('chouai-acq')) return true;
-    if (tr.classList.contains('other-acq')) return false;
+    if (tr.classList.contains('other-acq')) return false; // 寵は、使い道に名前が書いてあるものだけ
     if (!tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return false;
     const name = tr.querySelector('.skill-name-select')?.value || tr.querySelector('.p-name')?.value || '';
     return !!name && chouaiNameHit(name, memos);
@@ -229,14 +234,12 @@ function autoMarkChouaiFromUses(silent, force) {
     let added = 0, removed = 0;
     const apply = (tr, rawName) => {
       if (!tr || !tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return; // 基本パーツ・たからもの行は対象外
-      if (tr.classList.contains('other-acq')) return; // 「他」の行は、使い道から寵を付けない
-      const name = rawName || '';
-      const fresh = tr.dataset.chSeen !== name; // 新しい行、または名前が変わった行
-      tr.dataset.chSeen = name;
-      const now = chouaiNameHit(rawName, cur), before = chouaiNameHit(rawName, prev);
+      tr.dataset.chSeen = rawName || '';
+      // 「寵」は、使い道に名前が書いてあるときだけ付ける(書いてなければ付けない・書き換えたら外す)。「他」の行には付けない
+      const want = !tr.classList.contains('other-acq') && chouaiNameHit(rawName, cur);
       const marked = tr.classList.contains('chouai-acq');
-      if (now && (force || fresh || !before) && !marked) { tr.classList.add('chouai-acq'); added++; }
-      else if (!now && before && marked && !fresh) { tr.classList.remove('chouai-acq'); removed++; }
+      if (want && !marked) { tr.classList.add('chouai-acq'); added++; }
+      else if (!want && marked) { tr.classList.remove('chouai-acq'); removed++; }
     };
     document.querySelectorAll('#skill-tbody tr').forEach(tr => apply(tr, tr.querySelector('.skill-name-select')?.value));
     document.querySelectorAll('#parts-container tr.part-row').forEach(tr => apply(tr, tr.querySelector('.p-name')?.value));

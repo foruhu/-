@@ -614,3 +614,6 @@ tr.no-chouai .other-btn { display: none !important; }
 /* 上限を超えているマニューバ(パーツ・スキル)の行 */
 tr.over-row > td:first-child { box-shadow: inset 4px 0 0 #ff5555; }
 tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
+
+/* 「寵」ボタンは出さない(寵の印は、使い道に名前を書くと自動で付く。コードは互換のために残す) */
+.chouai-btn { display: none !important; }
