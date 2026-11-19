@@ -594,7 +594,7 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
     <td><select class="skill-timing" onchange="updateSkillUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" class="skill-cost" value="${escapeHtml(cost)}"></td>
     <td>${buildRangeCellHtml('skill-range', range)}</td>
-    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></span></td>
+    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="del" onclick="removeRowWithUndo(this, () => { calcTotals(); updateSkillOptions(); })">X</button></span></td>
   `;
   if (isChouai) tr.classList.add('chouai-acq');
   tbody.appendChild(tr);

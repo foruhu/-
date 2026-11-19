@@ -53,8 +53,7 @@ function getFullData() {
       memo: memo,
       tag: tr.querySelector('.skill-tag')?.value || '',
       isUsed: tr.querySelector('.skill-used')?.checked || false,
-      isChouai: tr.classList.contains('chouai-acq'),
-      isOther: tr.classList.contains('other-acq')
+      isChouai: tr.classList.contains('chouai-acq')
     });
   });
 
@@ -716,7 +715,7 @@ function applyData_(data) {
         }
 
         addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed, !!s.isChouai);
-        { const rr = document.querySelectorAll('#skill-tbody tr.skill-row'); const lr = rr[rr.length - 1]; if (lr) { if (s.slot) lr.dataset.slot = s.slot; if (s.isOther && !s.isChouai) lr.classList.add('other-acq'); } }
+        { const rr = document.querySelectorAll('#skill-tbody tr.skill-row'); const lr = rr[rr.length - 1]; if (lr) { if (s.slot) lr.dataset.slot = s.slot; } }
       });
     }
   }
