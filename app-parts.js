@@ -526,7 +526,7 @@ function unlockEffectlessPart(tr, name, isEditable) {
     ['.p-type', '.p-level', '.p-timing'].forEach(s => { const e = tr.querySelector(s); if (e) e.disabled = false; });
     ['.p-cost', '.p-range'].forEach(s => { const e = tr.querySelector(s); if (e) { e.readOnly = false; e.disabled = false; } });
     tr.querySelectorAll('.range-sel').forEach(e => { e.disabled = false; });
-    tr.querySelectorAll('.p-timing option[value=""], .range-sel option[value=""]').forEach(o => { o.textContent = ''; }); // 空の選択肢は、「（未選択）」「－」ではなく、本当に空の表示にする
+    tr.querySelectorAll('.p-timing option[value=""], .range-sel option[value=""]').forEach(o => { o.textContent = '（未選択）'; }); // 空の選択肢は、「－」ではなく「（未選択）」と表示する
     tr.classList.add('effectless-part');
   } catch (e) { /* 書けるようにできなくても、パーツは足される */ }
 }
@@ -547,10 +547,10 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="text" value="${escapeHtml(name)}" class="p-name" ${readOnlyAttr}></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
-        ${type === '' ? '<option value="" selected></option>' : ''}${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
+        ${type === '' ? '<option value="" selected>（未選択）</option>' : ''}${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
       </select>
     </td>
-    <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${type === '' ? '<option value="" selected></option>' + ['1','2','3'].map(v => `<option value="${v}">${v}</option>`).join('') : buildLevelOptionsHtml(level)}</select></td>
+    <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${type === '' ? '<option value="" selected>未選択</option>' + ['1','2','3'].map(v => `<option value="${v}">${v}</option>`).join('') : buildLevelOptionsHtml(level)}</select></td>
     <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
     <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>
