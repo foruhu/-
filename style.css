@@ -610,3 +610,7 @@ tr.other-acq .other-btn { background: #1f8f80; color: #fff; border: 1px solid #5
 tr.other-acq > td:first-child { box-shadow: inset 4px 0 0 #5fd0c0; }
 html.theme-light tr.other-acq > td:first-child { box-shadow: inset 4px 0 0 #0f7a6c; }
 tr.no-chouai .other-btn { display: none !important; }
+
+/* 上限を超えているマニューバ(パーツ・スキル)の行 */
+tr.over-row > td:first-child { box-shadow: inset 4px 0 0 #ff5555; }
+tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }

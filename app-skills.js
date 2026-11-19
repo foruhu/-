@@ -70,6 +70,26 @@ function updateBarSkills() {
     const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos + oc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc + oc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc + oc.sc };
     // メインクラスとサブクラスが同じクラスのときは、先にメインの枠、残りをサブとして数える
     if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, cap.mc); got.sc = Math.max(0, n - cap.mc); }
+    // 超過しているスキル：区分ごとの上限(同じ区分を重ねたときは合計)を超えた数だけ、印のない行の後ろから出す
+    const overSkillItems = [];
+    try {
+      document.querySelectorAll('#skill-tbody tr.skill-row.over-row').forEach(tr => tr.classList.remove('over-row'));
+      const catOf = { pos, mc, sc }, capByCat = {};
+      ['pos', 'mc', 'sc'].forEach(k => { if (catOf[k]) capByCat[catOf[k]] = (capByCat[catOf[k]] || 0) + cap[k]; });
+      const plain = {};
+      document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+        const v = tr.querySelector('select.skill-name-select')?.value; if (!v) return;
+        const c = tr.querySelector('.skill-category')?.value || '';
+        if (tr.classList.contains('other-acq') || chouaiCounts_(tr, memosNow)) return;
+        (plain[c] = plain[c] || []).push({ tr, v });
+      });
+      Object.keys(capByCat).forEach(c => {
+        const over = (catCount[c] || 0) - capByCat[c];
+        const rows = plain[c] || [];
+        if (over > 0) rows.slice(Math.max(0, rows.length - over)).forEach(o => { o.tr.classList.add('over-row'); overSkillItems.push({ label: `スキル(${c})`, name: o.v }); });
+      });
+    } catch (e) {}
+    window.__overSkillItems = overSkillItems;
     const skillRow = (label, key) => {
       const lim = cap[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
@@ -86,9 +106,23 @@ function updateBarSkills() {
     if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span></span>`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
-    if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
+    if (cnt) cnt.innerHTML = extra.replace(/^<br>/, ''); // 超過の知らせは、下の「上限を超えているマニューバ」の枠で出す
   } catch (e) { if (cnt) cnt.textContent = ''; }
   try { fitBarRows(); } catch (e) {}
+}
+
+// 上限を超えているマニューバ(パーツ・スキル)の一覧を、レベル取得制限チェッカーに出す
+function renderOverList(partItems) {
+  const box = document.getElementById('over-list');
+  if (!box) return;
+  try {
+    const items = (window.__overSkillItems || []).concat(partItems || []);
+    if (!items.length) { box.innerHTML = ''; box.style.display = 'none'; return; }
+    const byLabel = {};
+    items.forEach(it => { (byLabel[it.label] = byLabel[it.label] || []).push(it.name); });
+    box.style.display = '';
+    box.innerHTML = `<b style="color:#ff6666;">⚠ 上限を超えているマニューバ(${items.length}件)</b><br>` + Object.keys(byLabel).map(l => `${escapeHtml(l)}：${byLabel[l].map(n => `【${escapeHtml(n)}】`).join('')}`).join('<br>') + `<br><span style="color:#aaa;font-size:.85em;">寵愛点で取ったものは使い道に名前を書くか「寵」、シナリオ中に獲得したものは「他」を押すと、上限に数えます。</span>`;
+  } catch (e) { box.innerHTML = ''; }
 }
 
 // 「寵愛点の使い道」の下に、いま寵の印が付いているものを一覧する(使い道に書いていないもの・書いてあるのに印がないものは注意を付ける)
@@ -244,6 +278,9 @@ function calcTotals() {
   const otherCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // シナリオ中に獲得(その他)のパーツの数
   const chouaiCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // 寵愛で取ったパーツの数(取得数に含まれる)
 
+  const plainRows = { '武装': {}, '変異': {}, '改造': {} };
+  const overPartItems = [];
+  document.querySelectorAll('#parts-container tr.over-row').forEach(tr => tr.classList.remove('over-row')); // 超過の印は、毎回つけ直す
   document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
     const type = tr.querySelector('.p-type')?.value;
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
@@ -251,6 +288,7 @@ function calcTotals() {
       currentCounts[type][lv]++;
       if (tr.classList.contains('other-acq')) otherCounts[type][lv]++;
       if (chouaiCounts_(tr, memosNow2)) { chouaiCounts[type][lv]++; chouaiPts[type][lv] += chouaiPtMap.get(tr) || 0; }
+      else if (!tr.classList.contains('other-acq')) { (plainRows[type][lv] = plainRows[type][lv] || []).push(tr); } // 寵・他の印がなく、使い道にも名前がない行(超過になるとき、この中から後ろの行が超過)
     }
   });
 
@@ -285,6 +323,10 @@ function calcTotals() {
       const otMarks = (otherCounts[cat.name] && otherCounts[cat.name][lv]) || 0;
       const baseMax = baseLimit + autoBonus + chMarks + otMarks;
       const maxAllowed = baseMax; // 上限＝規定の上限＋寵愛で取ったもの(寵の印が付いている、または使い道に名前が書いてあるもの)。それ以上は超過
+      if (current > maxAllowed) { // 超過：印のない行のうち、後ろに入れたものから、超えた数だけを超過として出す
+        const rows = (plainRows[cat.name] && plainRows[cat.name][lv]) || [];
+        rows.slice(Math.max(0, rows.length - (current - maxAllowed))).forEach(tr => { tr.classList.add('over-row'); overPartItems.push({ label: `${cat.name} Lv${lv}`, name: (tr.querySelector('.p-name')?.value || '').trim() || '(名前なし)' }); });
+      }
       // 上限(maxAllowed)のうち、「寵愛による修正」の欄で増えた(減った)分
       const chInput = getVal('chouai-' + cat.key);
       const noCh = chInput ? ((typeof getLimitByVal === 'function') ? getLimitByVal(cat.total - chInput) : { lv1:0, lv2:0, lv3:0 })[`lv${lv}`] || 0 : baseLimit;
@@ -329,6 +371,7 @@ function calcTotals() {
     });
   });
 
+  try { renderOverList(overPartItems); } catch (e) {}
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
   if (typeof calcActionValue === 'function') calcActionValue();
   try { fitBarRows(); } catch (e) {} // 固定バーの行を1行に収める
