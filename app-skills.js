@@ -66,10 +66,13 @@ function updateBarSkills() {
     const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc };
     // メインクラスとサブクラスが同じクラスのときは、先にメインの枠、残りをサブとして数える
     if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, cap.mc); got.sc = Math.max(0, n - cap.mc); }
+    // 寵のボタンを押していなくても、スキルとして入れてあるものは上限に数える(上限より多く入れた分は、寵愛で取ったものとして上限を広げる)
+    const ccShow = { pos: cc.pos, mc: cc.mc, sc: cc.sc };
+    ['pos', 'mc', 'sc'].forEach(k => { const ex = Math.max(0, got[k] - cap[k]); if (ex) { cap[k] += ex; ccShow[k] += ex; } });
     const skillRow = (label, key) => {
       const lim = cap[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
-      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${ccShow[key] ? `<span style="color:#ffd24a;">(寵${ccShow[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
     };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
@@ -252,16 +255,17 @@ function calcTotals() {
       }
 
       const chMarks = (chouaiCounts[cat.name] && chouaiCounts[cat.name][lv]) || 0; // 寵愛点で取ったパーツは、上限の枠に足す
-      const maxAllowed = baseLimit + autoBonus + chMarks;
+      const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
+      const baseMax = baseLimit + autoBonus + chMarks;
+      const maxAllowed = Math.max(baseMax, current); // 寵のボタンを押していなくても、マニューバとして入れてあるものは、上限に数える(上限より多く入れた分は、寵愛で取ったものとして上限を広げる)
       // 上限(maxAllowed)のうち、「寵愛による修正」の欄で増えた(減った)分
       const chInput = getVal('chouai-' + cat.key);
       const noCh = chInput ? ((typeof getLimitByVal === 'function') ? getLimitByVal(cat.total - chInput) : { lv1:0, lv2:0, lv3:0 })[`lv${lv}`] || 0 : baseLimit;
-      const chBonus = baseLimit - noCh + chMarks; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
+      const chBonus = baseLimit - noCh + chMarks + (maxAllowed - baseMax); // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
       const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
       const chPt = (chouaiPts[cat.name] && chouaiPts[cat.name][lv]) || 0; // 寵のパーツに使った点数(使い道の記録から)
       if (chBar) chBar.textContent = ''; // 固定バーには寵の表示を出さない(上限の数字にだけ反映する)
-      const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
 
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
       const maxSpan = document.getElementById(`max-${cat.key}-lv${lv}`);
