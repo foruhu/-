@@ -531,6 +531,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
   tbody.appendChild(tr);
+  syncTreasureLevel(tr);
   syncChouaiEligibility(tr);
   updatePartUsedCheckboxVisibility(tr);
 
@@ -802,6 +803,24 @@ document.addEventListener('change', e => {
   } catch (err) {}
 });
 
+// 「たからもの」にはレベルが無いので、Lvの欄は「-」にして触れなくする(種別を変えたら、Lvの選択肢を元に戻す)
+function syncTreasureLevel(tr) {
+  try {
+    const type = tr.querySelector('.p-type')?.value || '';
+    const lv = tr.querySelector('.p-level');
+    if (!lv) return;
+    if (type === 'たからもの') {
+      lv.innerHTML = '<option value="">-</option>';
+      lv.value = '';
+      lv.disabled = true;
+      tr.classList.add('treasure-nolevel');
+    } else if (tr.classList.contains('treasure-nolevel')) {
+      lv.innerHTML = buildLevelOptionsHtml('1');
+      lv.disabled = tr.querySelector('.p-type')?.disabled ? true : false;
+      tr.classList.remove('treasure-nolevel');
+    }
+  } catch (e) { /* Lvの表示を直せなくても、ほかの動きには影響しない */ }
+}
 // 「基本」「たからもの」のパーツは、寵愛点では取らないので、「寵」ボタンと印の対象外にする(種別を変えたときも追従する)
 function syncChouaiEligibility(tr) {
   if (!tr) return;
@@ -812,5 +831,5 @@ function syncChouaiEligibility(tr) {
 }
 document.addEventListener('change', e => {
   const sel = e.target;
-  if (sel && sel.matches && sel.matches('.p-type')) syncChouaiEligibility(sel.closest('tr'));
+  if (sel && sel.matches && sel.matches('.p-type')) { syncTreasureLevel(sel.closest('tr')); syncChouaiEligibility(sel.closest('tr')); }
 });
