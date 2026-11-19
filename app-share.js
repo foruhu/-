@@ -1034,7 +1034,7 @@ function applyHokanshoParsed(p) {
     const known = typeof SKILL_DATABASE !== 'undefined' && SKILL_DATABASE[category] && SKILL_DATABASE[category].some(x => x.name === s.name);
     if (!known) rep.customSkills.push(`${HK_SLOT_LABEL[s.slot]}「${s.name}」`);
     rep.skills++;
-    return { category: category, name: s.name, timing: s.timing, cost: s.cost, range: s.range, memo: s.memo, tag: detectCategoryFromMemo(s.memo), isUsed: false, isChouai: oldChouaiSkills.has(category + '|' + s.name), isOther: oldOtherSkills.has(category + '|' + s.name) };
+    return { category: category, slot: s.slot, name: s.name, timing: s.timing, cost: s.cost, range: s.range, memo: s.memo, tag: detectCategoryFromMemo(s.memo), isUsed: false, isChouai: oldChouaiSkills.has(category + '|' + s.name), isOther: oldOtherSkills.has(category + '|' + s.name) };
   });
 
   // パーツ：基本パーツは常に自動配置されるので数えるだけ。それ以外はdata.jsと名前で照合して種別・Lvを補う

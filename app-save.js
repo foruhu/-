@@ -45,6 +45,7 @@ function getFullData() {
     const memo = (memoTr && memoTr.classList.contains('skill-memo-row')) ? (memoTr.querySelector('.skill-memo')?.value || '') : '';
     data.skills.push({
       category: tr.querySelector('.skill-category')?.value || '',
+      slot: tr.dataset.slot || '',
       name: tr.querySelector('.skill-name-select')?.value || '',
       timing: tr.querySelector('.skill-timing')?.value || '',
       cost: tr.querySelector('.skill-cost')?.value || '',
@@ -715,7 +716,7 @@ function applyData_(data) {
         }
 
         addSkillRow(s.category, s.name, timing || '', cost || '', range || '', memo || '', s.tag || '', !!s.isUsed, !!s.isChouai);
-        if (s.isOther) { const rr = document.querySelectorAll('#skill-tbody tr.skill-row'); const lr = rr[rr.length - 1]; if (lr && !s.isChouai) lr.classList.add('other-acq'); }
+        { const rr = document.querySelectorAll('#skill-tbody tr.skill-row'); const lr = rr[rr.length - 1]; if (lr) { if (s.slot) lr.dataset.slot = s.slot; if (s.isOther && !s.isChouai) lr.classList.add('other-acq'); } }
       });
     }
   }

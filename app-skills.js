@@ -1,19 +1,36 @@
 // ポジション・メインクラス・サブクラスを変えたとき、その枠のスキル行の「区分」を新しい名前に付け替える(付け替えないと、行の選択肢が前のポジション・クラスのスキルのままになる)
 function syncSkillCategoriesOnChange(el) {
-  const prev = el.dataset.prev || '', next = el.value || '';
-  if (!prev || prev === next) return;
-  // ほかの枠が同じ名前を使っているときは、どの行がどの枠のものか分からないので、付け替えない
-  const others = ['pos', 'mc', 'sc'].filter(k => k !== el.id).map(k => document.getElementById(k)?.value || '');
-  if (others.includes(prev)) return;
+  const slot = el.id, prev = el.dataset.prev || '', next = el.value || '';
+  if (prev === next) return;
+  const val = k => document.getElementById(k)?.value || '';
+  const rows = Array.from(document.querySelectorAll('#skill-tbody tr.skill-row'));
+  // 枠を覚えていない行(読み込んだ行など)は、区分の名前から、どの枠か推し量る(メインとサブが同じクラスのときは、前の2行をメイン、残りをサブとみなす)
+  let mcSeen = 0;
+  rows.forEach(tr => {
+    if (tr.dataset.slot) return;
+    const c = tr.querySelector('.skill-category')?.value || '';
+    if (!c) return;
+    const cur = { pos: prev && slot === 'pos' ? prev : val('pos'), mc: prev && slot === 'mc' ? prev : val('mc'), sc: prev && slot === 'sc' ? prev : val('sc') }; // 変える前の値で判定する
+    if (c === cur.pos) tr.dataset.slot = 'pos';
+    else if (c === cur.mc && c === cur.sc) tr.dataset.slot = (mcSeen++ < 2) ? 'mc' : 'sc';
+    else if (c === cur.mc) tr.dataset.slot = 'mc';
+    else if (c === cur.sc) tr.dataset.slot = 'sc';
+  });
+  // 区分が空のまま、枠も分からない行は、ほかの2つの枠が決まっていて、この枠だけが空だった(変える前)ときだけ、この枠のものとみなす
+  if (!prev && ['pos', 'mc', 'sc'].filter(k => k !== slot).every(k => val(k))) {
+    rows.forEach(tr => { if (!tr.dataset.slot && !(tr.querySelector('.skill-category')?.value)) tr.dataset.slot = slot; });
+  }
   const db = (typeof SKILL_DATABASE !== 'undefined') ? SKILL_DATABASE : {};
-  document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+  rows.forEach(tr => {
+    if (tr.dataset.slot !== slot) return;
     const cat = tr.querySelector('.skill-category');
-    if (!cat || cat.value !== prev) return;
+    if (!cat) return;
+    const old = cat.value;
     cat.value = next;
     const sel = tr.querySelector('.skill-name-select');
     const cur = sel ? sel.value : '';
     // 前の区分のスキルで、新しい区分に無いものは、選び直してもらうために空に戻す(自分で書いた名前は、そのまま残す)
-    if (sel && cur && (db[prev] || []).some(x => x.name === cur) && !(db[next] || []).some(x => x.name === cur)) {
+    if (sel && cur && (db[old] || []).some(x => x.name === cur) && !(db[next] || []).some(x => x.name === cur)) {
       sel.value = '';
       try { onSkillSelect(sel); } catch (e) {}
     }
@@ -613,9 +630,14 @@ function addSkillRow(category, skillName = '', timing = '', cost = '', range = '
   calcTotals();
 }
 
-function addPosSkillRow() { addSkillRow(document.getElementById('pos').value); }
-function addMcSkillRow() { addSkillRow(document.getElementById('mc').value); }
-function addScSkillRow() { addSkillRow(document.getElementById('sc').value); }
+// 足した行は、どの枠(ポジション・メインクラス・サブクラス)のものか覚えておく(枠を変えたとき、区分を付け替えるため)
+function addSlotSkillRow(slot) {
+  addSkillRow(document.getElementById(slot)?.value || '');
+  try { const rows = document.querySelectorAll('#skill-tbody tr.skill-row'); const last = rows[rows.length - 1]; if (last) last.dataset.slot = slot; } catch (e) {}
+}
+function addPosSkillRow() { addSlotSkillRow('pos'); }
+function addMcSkillRow() { addSlotSkillRow('mc'); }
+function addScSkillRow() { addSlotSkillRow('sc'); }
 
 function onSkillSelect(selectElem) {
   const skillName = selectElem.value;
