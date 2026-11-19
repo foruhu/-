@@ -45,10 +45,11 @@ function updateBarSkills() {
     const chouaiCat = {}, chouaiCatPt = {};
     const skillPt = { pos: 0, mc: 0, sc: 0 };
     const pmap = chouaiPointMap();
+    const memosNow = chouaiMemoList();
     document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
       const v = tr.querySelector('select.skill-name-select')?.value;
       if (!v) return; // スキルを選んでいない行は数えない
-      if (tr.classList.contains('chouai-acq')) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); } // 寵愛で取ったスキルも、取得数に数える(上限の枠にも足す)
+      if (chouaiCounts_(tr, memosNow)) { const c0 = tr.querySelector('.skill-category')?.value || ''; chouaiCat[c0] = (chouaiCat[c0] || 0) + 1; chouaiCatPt[c0] = (chouaiCatPt[c0] || 0) + (pmap.get(tr) || 0); } // 寵愛で取ったスキルも、取得数に数える(上限の枠にも足す)
       const cat = tr.querySelector('.skill-category')?.value || '';
       catCount[cat] = (catCount[cat] || 0) + 1;
     });
@@ -66,20 +67,17 @@ function updateBarSkills() {
     const cap = { pos: SKILL_INITIAL_LIMITS.pos + cc.pos, mc: SKILL_INITIAL_LIMITS.mc + cc.mc, sc: SKILL_INITIAL_LIMITS.sc + cc.sc };
     // メインクラスとサブクラスが同じクラスのときは、先にメインの枠、残りをサブとして数える
     if (mc && mc === sc) { const n = catCount[mc] || 0; got.mc = Math.min(n, cap.mc); got.sc = Math.max(0, n - cap.mc); }
-    // 寵のボタンを押していなくても、スキルとして入れてあるものは上限に数える(上限より多く入れた分は、寵愛で取ったものとして上限を広げる)
-    const ccShow = { pos: cc.pos, mc: cc.mc, sc: cc.sc };
-    ['pos', 'mc', 'sc'].forEach(k => { const ex = Math.max(0, got[k] - cap[k]); if (ex) { cap[k] += ex; ccShow[k] += ex; } });
     const skillRow = (label, key) => {
       const lim = cap[key], n = got[key];
       const st = n > lim ? `<span class="limit-ng" style="color:#ff6666; font-weight:bold;">超過 (${n}/${lim})</span>` : (n > 0 ? `<span class="limit-selected" style="color:#88ff88;">OK (${n}/${lim})</span>` : `<span style="color:#f0c060; font-weight:bold;">未取得 (0/${lim})</span>`);
-      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${ccShow[key] ? `<span style="color:#ffd24a;">(寵${ccShow[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
+      return `<tr><td><b>${label}</b></td><td>スキル</td><td>${lim} 個${cc[key] ? `<span style="color:#ffd24a;">(寵${cc[key]})</span>` : ''}</td><td><b>${n}</b> 個</td><td>${st}</td></tr>`;
     };
     const chouaiParts = document.querySelectorAll('#parts-container tr.part-row.chouai-acq').length;
     const cParts = [chouaiOther ? `その他スキル<b>${chouaiOther}</b>` : '', chouaiParts ? `パーツ<b>${chouaiParts}</b>` : ''].filter(Boolean); // 印の付いたものだけ出す
     const extra = cParts.length ? `<br><span style="color:#ffd24a;white-space:nowrap;">寵愛で取得：${cParts.join('・')}</span>` : '';
     // 取得数が上限(寵愛で取った分を足したもの)を超えたときは、知らせる
     const warns = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].filter(([k]) => got[k] > cap[k]).map(([k, l]) => `${l}${got[k]}/${cap[k]}`);
-    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印を付けると上限に足されます)</span>` : '';
+    const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、使い道に名前を書くか、「寵」の印を付けると、上限に足されます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
     if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span></span>`).join(' | ');
@@ -154,6 +152,15 @@ function chouaiNameHit(rawName, memos) {
   return cands.some(w => { const re = new RegExp('(?:^|' + B + ')' + esc(w) + A); return memos.some(m => re.test(m)); });
 }
 // force=true(ボタン)のときは、いま一致している行すべてに印を付ける。通常は前回との差分だけを反映する
+// 寵愛で取ったものとして数えるか：寵の印が付いている、または使い道に名前が書いてある(基本パーツ・たからものは対象外)
+function chouaiCounts_(tr, memos) {
+  try {
+    if (tr.classList.contains('chouai-acq')) return true;
+    if (!tr.querySelector('.chouai-btn') || tr.classList.contains('no-chouai')) return false;
+    const name = tr.querySelector('.skill-name-select')?.value || tr.querySelector('.p-name')?.value || '';
+    return !!name && chouaiNameHit(name, memos);
+  } catch (e) { return tr.classList.contains('chouai-acq'); }
+}
 let chouaiLoading = false; // データの読み込み中は、印を自動では付けない(前の内容の使い道が残っていることがあるため)
 // いまある行の名前を「見た名前」として覚える(読み込み直後に呼ぶ。覚えた行は、新しい行とは扱わない)
 function chouaiSeedRows() {
@@ -217,6 +224,7 @@ function calcTotals() {
   const currentCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
   const chouaiPts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} };
   const chouaiPtMap = chouaiPointMap();
+  const memosNow2 = chouaiMemoList();
   const chouaiCounts = { '武装': {1:0, 2:0, 3:0}, '変異': {1:0, 2:0, 3:0}, '改造': {1:0, 2:0, 3:0} }; // 寵愛で取ったパーツの数(取得数に含まれる)
 
   document.querySelectorAll('#parts-container tr.part-row').forEach(tr => {
@@ -224,7 +232,7 @@ function calcTotals() {
     const lv = parseInt(tr.querySelector('.p-level')?.value, 10);
     if (currentCounts[type] && currentCounts[type][lv] !== undefined) {
       currentCounts[type][lv]++;
-      if (tr.classList.contains('chouai-acq')) { chouaiCounts[type][lv]++; chouaiPts[type][lv] += chouaiPtMap.get(tr) || 0; }
+      if (chouaiCounts_(tr, memosNow2)) { chouaiCounts[type][lv]++; chouaiPts[type][lv] += chouaiPtMap.get(tr) || 0; }
     }
   });
 
@@ -257,11 +265,11 @@ function calcTotals() {
       const chMarks = (chouaiCounts[cat.name] && chouaiCounts[cat.name][lv]) || 0; // 寵愛点で取ったパーツは、上限の枠に足す
       const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
       const baseMax = baseLimit + autoBonus + chMarks;
-      const maxAllowed = Math.max(baseMax, current); // 寵のボタンを押していなくても、マニューバとして入れてあるものは、上限に数える(上限より多く入れた分は、寵愛で取ったものとして上限を広げる)
+      const maxAllowed = baseMax; // 上限＝規定の上限＋寵愛で取ったもの(寵の印が付いている、または使い道に名前が書いてあるもの)。それ以上は超過
       // 上限(maxAllowed)のうち、「寵愛による修正」の欄で増えた(減った)分
       const chInput = getVal('chouai-' + cat.key);
       const noCh = chInput ? ((typeof getLimitByVal === 'function') ? getLimitByVal(cat.total - chInput) : { lv1:0, lv2:0, lv3:0 })[`lv${lv}`] || 0 : baseLimit;
-      const chBonus = baseLimit - noCh + chMarks + (maxAllowed - baseMax); // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
+      const chBonus = baseLimit - noCh + chMarks; // 上限のうち、寵愛で増えた分(寵愛による修正の欄＋寵愛で取ったパーツ)
       const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
       const chPt = (chouaiPts[cat.name] && chouaiPts[cat.name][lv]) || 0; // 寵のパーツに使った点数(使い道の記録から)
