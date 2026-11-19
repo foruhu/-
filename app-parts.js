@@ -509,6 +509,23 @@ function buildLevelOptionsHtml(selected) {
   return list.map(v => `<option value="${escapeHtml(v)}" ${v === cur ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
 }
 
+// 一覧にあるが、効果が書かれていないパーツ(タイミング・コスト・射程が空のもの)は、分類・Lv・タイミング・コスト・射程を自分で書けるようにする(名前は変えられない)
+function isEffectlessListedPart(name) {
+  try {
+    const all = [].concat(...Object.values(typeof EXTRA_PARTS_DB !== 'undefined' ? EXTRA_PARTS_DB : {}), typeof COMMON_EXTRA_PARTS !== 'undefined' ? COMMON_EXTRA_PARTS : []);
+    const p = all.find(x => x && x.name === name);
+    return !!(p && !p.memo && !p.timing && !p.cost && !p.range);
+  } catch (e) { return false; }
+}
+function unlockEffectlessPart(tr, name, isEditable) {
+  try {
+    if (isEditable || !isEffectlessListedPart(name)) return;
+    ['.p-type', '.p-level', '.p-timing'].forEach(s => { const e = tr.querySelector(s); if (e) e.disabled = false; });
+    ['.p-cost', '.p-range'].forEach(s => { const e = tr.querySelector(s); if (e) { e.readOnly = false; e.disabled = false; } });
+    tr.querySelectorAll('.range-sel').forEach(e => { e.disabled = false; });
+    tr.classList.add('effectless-part');
+  } catch (e) { /* 書けるようにできなくても、パーツは足される */ }
+}
 function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEditable, defaultLoc = '頭部', tag = '') {
   const tr = document.createElement('tr');
   tr.className = 'part-row';
@@ -536,6 +553,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
   tbody.appendChild(tr);
+  unlockEffectlessPart(tr, name, isEditable);
   syncTreasureLevel(tr);
   syncChouaiEligibility(tr);
   updatePartUsedCheckboxVisibility(tr);
