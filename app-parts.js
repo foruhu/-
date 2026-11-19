@@ -197,6 +197,18 @@ function updateExtraPartOptions() {
 
     optionsHtml += `<option value="custom">-- 自由入力枠を追加 --</option>`;
     selectElem.innerHTML = optionsHtml;
+    // 「シナリオ中に獲得」用の選択欄：同じ中身。獲得したものは上限を超えて足せるので、残り枠による選べない表示はしない
+    try {
+      const acqSel = secDiv.querySelector('.acq-select');
+      if (acqSel) {
+        const freeMap = { '武装': { 1: 99, 2: 99, 3: 99 }, '変異': { 1: 99, 2: 99, 3: 99 }, '改造': { 1: 99, 2: 99, 3: 99 } };
+        let o2 = `<option value="">+ 【${sec.title}】にシナリオ獲得を追加...</option>`;
+        if (EXTRA_PARTS_DB[sec.id]) o2 += generateOptionGroup(EXTRA_PARTS_DB[sec.id], freeMap, sec.id, `【${sec.title}専用パーツ】`);
+        if (COMMON_EXTRA_PARTS.length > 0) o2 += generateOptionGroup(COMMON_EXTRA_PARTS, freeMap, 'common', '【共通・汎用パーツ】');
+        o2 += `<option value="custom">-- 自由入力枠を追加 --</option>`;
+        acqSel.innerHTML = o2;
+      }
+    } catch (e) { /* 獲得用の選択欄を作れなくても、ふつうの追加欄は使える */ }
   });
 }
 
@@ -237,7 +249,9 @@ function renderPartsContainer() {
         <select class="add-part-select edit-only" onchange="onExtraPartSelect('${sec.id}', this)">
           <option value="">+ 【${sec.title}】にパーツを選択して追加...</option>
         </select>
-        <label class="acq-toggle edit-only${typeof addAsAcquired !== 'undefined' && addAsAcquired ? ' on' : ''}" title="ONにして足したパーツは、シナリオ中に獲得したものとして、最初から「獲得」の印が付きます(上限が1増えます)"><input type="checkbox" class="acq-toggle-cb" onchange="onAcqToggle(this)"${typeof addAsAcquired !== 'undefined' && addAsAcquired ? ' checked' : ''}> シナリオ中に獲得したものとして追加</label>
+        <select class="add-part-select acq-select edit-only" onchange="onExtraPartSelect('${sec.id}', this, true)" title="シナリオ中に獲得したパーツを足します。最初から「獲得」の印が付き、上限が1増えます">
+          <option value="">+ 【${sec.title}】にシナリオ獲得を追加...</option>
+        </select>
       </div>
     `;
     container.appendChild(secDiv);
@@ -398,14 +412,7 @@ function placeTreasureEntry(button) {
   alert(`「${name}」を${location}のパーツとして配置しました`);
 }
 
-// 「シナリオ中に獲得したものとして追加」のスイッチ(4つの部位で共通。ONのままにしておける。保存はしない)
-let addAsAcquired = false;
-function onAcqToggle(cb) {
-  addAsAcquired = !!(cb && cb.checked);
-  document.querySelectorAll('.acq-toggle-cb').forEach(x => { x.checked = addAsAcquired; });
-  document.querySelectorAll('.acq-toggle').forEach(l => l.classList.toggle('on', addAsAcquired));
-}
-function onExtraPartSelect(secId, selectElem) {
+function onExtraPartSelect(secId, selectElem, acquired) {
   const val = selectElem.value;
   if (!val) return;
 
@@ -437,7 +444,7 @@ function onExtraPartSelect(secId, selectElem) {
       return;
     }
     addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName, detectCategoryFromMemo(partData.memo));
-    if (addAsAcquired) { // 「獲得として追加」がONのときは、足したパーツに「獲得」の印を付ける(基本・たからものは対象外)
+    if (acquired) { // 「シナリオ中に獲得」の選択欄から足したときは、足したパーツに「獲得」の印を付ける(基本・たからものは対象外)
       try {
         const rows = tbody.querySelectorAll('tr.part-row');
         const last = rows[rows.length - 1];
