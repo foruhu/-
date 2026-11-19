@@ -765,6 +765,7 @@ function addChouaiUseRow(used = 0, memo = '') {
 // --- 3. 寵愛点計算処理 ---
 function calcChouaiTotals() {
   try { autoMarkChouaiFromUses(true); } catch (e) {}
+  try { if (!(document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('add-part-select'))) updateExtraPartOptions(); } catch (e) {} // 使い道を書き換えたら、パーツの追加欄の中身も更新する
   let totalBattle = 0;
   let totalPersonal = 0;
   let totalUsed = 0;

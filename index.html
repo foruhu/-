@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=267">
+<link rel="stylesheet" href="style.css?v=268">
 </head>
 <body>
 
@@ -712,6 +712,7 @@
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
       <li>2026/11/19 セッション履歴(獲得寵愛)の「メモ（参加日など）」を、各行の2段目に移し、折りたためるようにしました(「▸メモ」を押すと開閉します。書いてある行は開き、空の行は閉じて始まります。閉じているときは、メモの先頭が薄く出ます)。保存・読み込み・書き出しの形は変わりません。</li>
       <li>2026/11/19 「寵」の印・表記は、「寵愛点の使い道」に名前が書いてあるときだけ付けるようにしました(書いてないものは付かず、書き換えると外れます。以前に保存した印も、使い道に書いてなければ読み込み時に外れます)。</li>
+      <li>2026/11/20 「寵愛点の使い道」に名前を書いたパーツが、パーツの追加欄に出てこないことがあったのを直しました(そのレベルの枠がいっぱいだと、一覧から消えていました)。使い道に書いてあるものは、枠がいっぱいでも一覧に出ます(「(使い道に記載)」と付きます)。足すと、寵の印が付いて、上限が増えます。</li>
       <li>2026/11/20 「たからもの」のパーツには、レベルがないので、Lvの欄を「-」にして選べないようにしました(種別を「たからもの」に変えたときも同じです。古い保存データのたからものも、読み込むと「-」になります)。</li>
       <li>2026/11/20 パーツの行の「獲得」ボタンも、「寵」と同じようになくしました(表示しません)。「獲得」の印は、パーツの追加欄の「シナリオ獲得を追加…」から足したときに付きます。印を外したいときは、行を消して足し直してください。</li>
       <li>2026/11/20 自動保存の変え方を見直しました。①保存済みのキャラは、保存ボタンを押すまで書き換わりません(これまで通り)。②未保存の変更が30秒続いてから、「💾 保存」ボタンが光り始めます(すぐ光ると気になるため)。③裏では20秒ごとに下書きだけを控えます(スマホで保存せずに閉じても、開き直すと戻せるように)。④保存したあとは、そのキャラの下書きを片付けます。⑤一覧の絞り込みや、読み込み・書き出しの画面の入力では、「未保存」になりません。⑥新しく「⏪ 最後に保存した状態に戻す」ボタンを付けました(今の未保存の変更を捨てて、最後に保存した内容に戻します。「↩️ 元に戻す」で取り消せます)。</li>
@@ -824,16 +825,16 @@
   </div>
 </div>
 
-<script src="data.js?v=267"></script>
-<script src="app-core.js?v=267"></script>
-<script src="app-parts.js?v=267"></script>
-<script src="app-skills.js?v=267"></script>
-<script src="app-save.js?v=267"></script>
-<script src="app-dict.js?v=267"></script>
-<script src="app-image.js?v=267"></script>
-<script src="app-look.js?v=267"></script>
-<script src="app-sheetprint.js?v=267"></script>
-<script src="app-share.js?v=267"></script>
-<script src="app-main.js?v=267"></script>
+<script src="data.js?v=268"></script>
+<script src="app-core.js?v=268"></script>
+<script src="app-parts.js?v=268"></script>
+<script src="app-skills.js?v=268"></script>
+<script src="app-save.js?v=268"></script>
+<script src="app-dict.js?v=268"></script>
+<script src="app-image.js?v=268"></script>
+<script src="app-look.js?v=268"></script>
+<script src="app-sheetprint.js?v=268"></script>
+<script src="app-share.js?v=268"></script>
+<script src="app-main.js?v=268"></script>
 </body>
 </html>

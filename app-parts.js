@@ -123,15 +123,20 @@ function getLimitByVal(val) {
 // オプションのHTML生成用ヘルパー関数（重複防止・共通化）
 function generateOptionGroup(list, remainingMap, prefix, label) {
   let groupHtml = '';
+  let memos = [];
+  try { memos = (typeof chouaiMemoList === 'function') ? chouaiMemoList() : []; } catch (e) { memos = []; }
   list.forEach((p, idx) => {
     const remaining = remainingMap[p.type]?.[p.level] ?? 0;
     const isExists = isPartAlreadyExists(p.name);
+    // 「寵愛点の使い道」に名前が書いてあるパーツは、そのレベルの枠がいっぱいでも出す(寵で取るので、上限を超えて足せる)
+    let inUses = false;
+    try { inUses = !isExists && memos.length > 0 && typeof chouaiNameHit === 'function' && chouaiNameHit(p.name, memos); } catch (e) { inUses = false; }
 
-    // 種別・レベルの上限に達している（かつ未配置の）パーツは一覧に出さない
-    if (remaining <= 0 && !isExists) return;
+    // 種別・レベルの上限に達している（かつ未配置の）パーツは一覧に出さない(使い道に書いてあるものは除く)
+    if (remaining <= 0 && !isExists && !inUses) return;
 
     const disabledAttr = isExists ? 'disabled' : '';
-    const nameText = isExists ? `${p.name} (選択済み)` : p.name;
+    const nameText = isExists ? `${p.name} (選択済み)` : (remaining <= 0 && inUses ? `${p.name} (使い道に記載)` : p.name);
     groupHtml += `<option value="${prefix}_${idx}" ${disabledAttr}>[${p.type} Lv${p.level}] ${nameText}</option>`;
   });
   return groupHtml ? `<optgroup label="${label}">${groupHtml}</optgroup>` : '';
