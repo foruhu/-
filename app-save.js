@@ -624,10 +624,10 @@ function newBlankSheet() {
   if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
 }
 
-// 読み込み中は寵の印を自動で付けず、終わったら今ある行を「見た行」として覚える(失敗しても必ず元に戻す)
+// 読み込み中は寵の印を自動で付けず(前の使い道が残っていることがあるため)、終わってから、使い道と同じ名前の行に印を付ける(失敗しても必ず元に戻す)
 function applyData(data) {
   chouaiLoading = true;
-  try { return applyData_(data); } finally { try { chouaiSeedRows(); } catch (e) {} chouaiLoading = false; }
+  try { return applyData_(data); } finally { try { chouaiSeedRows(); } catch (e) {} chouaiLoading = false; try { autoMarkChouaiFromUses(true, true); } catch (e) {} } // 読み込み後、使い道と同じ名前のスキル・パーツには、寵を付けなくても印を付けて数に入れる
 }
 function applyData_(data) {
   // 以前の誤字「よぷんなめ」が入っていたら、「よぶんなめ」に直して読み込む
