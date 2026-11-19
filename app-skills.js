@@ -79,7 +79,7 @@ function updateBarSkills() {
     const warn = warns.length ? `<br><span style="color:#ff8888;font-size:.85em;">⚠ ${warns.join('・')}：上限超過(寵愛で取ったものは、「寵」の印を付けると上限に足されます)</span>` : '';
     // 固定バー：武装・変異・改造と同じ形で「ポジション: 取得/上限 | メイン … | サブ …」(寵愛で取った数は+寵)
     const barLine = document.getElementById('bar-skill-line');
-    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span>${cc[k] ? `<span style="color:#ffd24a;">(寵${cc[k]}${skillPt[k] ? `・${Math.round(skillPt[k] * 10) / 10}点` : ''})</span>` : ''}</span>`).join(' | ');
+    if (barLine) barLine.innerHTML = [['pos', 'ポジション'], ['mc', 'メイン'], ['sc', 'サブ']].map(([k, l]) => `<span style="white-space:nowrap;">${l}: ${got[k]}/<span style="color:${got[k] > cap[k] ? '#ff8888' : '#8ff'};font-weight:bold;">${cap[k]}</span></span>`).join(' | ');
     const tb = document.getElementById('skill-limit-tbody');
     if (tb) tb.innerHTML = skillRow('ポジション', 'pos') + skillRow('メイン', 'mc') + skillRow('サブ', 'sc');
     if (cnt) cnt.innerHTML = (extra + warn).replace(/^<br>/, '');
@@ -246,7 +246,7 @@ function calcTotals() {
       const chBonusTxt = chBonus ? `(寵${chBonus})` : '';
       const chBar = document.getElementById(`bar-chouai-${cat.key}-lv${lv}`);
       const chPt = (chouaiPts[cat.name] && chouaiPts[cat.name][lv]) || 0; // 寵のパーツに使った点数(使い道の記録から)
-      if (chBar) chBar.textContent = chBonus ? `(寵${chBonus}${chPt ? `・${Math.round(chPt * 10) / 10}点` : ''})` : ''; // 固定バーだけ点数も出す
+      if (chBar) chBar.textContent = ''; // 固定バーには寵の表示を出さない(上限の数字にだけ反映する)
       const current = (currentCounts[cat.name] && currentCounts[cat.name][lv]) || 0;
 
       const usedSpan = document.getElementById(`used-${cat.key}-lv${lv}`);
@@ -546,6 +546,7 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
   if (!tbody) return;
 
   const tr = document.createElement('tr');
+  tr.className = 'h-main';
   tr.innerHTML = `
     <td style="padding: 4px; border: 1px solid #444;">
       <input type="text" class="h-scenario" value="${escapeHtml(scenario)}" placeholder="例: 狂い咲く薔薇" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
@@ -556,15 +557,36 @@ function addSessionHistoryRow(scenario = '', battle = 0, personal = 0, memo = ''
     <td style="padding: 4px; border: 1px solid #444;">
       <input type="number" class="personal-pts" value="${escapeHtml(Number(personal) || 0)}" min="0" oninput="calcChouaiTotals()" style="width: 75%; background: #1a1a20; color: #8ff; border: 1px solid #555; padding: 4px; text-align: center; font-weight: bold; border-radius: 3px;"> pt
     </td>
-    <td style="padding: 4px; border: 1px solid #444;">
-      <input type="text" class="h-memo" value="${escapeHtml(memo)}" placeholder="例: 2026/05/10 通過" style="width: 95%; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px;">
-    </td>
     <td class="col-op" style="padding: 4px; border: 1px solid #444; text-align: center;">
       <button type="button" class="edit-only" onclick="removeRowWithUndo(this, calcChouaiTotals)" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">X</button>
     </td>
   `;
+  // 2段目：メモ(参加日など)。見出しを押すと開閉する
+  const mr = document.createElement('tr');
+  mr.className = 'history-memo-row';
+  mr.innerHTML = `
+    <td colspan="4" style="padding: 2px 4px 6px; border: 1px solid #444; border-top: none;">
+      <div class="h-memo-head" role="button" tabindex="0" style="cursor:pointer; font-size:.78rem; color:#aaa; user-select:none; display:flex; gap:6px; align-items:baseline;"><span class="h-memo-chev" style="display:inline-block;width:1em;">▸</span><span>メモ（参加日など）</span><span class="h-memo-preview" style="color:#777; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;"></span></div>
+      <input type="text" class="h-memo" value="${escapeHtml(memo)}" placeholder="例: 2026/05/10 通過" style="display:none; width: 98%; margin-top:4px; background: #1a1a20; color: #fff; border: 1px solid #555; padding: 4px; border-radius: 3px; box-sizing:border-box;">
+    </td>
+  `;
+  try {
+    const head = mr.querySelector('.h-memo-head'), inp = mr.querySelector('.h-memo');
+    const chev = mr.querySelector('.h-memo-chev'), prev = mr.querySelector('.h-memo-preview');
+    const sync = (open) => {
+      inp.style.display = open ? '' : 'none';
+      chev.textContent = open ? '▾' : '▸';
+      prev.textContent = open ? '' : (inp.value ? '：' + inp.value : '');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    const toggle = () => sync(inp.style.display === 'none');
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    sync(!!memo); // メモが書いてある行は開き、空の行は閉じておく
+  } catch (e) { const i = mr.querySelector('.h-memo'); if (i) i.style.display = ''; } // 失敗しても入力欄は使えるように
 
   tbody.appendChild(tr);
+  tbody.appendChild(mr);
   markDirty();
   calcChouaiTotals();
 }

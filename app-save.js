@@ -114,12 +114,13 @@ function getFullData() {
   });
 
   // セッション履歴（獲得）
-  document.querySelectorAll('#session-history-tbody tr').forEach(tr => {
+  document.querySelectorAll('#session-history-tbody tr.h-main').forEach(tr => {
+    const mrow = tr.nextElementSibling && tr.nextElementSibling.classList.contains('history-memo-row') ? tr.nextElementSibling : null;
     data.history.push({
       scenario: tr.querySelector('.h-scenario')?.value || '',
       battle: tr.querySelector('.battle-pts')?.value || 0,
       personal: tr.querySelector('.personal-pts')?.value || 0,
-      memo: tr.querySelector('.h-memo')?.value || ''
+      memo: (mrow ? mrow.querySelector('.h-memo')?.value : '') || ''
     });
   });
 
