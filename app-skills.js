@@ -671,11 +671,15 @@ function calcChouaiTotals() {
     currentSpan.textContent = current;
     currentSpan.style.color = current < 0 ? '#ff4444' : '#8ff';
   }
+  try { // ポイントが足りないときは、はっきり知らせる
+    const w = document.getElementById('chouai-short-warn');
+    if (w) w.textContent = current < 0 ? `⚠ ${-current} pt 足りません(使用が獲得を超えています)` : '';
+  } catch (e) {}
   try { // 固定バーにも、残りの寵愛点を出す(獲得も使用も0のときは出さない)
     const row = document.getElementById('bar-chouai-pt-row'), el = document.getElementById('bar-chouai-pt');
     if (row && el) {
       row.style.display = (totalEarned || totalUsed) ? 'flex' : 'none';
-      el.innerHTML = `残り <b style="color:${current < 0 ? '#ff4444' : '#8ff'};">${current}</b> pt <span style="color:#aaa;font-size:.85em;">(獲得${totalEarned} − 使用${totalUsed})</span>`;
+      el.innerHTML = `残り <b style="color:${current < 0 ? '#ff4444' : '#8ff'};">${current}</b> pt <span style="color:#aaa;font-size:.85em;">(獲得${totalEarned} − 使用${totalUsed})</span>${current < 0 ? ` <b style="color:#ff4444;">⚠ ${-current}pt 不足</b>` : ''}`;
     }
   } catch (e) {}
   try { renderChouaiMarked(); } catch (e) {}
