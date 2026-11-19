@@ -604,6 +604,12 @@ tr:not(.chouai-acq) .chouai-btn:hover, tr:not(.chouai-acq) .chouai-btn:focus-vis
 tr.no-chouai .chouai-btn { display: none !important; }
 
 /* 「獲得」＝シナリオ中に獲得したもの(寵愛点は使わず、上限だけ1増える) */
+@keyframes savePendingBlink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(127,227,168,0); filter: none; }
+  50% { box-shadow: 0 0 14px 4px rgba(127,227,168,.95); filter: brightness(1.5); }
+}
+.save-pending { animation: savePendingBlink 1.1s ease-in-out infinite; border-color: #7fe3a8 !important; }
+@media (prefers-reduced-motion: reduce) { .save-pending { animation: none; box-shadow: 0 0 10px 3px rgba(127,227,168,.9); } }
 .other-btn { background: transparent; color: #5fd0c0; border: 1px dashed #3e9d90; border-radius: 3px; font-size: .68rem; padding: 1px 3px; cursor: pointer; line-height: 1.2; white-space: nowrap; opacity: .85; }
 .other-btn:hover, .other-btn:focus-visible { opacity: 1; background: #12302c; }
 tr.other-acq .other-btn { background: #1f8f80; color: #fff; border: 1px solid #5fd0c0; font-weight: bold; opacity: 1; }

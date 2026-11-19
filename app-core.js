@@ -210,12 +210,20 @@ function updateAutosaveStatusText(text) {
   if (el) el.textContent = text;
 }
 
+// 自動保存はしない。未保存の変更があるあいだ、保存ボタンをチカチカ光らせて、押し忘れを防ぐ
+let savePendingShown = null;
+function refreshSavePending() {
+  try {
+    const on = !!isDirty && !document.body.classList.contains('view-locked');
+    if (on === savePendingShown) return;
+    savePendingShown = on;
+    document.querySelectorAll('.fixed-save, .action-btn.c-green').forEach(b => b.classList.toggle('save-pending', on));
+    updateAutosaveStatusText(on ? '⚠ 未保存' : '');
+  } catch (e) { /* 光らせられなくても、保存そのものは使える */ }
+}
 function startAutosaveTimer() {
   if (autosaveTimer) clearInterval(autosaveTimer);
-  autosaveTimer = setInterval(() => {
-    if (!isDirty || document.body.classList.contains('view-locked')) return;
-    performAutosave();
-  }, AUTOSAVE_INTERVAL_MS);
+  autosaveTimer = setInterval(refreshSavePending, 400);
 }
 
 // 未保存の変更を下書き枠にだけ自動保存する。
