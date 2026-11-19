@@ -610,6 +610,7 @@ tr.no-chouai .chouai-btn { display: none !important; }
 }
 .save-pending { animation: savePendingBlink 1.1s ease-in-out infinite; border-color: #7fe3a8 !important; }
 @media (prefers-reduced-motion: reduce) { .save-pending { animation: none; box-shadow: 0 0 10px 3px rgba(127,227,168,.9); } }
+.other-btn { display: none !important; }
 .other-btn { background: transparent; color: #5fd0c0; border: 1px dashed #3e9d90; border-radius: 3px; font-size: .68rem; padding: 1px 3px; cursor: pointer; line-height: 1.2; white-space: nowrap; opacity: .85; }
 .other-btn:hover, .other-btn:focus-visible { opacity: 1; background: #12302c; }
 tr.other-acq .other-btn { background: #1f8f80; color: #fff; border: 1px solid #5fd0c0; font-weight: bold; opacity: 1; }
