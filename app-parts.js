@@ -427,7 +427,7 @@ function onExtraPartSelect(secId, selectElem, acquired) {
   let partData = null;
 
   if (val === 'custom') {
-    partData = { name: '新規パーツ', type: '', level: 1, timing: '', cost: '', range: '', memo: '', isEditable: true }; // 自由枠は、分類・タイミング・射程を最初は未選択、コストは空にする(Lvは1)
+    partData = { name: '新規パーツ', type: '武装', level: 1, timing: '', cost: '', range: '', memo: '', isEditable: true }; // 自由枠は、分類は武装・Lv1(元の値)、タイミング・射程は未選択、コストは空にする
   } else if (val.startsWith('common_')) {
     const p = COMMON_EXTRA_PARTS[parseInt(val.split('_')[1], 10)];
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
@@ -436,9 +436,6 @@ function onExtraPartSelect(secId, selectElem, acquired) {
     if (p) partData = { ...p, memo: p.memo || '', isEditable: false };
   }
 
-  if (partData && val !== 'custom' && isEffectlessListedPart(partData.name)) {
-    partData = { ...partData, type: '' }; // 効果が書かれていないパーツは、分類を空にして、自分で選べるようにする(Lvは元の数値のまま。分類を選ぶまで、上限の数には入らない)
-  }
   if (partData) {
     // データ未登録のパーツは、前に自分で書いた効果があれば入れる
     if (!partData.memo && partData.name !== '新規パーツ' && typeof getEffectDict === 'function') {
@@ -558,7 +555,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   `;
   tbody.appendChild(tr);
   unlockEffectlessPart(tr, name, isEditable);
-  if (type === '') tr.querySelectorAll('.range-sel option[value=""]').forEach(o => { o.textContent = '（未選択）'; }); // 分類が未選択の行は、射程の空も「（未選択）」と表示する
+  if (type === '' || (isEditable && !range)) tr.querySelectorAll('.range-sel option[value=""]').forEach(o => { o.textContent = '（未選択）'; }); // 分類が未選択の行は、射程の空も「（未選択）」と表示する
   syncTreasureLevel(tr);
   syncChouaiEligibility(tr);
   updatePartUsedCheckboxVisibility(tr);

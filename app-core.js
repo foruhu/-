@@ -216,19 +216,21 @@ function updateAutosaveStatusText(text) {
 // 自動保存はしない。未保存の変更があるあいだ、保存ボタンをチカチカ光らせて、押し忘れを防ぐ
 // (変更から30秒たつと光り始める。裏では、20秒ごとに下書きだけを控える=保険。保存済みのキャラは書き換えない)
 const SAVE_BLINK_DELAY_MS = 30000;
-let savePendingShown = null, dirtySince = 0, lastDraftAt = 0;
+let savePendingShown = null, dirtySince = 0, lastDraftAt = 0, draftFailed = false;
 function refreshSavePending() {
   try {
     const dirty = !!isDirty && !document.body.classList.contains('view-locked');
     const now = Date.now();
     if (!dirty) { dirtySince = 0; } else if (!dirtySince) { dirtySince = now; lastDraftAt = now; } // 変更し始めてから20秒後に、最初の下書きを控える
     if (dirty && now - lastDraftAt >= AUTOSAVE_INTERVAL_MS) { lastDraftAt = now; performAutosave(true); } // 下書きの控え(静かに)
-    const blink = dirty && now - dirtySince >= SAVE_BLINK_DELAY_MS;
-    const key = (dirty ? 'd' : '') + (blink ? 'b' : '');
+    if (!dirty) draftFailed = false;
+    const blink = dirty && (draftFailed || now - dirtySince >= SAVE_BLINK_DELAY_MS); // 下書きを控えられないときは、すぐ光らせる
+    const key = (dirty ? 'd' : '') + (blink ? 'b' : '') + (draftFailed ? 'f' : '');
     if (key === savePendingShown) return;
     savePendingShown = key;
     document.querySelectorAll('.fixed-save, .action-btn.c-green').forEach(b => b.classList.toggle('save-pending', blink));
-    updateAutosaveStatusText(dirty ? '⚠ 未保存' : '');
+    if (dirty) updateAutosaveStatusText(draftFailed ? '⚠ 未保存(下書き不可・早めに保存)' : '⚠ 未保存');
+    else { const el = document.getElementById('autosave-status'); if (el && el.textContent.startsWith('⚠ 未保存')) el.textContent = ''; } // 「下書きを復元しました」などの別の表示は消さない
   } catch (e) { /* 光らせられなくても、保存そのものは使える */ }
 }
 function startAutosaveTimer() {
@@ -265,9 +267,11 @@ function performAutosave(silent) {
 
     if (!setSavedSheets(sheets, true)) {
       // 保存領域がいっぱい。画面は静かに、でも上のバーで分かるようにする（isDirty は残し、次の機会に再試行する）
-      updateAutosaveStatusText('⚠ 自動保存できません（保存領域がいっぱいです）');
+      if (silent) { draftFailed = true; savePendingShown = null; } // 静かな控えが失敗したら、保存ボタンをすぐ光らせ、上の表示で知らせる
+      else updateAutosaveStatusText('⚠ 自動保存できません（保存領域がいっぱいです）');
       return;
     }
+    if (silent) { draftFailed = false; }
     if (!silent) { isDirty = false; updateAutosaveStatusText('自動保存（下書き） ' + formatTimeHM(new Date())); } // 静かな控えのときは、「未保存」のまま(保存ボタンを押すまで)
     renderSaveCards(select ? select.value : '');
   } catch (e) {
