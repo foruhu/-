@@ -1,3 +1,32 @@
+// ポジション・メインクラス・サブクラスを変えたとき、その枠のスキル行の「区分」を新しい名前に付け替える(付け替えないと、行の選択肢が前のポジション・クラスのスキルのままになる)
+function syncSkillCategoriesOnChange(el) {
+  const prev = el.dataset.prev || '', next = el.value || '';
+  if (!prev || prev === next) return;
+  // ほかの枠が同じ名前を使っているときは、どの行がどの枠のものか分からないので、付け替えない
+  const others = ['pos', 'mc', 'sc'].filter(k => k !== el.id).map(k => document.getElementById(k)?.value || '');
+  if (others.includes(prev)) return;
+  const db = (typeof SKILL_DATABASE !== 'undefined') ? SKILL_DATABASE : {};
+  document.querySelectorAll('#skill-tbody tr.skill-row').forEach(tr => {
+    const cat = tr.querySelector('.skill-category');
+    if (!cat || cat.value !== prev) return;
+    cat.value = next;
+    const sel = tr.querySelector('.skill-name-select');
+    const cur = sel ? sel.value : '';
+    // 前の区分のスキルで、新しい区分に無いものは、選び直してもらうために空に戻す(自分で書いた名前は、そのまま残す)
+    if (sel && cur && (db[prev] || []).some(x => x.name === cur) && !(db[next] || []).some(x => x.name === cur)) {
+      sel.value = '';
+      try { onSkillSelect(sel); } catch (e) {}
+    }
+  });
+  try { updateSkillOptions(); } catch (e) {}
+}
+function onClassSelectChange(el) {
+  try { syncSkillCategoriesOnChange(el); } catch (e) { /* 付け替えに失敗しても、ほかの計算は続ける */ }
+  onClassChange();
+}
+// 変える前の値を覚えておく(付け替えに使う)
+document.addEventListener('focusin', e => { const t = e.target; if (t && ['pos', 'mc', 'sc'].includes(t.id)) t.dataset.prev = t.value; });
+
 function onClassChange() {
   const mc = document.getElementById('mc')?.value || '';
   const sc = document.getElementById('sc')?.value || '';
@@ -9,6 +38,7 @@ function onClassChange() {
     if (document.getElementById(`sc-${key}`)) document.getElementById(`sc-${key}`).textContent = scParts[idx];
   });
 
+  ['pos', 'mc', 'sc'].forEach(k => { const el = document.getElementById(k); if (el) el.dataset.prev = el.value; });
   calcTotals();
 }
 
