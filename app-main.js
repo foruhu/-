@@ -1,4 +1,37 @@
 // ==========================================================
+// いま開いているバージョンの番号(ファイル名の「?v=」の数字)を返す
+function getAppVersion() {
+  try {
+    const s = document.querySelector('script[src*="app-main.js"]');
+    const m = s && /[?&]v=(\d+)/.exec(s.getAttribute('src') || '');
+    return m ? m[1] : '';
+  } catch (e) { return ''; }
+}
+function showAppVersion() {
+  const el = document.getElementById('app-version');
+  if (el) el.textContent = getAppVersion() ? 'v' + getAppVersion() : '(不明)';
+}
+// 公開されている最新のバージョンと見比べる(通信できないときは、その旨を知らせる)
+async function checkLatestVersion() {
+  const out = document.getElementById('app-version-result');
+  const say = (t, ok) => { if (out) { out.textContent = t; out.style.color = ok === true ? '#7fe3a8' : (ok === false ? '#ffb3bd' : '#bbb'); } };
+  try {
+    say('確認中…');
+    const res = await fetch('index.html?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('http ' + res.status);
+    const html = await res.text();
+    const m = /app-main\.js\?v=(\d+)/.exec(html);
+    if (!m) throw new Error('no version');
+    const latest = m[1], cur = getAppVersion();
+    if (!cur) say('最新は v' + latest + ' です(いま開いている番号は分かりませんでした)。');
+    else if (latest === cur) say('最新です(v' + cur + ')。', true);
+    else say('新しい版があります(最新 v' + latest + '、いま v' + cur + ')。ページを再読み込みしてください(直らないときは、ブラウザの「更新」を長押しして、キャッシュを消す再読み込みをしてください)。', false);
+  } catch (e) {
+    say('確認できませんでした(通信できないか、ファイルから開いている可能性があります)。', false);
+  }
+}
+document.addEventListener('DOMContentLoaded', showAppVersion);
+
 // 表示モード（編集画面／表示画面の切り替え）
 // ==========================================================
 function applyViewModeUI(isView) {

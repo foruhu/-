@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=276">
+<link rel="stylesheet" href="style.css?v=277">
 </head>
 <body>
 
@@ -649,6 +649,7 @@
 
     <h4 style="color:#8ff; margin:12px 0 4px;">■ 保存・切り替え</h4>
     <ul style="margin:0; padding-left:1.2em;">
+      <li>使い方の一番下に、いま開いているバージョンの番号と、「最新か確認」ボタンがあります。直したはずの内容が画面に出ないときは、ここで最新かどうかを確かめて、古いときは再読み込みしてください。未保存が3分以上続くと、「💾 保存」ボタンの文字が「未保存！保存」に変わります。スマホで別のアプリに切り替えたときにも、すぐ下書きを控えます。</li>
       <li>データはこのブラウザの中に保存されます。「💾 保存」で保存し、カードを選んで保存すると上書きになります。</li>
       <li>公開サイトでは、どの機能が使われたかを、回数だけ、個人を特定しない形で数えています(アクセス解析のGoatCounterを使い、キャラクターの内容や名前は送りません)。</li>
       <li>カードを選んで上書き保存するときは、確認の画面に、前回の保存から変わった項目(変わった欄と、増減した件数)が出ます。</li>
@@ -734,6 +735,11 @@
       <li>2026/11/18 戦闘用のON/OFFの見た目を、一目で分かるようにしました。パソコンの画面では、左右の固定ボタンが内容に重ならないようにしました。</li>
       <li>2026/11/18 不具合の修正：他の人から届いた共有データ・バックアップで、画面が乱れたり悪用されたりしないようにしました。編集中のキャラの下書きが別のキャラに付く問題、「新規作成」しても再読み込みで元に戻る問題、下書きカードで画像が消える問題、保存領域が足りないときに自動保存が削除済みキャラの復元用データを消す問題、保存データが壊れたときの上書きを直しました。パーツ名「よぷんなめ」は「よぶんなめ」に直しました。</li>
     </ul>
+    <div id="help-version" style="margin-top:12px;padding-top:10px;border-top:1px dashed #555;font-size:.82rem;color:#bbb;line-height:1.7;">
+      いま開いているバージョン：<b id="app-version" style="color:#8ff;">-</b>
+      <button type="button" onclick="checkLatestVersion()" style="margin-left:6px;padding:3px 8px;font-size:.78rem;">最新か確認</button>
+      <div id="app-version-result" aria-live="polite"></div>
+    </div>
   </div>
 </div>
 
@@ -751,16 +757,16 @@
   </div>
 </div>
 
-<script src="data.js?v=276"></script>
-<script src="app-core.js?v=276"></script>
-<script src="app-parts.js?v=276"></script>
-<script src="app-skills.js?v=276"></script>
-<script src="app-save.js?v=276"></script>
-<script src="app-dict.js?v=276"></script>
-<script src="app-image.js?v=276"></script>
-<script src="app-look.js?v=276"></script>
-<script src="app-sheetprint.js?v=276"></script>
-<script src="app-share.js?v=276"></script>
-<script src="app-main.js?v=276"></script>
+<script src="data.js?v=277"></script>
+<script src="app-core.js?v=277"></script>
+<script src="app-parts.js?v=277"></script>
+<script src="app-skills.js?v=277"></script>
+<script src="app-save.js?v=277"></script>
+<script src="app-dict.js?v=277"></script>
+<script src="app-image.js?v=277"></script>
+<script src="app-look.js?v=277"></script>
+<script src="app-sheetprint.js?v=277"></script>
+<script src="app-share.js?v=277"></script>
+<script src="app-main.js?v=277"></script>
 </body>
 </html>

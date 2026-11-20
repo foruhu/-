@@ -216,6 +216,7 @@ function updateAutosaveStatusText(text) {
 // 自動保存はしない。未保存の変更があるあいだ、保存ボタンをチカチカ光らせて、押し忘れを防ぐ
 // (変更から30秒たつと光り始める。裏では、20秒ごとに下書きだけを控える=保険。保存済みのキャラは書き換えない)
 const SAVE_BLINK_DELAY_MS = 30000;
+const SAVE_URGENT_MS = 180000; // 3分
 let savePendingShown = null, dirtySince = 0, lastDraftAt = 0, draftFailed = false;
 function refreshSavePending() {
   try {
@@ -225,14 +226,22 @@ function refreshSavePending() {
     if (dirty && now - lastDraftAt >= AUTOSAVE_INTERVAL_MS) { lastDraftAt = now; performAutosave(true); } // 下書きの控え(静かに)
     if (!dirty) draftFailed = false;
     const blink = dirty && (draftFailed || now - dirtySince >= SAVE_BLINK_DELAY_MS); // 下書きを控えられないときは、すぐ光らせる
-    const key = (dirty ? 'd' : '') + (blink ? 'b' : '') + (draftFailed ? 'f' : '');
+    const urgent = dirty && now - dirtySince >= SAVE_URGENT_MS; // 3分以上、未保存が続いているとき
+    const key = (dirty ? 'd' : '') + (blink ? 'b' : '') + (draftFailed ? 'f' : '') + (urgent ? 'u' : '');
     if (key === savePendingShown) return;
     savePendingShown = key;
     document.querySelectorAll('.fixed-save, .action-btn.c-green').forEach(b => b.classList.toggle('save-pending', blink));
-    if (dirty) updateAutosaveStatusText(draftFailed ? '⚠ 未保存(下書き不可・早めに保存)' : '⚠ 未保存');
+    document.querySelectorAll('.fixed-save').forEach(b => { if (!b.dataset.label) b.dataset.label = b.textContent; b.textContent = urgent ? '💾 未保存！保存' : b.dataset.label; }); // 3分以上たったら、保存ボタンの文字も変える
+    if (dirty) updateAutosaveStatusText(draftFailed ? '⚠ 未保存(下書き不可・早めに保存)' : (urgent ? '⚠ 未保存が続いています' : '⚠ 未保存'));
     else { const el = document.getElementById('autosave-status'); if (el && el.textContent.startsWith('⚠ 未保存')) el.textContent = ''; } // 「下書きを復元しました」などの別の表示は消さない
   } catch (e) { /* 光らせられなくても、保存そのものは使える */ }
 }
+// スマホでアプリを切り替えたり画面を閉じたりしたとき(そのあとタブが破棄されることがある)に、すぐ下書きを控える
+function draftNowIfDirty() {
+  try { if (isDirty && !document.body.classList.contains('view-locked')) { lastDraftAt = Date.now(); performAutosave(true); } } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') draftNowIfDirty(); });
+window.addEventListener('pagehide', draftNowIfDirty);
 function startAutosaveTimer() {
   if (autosaveTimer) clearInterval(autosaveTimer);
   autosaveTimer = setInterval(refreshSavePending, 400);
