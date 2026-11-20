@@ -179,7 +179,12 @@ function cycleFontSize() {
 }
 function initBarAndFont() {
   let fold = false, fs = 'medium';
-  try { fold = localStorage.getItem('necro_bar_fold') === '1'; fs = localStorage.getItem('necro_font_size') || 'medium'; } catch (e) {}
+  try {
+    const saved = localStorage.getItem('necro_bar_fold');
+    // 一度も開閉していない小さな画面(スマホ)では、固定バーが画面を占めすぎるので、初めは畳んでおく（「▼ 開く」で開ける。開閉したら、その選択を覚える）
+    fold = saved === null ? !!(window.matchMedia && window.matchMedia('(max-width: 560px)').matches) : saved === '1';
+    fs = localStorage.getItem('necro_font_size') || 'medium';
+  } catch (e) {}
   applyBarFold(fold);
   applyFontSize(fs);
 }
