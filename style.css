@@ -629,3 +629,45 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
 
 /* 「シナリオ中に獲得」の追加欄 */
 .add-part-select.acq-select { margin-top: 4px; border-color: #3e9d90; color: #5fd0c0; }
+
+/* --- スマホ(編集時)：パーツ表は1行が細くなりすぎるので、2段に折り返す（1段目：損/使/色/部位/名前/操作、2段目：分類/Lv/タイミング/コスト/射程） --- */
+@media screen and (max-width: 560px) {
+  body:not(.view-mode) .parts-table, body:not(.view-mode) .parts-table tbody { display: block; width: 100%; }
+  body:not(.view-mode) .parts-table thead { display: none; }
+  body:not(.view-mode) .parts-table tr.part-memo-row { display: block; }
+  body:not(.view-mode) .parts-table tr.part-memo-row > td { display: block; width: auto; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) {
+    display: grid; align-items: end; column-gap: 3px; row-gap: 2px; padding: 3px 2px 2px;
+    grid-template-columns: 28px 28px 40px minmax(48px,.8fr) 1fr 1fr 64px;
+    grid-template-areas: "b u c loc name name op" "type type lv tim tim cost rng";
+  }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td { display: block; width: auto; min-width: 0 !important; padding: 0; border: 0; text-align: center; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1) { grid-area: b; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2) { grid-area: u; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(3) { grid-area: c; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(4) { grid-area: loc; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(5) { grid-area: name; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6) { grid-area: type; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7) { grid-area: lv; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8) { grid-area: tim; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9) { grid-area: cost; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10) { grid-area: rng; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(11) { grid-area: op; }
+  /* 2段目の小さな見出し */
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(n+6):nth-child(-n+10)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; text-align: left; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6)::before { content: "分類"; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7)::before { content: "Lv"; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8)::before { content: "タイミング"; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9)::before { content: "コスト"; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10)::before { content: "射程"; }
+  body:not(.view-mode) .parts-table td > input, body:not(.view-mode) .parts-table td > select { width: 100%; box-sizing: border-box; }
+  body:not(.view-mode) .parts-table td input[type=checkbox] { width: auto; }
+}
+@media screen and (max-width: 360px) {
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) { grid-template-columns: 24px 24px 36px 44px 1fr minmax(34px,.7fr) 56px; }
+}
+@media screen and (max-width: 560px) {
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(-n+2)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1)::before { content: "損"; }
+  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2)::before { content: "使"; }
+}

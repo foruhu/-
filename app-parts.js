@@ -236,7 +236,7 @@ function renderPartsContainer() {
         <span class="val">基本パーツ / 追加パーツ</span>
       </div>
       <div class="table-scroll">
-        <table class="maneuver-table">
+        <table class="maneuver-table parts-table">
           <thead>
             <tr>
               <th style="width:5%;">損</th><th style="width:5%;">使</th><th style="width:6%;" class="color-col">色</th><th style="width:11%;">配置部位</th>
