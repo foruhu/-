@@ -692,3 +692,9 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
 .bar-summary b { font-weight: bold; }
 .bar-summary .over { color: #ff8a8a; }
 @media print { .bar-summary { display: none !important; } }
+
+/* 表示モード：パーツ表も、文字と枠の間の縦の余白をなくして、行を詰める（スキル表の戦闘用表示と同じ考え方） */
+body.view-mode .parts-table td { padding-top: 0; padding-bottom: 0; }
+body.view-mode .parts-table td input, body.view-mode .parts-table td select { padding-top: 0; padding-bottom: 0; line-height: 1.25; min-height: 0; }
+body.view-mode .parts-table tr.part-memo-row > td { padding-top: 0; padding-bottom: 0; }
+body.view-mode .parts-table tr.part-memo-row textarea { padding-top: 0; padding-bottom: 0; line-height: 1.25; }
