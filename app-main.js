@@ -150,7 +150,38 @@ function applyBarFold(collapsed) {
   if (bar) bar.classList.toggle('bar-collapsed', collapsed);
   const b = document.getElementById('bar-fold-btn');
   if (b) b.textContent = collapsed ? '▼ 開く' : '▲ 閉じる';
+  updateBarSummary();
 }
+
+// 畳んだ固定バーに出す、武装・変異・改造・スキルの使用数/上限（1行）
+function updateBarSummary() {
+  try {
+    const box = document.getElementById('bar-summary');
+    if (!box) return;
+    const num = id => { const e = document.getElementById(id); return e ? (parseInt(e.textContent, 10) || 0) : 0; };
+    const items = [['武装', 'wep', '#ff6b6b'], ['変異', 'mut', '#4dabf7'], ['改造', 'cyb', '#ffd43b']].map(([label, k, color]) => {
+      let used = 0, max = 0;
+      for (let i = 1; i <= 3; i++) { used += num(`used-${k}-lv${i}`); max += num(`max-${k}-lv${i}`); }
+      return { label, color, used, max };
+    });
+    const line = document.getElementById('bar-skill-line');
+    let su = 0, sm = 0;
+    if (line) for (const mt of (line.textContent || '').matchAll(/(\d+)\s*\/\s*(\d+)/g)) { su += +mt[1]; sm += +mt[2]; }
+    items.push({ label: 'スキル', color: '#c9a8f0', used: su, max: sm });
+    box.innerHTML = items.map(it => `<span><span style="color:${it.color};font-weight:bold;">${it.label}</span> <b class="${it.used > it.max ? 'over' : ''}">${it.used}</b>/${it.max}</span>`).join('');
+  } catch (e) { /* 表示できなくても、畳んだバーが少し寂しくなるだけ */ }
+}
+(function watchBarSummary() {
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      const bar = document.querySelector('.sticky-top-bar .bar-detail');
+      if (!bar || typeof MutationObserver === 'undefined') return;
+      let t = null;
+      new MutationObserver(() => { clearTimeout(t); t = setTimeout(updateBarSummary, 60); }).observe(bar, { subtree: true, childList: true, characterData: true });
+      updateBarSummary();
+    } catch (e) {}
+  });
+})();
 function toggleBarFold() {
   const collapsed = !document.querySelector('.sticky-top-bar').classList.contains('bar-collapsed');
   applyBarFold(collapsed);
