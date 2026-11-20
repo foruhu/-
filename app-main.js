@@ -470,3 +470,14 @@ function initFabDim() {
   } catch (e) { /* 薄くする機能が使えなくても、通常どおり表示するだけ */ }
 }
 document.addEventListener('DOMContentLoaded', initFabDim);
+
+// スマホ：文字・表・配色のボタンを、「⚙ 表示設定」で開閉する
+function toggleLookTools() {
+  try {
+    const bar = document.querySelector('.bar-tools');
+    const btn = document.getElementById('look-toggle');
+    if (!bar) return;
+    const open = bar.classList.toggle('look-open');
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  } catch (e) { /* 開閉できなくても、他の操作には影響しない */ }
+}

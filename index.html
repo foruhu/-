@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=279">
+<link rel="stylesheet" href="style.css?v=280">
 </head>
 <body>
 
@@ -57,9 +57,12 @@
     </div>
     <div class="bar-tools">
       <button type="button" id="bar-fold-btn" onclick="toggleBarFold()">▲ 閉じる</button>
+      <button type="button" id="look-toggle" onclick="toggleLookTools()" aria-expanded="false">⚙ 表示設定</button>
+      <span class="look-tools" id="look-tools">
       <button type="button" id="fs-btn" onclick="cycleFontSize()">文字：中</button>
       <button type="button" id="roomy-btn" onclick="toggleRoomy()">表：標準</button>
       <button type="button" id="theme-btn" onclick="toggleTheme()">配色：暗</button>
+      </span>
     </div>
     <div class="bar-detail">
     <div class="toc-row">
@@ -757,16 +760,16 @@
   </div>
 </div>
 
-<script src="data.js?v=279"></script>
-<script src="app-core.js?v=279"></script>
-<script src="app-parts.js?v=279"></script>
-<script src="app-skills.js?v=279"></script>
-<script src="app-save.js?v=279"></script>
-<script src="app-dict.js?v=279"></script>
-<script src="app-image.js?v=279"></script>
-<script src="app-look.js?v=279"></script>
-<script src="app-sheetprint.js?v=279"></script>
-<script src="app-share.js?v=279"></script>
-<script src="app-main.js?v=279"></script>
+<script src="data.js?v=280"></script>
+<script src="app-core.js?v=280"></script>
+<script src="app-parts.js?v=280"></script>
+<script src="app-skills.js?v=280"></script>
+<script src="app-save.js?v=280"></script>
+<script src="app-dict.js?v=280"></script>
+<script src="app-image.js?v=280"></script>
+<script src="app-look.js?v=280"></script>
+<script src="app-sheetprint.js?v=280"></script>
+<script src="app-share.js?v=280"></script>
+<script src="app-main.js?v=280"></script>
 </body>
 </html>

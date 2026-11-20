@@ -675,3 +675,13 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
 @media screen and (max-width: 899px) {
   body.fab-dim .fixed-save:not(.save-pending), body.fab-dim .corner-btn, body.fab-dim .fixed-readme { opacity: .25 !important; transition: opacity .2s; }
 }
+
+/* スマホ：文字・表・配色の3ボタンは「⚙ 表示設定」にまとめ、固定バーを低くする（PCは今まで通り並べる） */
+.look-tools { display: contents; }
+#look-toggle { display: none; }
+@media screen and (max-width: 560px) {
+  #look-toggle { display: inline-block; }
+  .look-tools { display: none; }
+  .bar-tools.look-open .look-tools { display: contents; }
+}
+@media print { #look-toggle { display: none !important; } }
