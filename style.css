@@ -671,3 +671,7 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
   body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1)::before { content: "損"; }
   body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2)::before { content: "使"; }
 }
+/* スマホ：スクロール中・入力中は、左下/右下の固定ボタンを薄くして、表の内容が読めるようにする（触れば使える。保存の警告点滅中は薄くしない） */
+@media screen and (max-width: 899px) {
+  body.fab-dim .fixed-save:not(.save-pending), body.fab-dim .corner-btn, body.fab-dim .fixed-readme { opacity: .25 !important; transition: opacity .2s; }
+}

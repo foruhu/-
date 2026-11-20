@@ -452,3 +452,21 @@ function trackFeature(name) {
   window.addEventListener('load', () => setTimeout(upd, 600));
   setTimeout(upd, 100);
 })();
+
+// スマホ：スクロール中・入力中は、固定ボタン(保存/切替/表示/README)を薄くして、表の内容に重ならないようにする
+function initFabDim() {
+  try {
+    const mq = window.matchMedia ? window.matchMedia('(max-width: 899px)') : null;
+    let timer = null;
+    const isField = el => !!(el && el.matches && el.matches('input:not([type=checkbox]):not([type=radio]), textarea, select'));
+    const dim = () => { if (!mq || mq.matches) document.body.classList.add('fab-dim'); };
+    const undimLater = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (!isField(document.activeElement)) document.body.classList.remove('fab-dim'); }, 1200);
+    };
+    window.addEventListener('scroll', () => { dim(); undimLater(); }, { passive: true });
+    document.addEventListener('focusin', e => { if (isField(e.target)) { dim(); clearTimeout(timer); } });
+    document.addEventListener('focusout', () => undimLater());
+  } catch (e) { /* 薄くする機能が使えなくても、通常どおり表示するだけ */ }
+}
+document.addEventListener('DOMContentLoaded', initFabDim);
