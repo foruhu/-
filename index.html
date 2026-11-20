@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=285">
+<link rel="stylesheet" href="style.css?v=286">
 </head>
 <body>
 
@@ -715,6 +715,13 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/21 スマホの画面を使いやすくしました。上の固定バーは、初めは畳んだ状態で始まり、武装・変異・改造・スキルの使用数が1行で出ます(押すと開きます)。文字・表・配色のボタンは「⚙ 表示設定」にまとめました。</li>
+      <li>2026/11/21 スマホで編集するときのパーツ表を、2段に折り返して見やすくしました。幅の狭い小型のスマホでは、パーツ名を独立した段にして、長い名前も読めるようにしました。</li>
+      <li>2026/11/21 スマホで、スクロール中や入力中は、左下・右下の固定ボタンが薄くなり、表の内容が読めるようになりました。</li>
+      <li>2026/11/21 表示モードのパーツ表で、文字と枠の間の縦の余白をなくして、行を詰めました。</li>
+      <li>2026/11/21 保存し忘れを防ぐ工夫を足しました。変更したまま3分たつと、保存ボタンが「💾 未保存！保存」に変わります。アプリを閉じたり別のアプリに切り替えたりしたときは、下書きを自動で残します。</li>
+      <li>2026/11/21 使い方の一番下に、いま開いているバージョンの番号と、「最新か確認」ボタンを足しました。</li>
+      <li>2026/11/21 「獲得」の印は、付いている行にだけボタンが出る形にしました(外すとき用)。</li>
       <li>2026/11/20 寵の印を、自動で付けるようにしました。「寵愛点の使い道」にスキル名・パーツ名を書くと、同じ名前の行の左端に金色の印が付き、名前を消す・書き換えると外れます(行の「寵」ボタンはなくなりました)。基本パーツ・たからものは対象外です。1文字の名前や、「〜を習得」のように助詞が付いた書き方にも対応しました。</li>
       <li>2026/11/20 上限の数え方を変えました。「寵愛点の使い道」に名前が書いてあるマニューバ(パーツ)・スキルは、寵愛で取ったものとして取得数に数え、上限も1個につき1増えます(例：Lv1: 2/2(寵1)、メイン: 2/3(寵1))。書いていないのに上限を超えた分は、超過になります。チェッカーの表では「規定上限 2 個(寵1)」のように出ます。</li>
       <li>2026/11/20 「レベル取得制限チェッカー」に、スキル(ポジション・メイン・サブ)の欄を追加しました。固定バーにも、武装・変異・改造の下に「スキル」の行が出ます(初期の取得数は、ポジション1・メイン2・サブ1です)。</li>
@@ -761,16 +768,16 @@
   </div>
 </div>
 
-<script src="data.js?v=285"></script>
-<script src="app-core.js?v=285"></script>
-<script src="app-parts.js?v=285"></script>
-<script src="app-skills.js?v=285"></script>
-<script src="app-save.js?v=285"></script>
-<script src="app-dict.js?v=285"></script>
-<script src="app-image.js?v=285"></script>
-<script src="app-look.js?v=285"></script>
-<script src="app-sheetprint.js?v=285"></script>
-<script src="app-share.js?v=285"></script>
-<script src="app-main.js?v=285"></script>
+<script src="data.js?v=286"></script>
+<script src="app-core.js?v=286"></script>
+<script src="app-parts.js?v=286"></script>
+<script src="app-skills.js?v=286"></script>
+<script src="app-save.js?v=286"></script>
+<script src="app-dict.js?v=286"></script>
+<script src="app-image.js?v=286"></script>
+<script src="app-look.js?v=286"></script>
+<script src="app-sheetprint.js?v=286"></script>
+<script src="app-share.js?v=286"></script>
+<script src="app-main.js?v=286"></script>
 </body>
 </html>
