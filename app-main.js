@@ -159,7 +159,7 @@ function updateBarSummary() {
     const box = document.getElementById('bar-summary');
     if (!box) return;
     const num = id => { const e = document.getElementById(id); return e ? (parseInt(e.textContent, 10) || 0) : 0; };
-    const items = [['武装', 'wep', '#ff6b6b'], ['変異', 'mut', '#4dabf7'], ['改造', 'cyb', '#ffd43b']].map(([label, k, color]) => {
+    const items = [['武装', 'wep', '#f0a0a0'], ['変異', 'mut', '#f0a0a0'], ['改造', 'cyb', '#f0a0a0']].map(([label, k, color]) => {
       let used = 0, max = 0; const over = [];
       for (let i = 1; i <= 3; i++) {
         const u = num(`used-${k}-lv${i}`), x = num(`max-${k}-lv${i}`);
