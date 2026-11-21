@@ -754,10 +754,7 @@ body.view-mode .parts-table tr.part-memo-row textarea { padding-top: 0; padding-
 @media screen and (max-width: 560px) { #parts-oneline-btn { display: inline-block; } }
 @media print { #parts-oneline-btn { display: none !important; } }
 
-/* パーツ・スキルの行の背景色(カテゴリごとの色分け)はなくした。「色」で選んだカテゴリの記録そのものは、そのまま残る */
-.maneuver-table tr[style*="background-color"] { background-color: transparent !important; }
-.cat-legend { display: none !important; }
-/* 行の背景色がなくなったぶん、スマホ(2段)のパーツは、行の間に薄い区切り線を入れて見分けやすくする */
+/* スマホ(2段)のパーツは、行の間に薄い区切り線を入れて見分けやすくする */
 @media screen and (max-width: 560px) {
   html:not(.parts-oneline) .parts-table tbody > tr:not(.part-memo-row) { border-top: 1px solid rgba(255,255,255,.14); }
   html:not(.parts-oneline) .parts-table tbody > tr:not(.part-memo-row):first-child { border-top: 0; }
