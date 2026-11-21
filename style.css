@@ -632,48 +632,48 @@ tr.over-row .p-name, tr.over-row .skill-name-select { color: #ff9a9a; }
 
 /* --- スマホ(編集時)：パーツ表は1行が細くなりすぎるので、2段に折り返す（1段目：損/使/色/部位/名前/操作、2段目：分類/Lv/タイミング/コスト/射程） --- */
 @media screen and (max-width: 560px) {
-  body:not(.view-mode) .parts-table, body:not(.view-mode) .parts-table tbody { display: block; width: 100%; }
-  body:not(.view-mode) .parts-table thead { display: none; }
-  body:not(.view-mode) .parts-table tr.part-memo-row { display: block; }
-  body:not(.view-mode) .parts-table tr.part-memo-row > td { display: block; width: auto; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) {
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table, html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody { display: block; width: 100%; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table thead { display: none; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tr.part-memo-row { display: block; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tr.part-memo-row > td { display: block; width: auto; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) {
     display: grid; align-items: end; column-gap: 3px; row-gap: 2px; padding: 3px 2px 2px;
     grid-template-columns: 28px 28px 40px minmax(48px,.8fr) 1fr 1fr 64px;
     grid-template-areas: "b u c loc name name op" "type type lv tim tim cost rng";
   }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td { display: block; width: auto; min-width: 0 !important; padding: 0; border: 0; text-align: center; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1) { grid-area: b; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2) { grid-area: u; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(3) { grid-area: c; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(4) { grid-area: loc; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(5) { grid-area: name; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6) { grid-area: type; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7) { grid-area: lv; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8) { grid-area: tim; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9) { grid-area: cost; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10) { grid-area: rng; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(11) { grid-area: op; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td { display: block; width: auto; min-width: 0 !important; padding: 0; border: 0; text-align: center; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1) { grid-area: b; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2) { grid-area: u; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(3) { grid-area: c; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(4) { grid-area: loc; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(5) { grid-area: name; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6) { grid-area: type; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7) { grid-area: lv; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8) { grid-area: tim; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9) { grid-area: cost; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10) { grid-area: rng; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(11) { grid-area: op; }
   /* 2段目の小さな見出し */
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(n+6):nth-child(-n+10)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; text-align: left; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6)::before { content: "分類"; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7)::before { content: "Lv"; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8)::before { content: "タイミング"; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9)::before { content: "コスト"; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10)::before { content: "射程"; }
-  body:not(.view-mode) .parts-table td > input, body:not(.view-mode) .parts-table td > select { width: 100%; box-sizing: border-box; }
-  body:not(.view-mode) .parts-table td input[type=checkbox] { width: auto; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(n+6):nth-child(-n+10)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; text-align: left; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6)::before { content: "分類"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7)::before { content: "Lv"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8)::before { content: "タイミング"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9)::before { content: "コスト"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10)::before { content: "射程"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table td > input, html:not(.parts-oneline) body:not(.view-mode) .parts-table td > select { width: 100%; box-sizing: border-box; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table td input[type=checkbox] { width: auto; }
 }
 @media screen and (max-width: 360px) {
   /* 幅の狭い小型のスマホは、名前が潰れて長い名前が読めないので、名前を独立した段にして全幅で見せる(3段) */
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) {
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) {
     grid-template-columns: 24px 24px 36px 44px 1fr minmax(34px,.7fr) 56px;
     grid-template-areas: "b u c loc . . op" "name name name name name name name" "type type lv tim tim cost rng";
   }
 }
 @media screen and (max-width: 560px) {
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(-n+2)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1)::before { content: "損"; }
-  body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2)::before { content: "使"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(-n+2)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1)::before { content: "損"; }
+  html:not(.parts-oneline) body:not(.view-mode) .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2)::before { content: "使"; }
 }
 /* スマホ：スクロール中・入力中は、左下/右下の固定ボタンを薄くして、表の内容が読めるようにする（触れば使える。保存の警告点滅中は薄くしない） */
 @media screen and (max-width: 899px) {
@@ -703,3 +703,53 @@ body.view-mode .parts-table td { padding-top: 0; padding-bottom: 0; }
 body.view-mode .parts-table td input, body.view-mode .parts-table td select { padding-top: 0; padding-bottom: 0; line-height: 1.25; min-height: 0; }
 body.view-mode .parts-table tr.part-memo-row > td { padding-top: 0; padding-bottom: 0; }
 body.view-mode .parts-table tr.part-memo-row textarea { padding-top: 0; padding-bottom: 0; line-height: 1.25; }
+
+/* --- 小型スマホ(表示モード)：パーツ表は1行が細くなりすぎるので、2段に折り返す（1段目：損/使/色/部位/名前/操作、2段目：分類/Lv/タイミング/コスト/射程） --- */
+@media screen and (max-width: 380px) {
+  html:not(.parts-oneline) body.view-mode .parts-table, html:not(.parts-oneline) body.view-mode .parts-table tbody { display: block; width: 100%; }
+  html:not(.parts-oneline) body.view-mode .parts-table thead { display: none; }
+  html:not(.parts-oneline) body.view-mode .parts-table tr.part-memo-row { display: block; }
+  html:not(.parts-oneline) body.view-mode .parts-table tr.part-memo-row > td { display: block; width: auto; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) {
+    display: grid; align-items: end; column-gap: 3px; row-gap: 2px; padding: 3px 2px 2px;
+    grid-template-columns: 28px 28px 40px minmax(48px,.8fr) 1fr 1fr 64px;
+    grid-template-areas: "b u c loc name name op" "type type lv tim tim cost rng";
+  }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td { display: block; width: auto; min-width: 0 !important; padding: 0; border: 0; text-align: center; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1) { grid-area: b; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2) { grid-area: u; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(3) { grid-area: c; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(4) { grid-area: loc; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(5) { grid-area: name; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6) { grid-area: type; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7) { grid-area: lv; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8) { grid-area: tim; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9) { grid-area: cost; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10) { grid-area: rng; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(11) { grid-area: op; }
+  /* 2段目の小さな見出し */
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(n+6):nth-child(-n+10)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; text-align: left; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(6)::before { content: "分類"; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(7)::before { content: "Lv"; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(8)::before { content: "タイミング"; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(9)::before { content: "コスト"; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(10)::before { content: "射程"; }
+  html:not(.parts-oneline) body.view-mode .parts-table td > input, html:not(.parts-oneline) body.view-mode .parts-table td > select { width: 100%; box-sizing: border-box; }
+  html:not(.parts-oneline) body.view-mode .parts-table td input[type=checkbox] { width: auto; }
+}
+@media screen and (max-width: 360px) {
+  /* 幅の狭い小型のスマホは、名前が潰れて長い名前が読めないので、名前を独立した段にして全幅で見せる(3段) */
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) {
+    grid-template-columns: 24px 24px 36px 44px 1fr minmax(34px,.7fr) 56px;
+    grid-template-areas: "b u c loc . . op" "name name name name name name name" "type type lv tim tim cost rng";
+  }
+}
+@media screen and (max-width: 380px) {
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(-n+2)::before { display: block; font-size: .6rem; line-height: 1.1; color: #bbb; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(1)::before { content: "損"; }
+  html:not(.parts-oneline) body.view-mode .parts-table tbody > tr:not(.part-memo-row) > td:nth-child(2)::before { content: "使"; }
+}
+/* 「パーツ：1行」を選んだとき(スマホ)は、2段にせず、これまで通り1行の表にする。このボタンはスマホだけに出す */
+#parts-oneline-btn { display: none; }
+@media screen and (max-width: 560px) { #parts-oneline-btn { display: inline-block; } }
+@media print { #parts-oneline-btn { display: none !important; } }

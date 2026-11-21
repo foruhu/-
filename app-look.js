@@ -36,10 +36,24 @@ function renderCategoryLegend() {
     if (title) title.after(box); else card.prepend(box);
   });
 }
+// スマホのパーツ表：2段に折り返す／これまで通り1行
+function applyPartsOneline(on) {
+  document.documentElement.classList.toggle('parts-oneline', !!on);
+  const b = document.getElementById('parts-oneline-btn');
+  if (b) b.textContent = on ? 'パーツ：1行' : 'パーツ：2段';
+  if (typeof autoResizeAllMemoTextareas === 'function') setTimeout(autoResizeAllMemoTextareas, 50);
+}
+function togglePartsOneline() {
+  let cur = false;
+  try { cur = localStorage.getItem('necro_parts_oneline') === '1'; } catch (e) {}
+  applyPartsOneline(!cur);
+  try { localStorage.setItem('necro_parts_oneline', !cur ? '1' : '0'); } catch (e) {}
+}
 function initLook() {
-  let th = 'dark', roomy = false;
-  try { th = localStorage.getItem('necro_theme') || 'dark'; roomy = localStorage.getItem('necro_table_roomy') === '1'; } catch (e) {}
+  let th = 'dark', roomy = false, oneline = false;
+  try { th = localStorage.getItem('necro_theme') || 'dark'; roomy = localStorage.getItem('necro_table_roomy') === '1'; oneline = localStorage.getItem('necro_parts_oneline') === '1'; } catch (e) {}
   applyTheme(th);
   applyRoomy(roomy);
+  applyPartsOneline(oneline);
   renderCategoryLegend();
 }

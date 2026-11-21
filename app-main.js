@@ -160,15 +160,23 @@ function updateBarSummary() {
     if (!box) return;
     const num = id => { const e = document.getElementById(id); return e ? (parseInt(e.textContent, 10) || 0) : 0; };
     const items = [['武装', 'wep', '#ff6b6b'], ['変異', 'mut', '#4dabf7'], ['改造', 'cyb', '#ffd43b']].map(([label, k, color]) => {
-      let used = 0, max = 0;
-      for (let i = 1; i <= 3; i++) { used += num(`used-${k}-lv${i}`); max += num(`max-${k}-lv${i}`); }
-      return { label, color, used, max };
+      let used = 0, max = 0; const over = [];
+      for (let i = 1; i <= 3; i++) {
+        const u = num(`used-${k}-lv${i}`), x = num(`max-${k}-lv${i}`);
+        used += u; max += x;
+        if (u > x) over.push(`Lv${i} ${u}/${x}`);
+      }
+      return { label, color, used, max, over };
     });
     const line = document.getElementById('bar-skill-line');
-    let su = 0, sm = 0;
-    if (line) for (const mt of (line.textContent || '').matchAll(/(\d+)\s*\/\s*(\d+)/g)) { su += +mt[1]; sm += +mt[2]; }
-    items.push({ label: 'スキル', color: '#c9a8f0', used: su, max: sm });
-    box.innerHTML = items.map(it => `<span><span style="color:${it.color};font-weight:bold;">${it.label}</span> <b class="${it.used > it.max ? 'over' : ''}">${it.used}</b>/${it.max}</span>`).join('');
+    let su = 0, sm = 0; const sover = [];
+    if (line) for (const mt of (line.textContent || '').matchAll(/([^\s:|：]+)\s*[:：]\s*(\d+)\s*\/\s*(\d+)/g)) {
+      su += +mt[2]; sm += +mt[3];
+      if (+mt[2] > +mt[3]) sover.push(`${mt[1]} ${mt[2]}/${mt[3]}`);
+    }
+    items.push({ label: 'スキル', color: '#c9a8f0', used: su, max: sm, over: sover });
+    // 上限を超えた種類は、どのレベル・区分で超えたかも添える（畳んだままでも気づけるように）
+    box.innerHTML = items.map(it => `<span><span style="color:${it.color};font-weight:bold;">${it.label}</span> <b class="${it.over.length ? 'over' : ''}">${it.used}</b>/${it.max}${it.over.length ? ` <span class="over">(超過：${it.over.join('、')})</span>` : ''}</span>`).join('');
   } catch (e) { /* 表示できなくても、畳んだバーが少し寂しくなるだけ */ }
 }
 (function watchBarSummary() {
