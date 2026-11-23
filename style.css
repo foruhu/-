@@ -547,7 +547,7 @@ a:hover { color: #cff; }
 }
 @media screen and (min-width: 385px) and (max-width: 899px) {
   /* 文字が切れやすい列に、最低限の幅をとる（名前の列がそのぶん細くなる。幅の狭い小型のスマホでは、名前が潰れるので行わない） */
-  .maneuver-table td:has(> .p-cost) { min-width: 30px; }
+  .maneuver-table td:has(> .p-cost), .maneuver-table td:has(> .skill-cost) { min-width: 30px; }
   .maneuver-table td:has(> .p-range), .maneuver-table td:has(> .skill-range) { min-width: 34px; }
   .maneuver-table td:has(> .p-timing), .maneuver-table td:has(> .skill-timing) { min-width: 62px; }
 }

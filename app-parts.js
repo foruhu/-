@@ -476,14 +476,21 @@ function onExtraPartSelect(secId, selectElem, acquired) {
 // 射程は「0・なし・自身・効果参照」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
 // 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
 const RANGE_PRESETS = ['0', 'なし', '自身', '効果参照'];
+// コストは「なし・1・2・3」から選ぶ。それ以外(「2+」「X」など)は「自由枠」を選んで、自分で書く
+const COST_PRESETS = ['なし', '1', '2', '3'];
+function presetsForInput(inp) {
+  return inp && inp.classList && (inp.classList.contains('p-cost') || inp.classList.contains('skill-cost')) ? COST_PRESETS : RANGE_PRESETS;
+}
 // 枠は1つだけ見せる：ふだんは選択欄、「自由枠」を選ぶ(または「0〜1」など自由な値が入っている)と、文字欄に切り替わる。
 // 文字欄を空にして、枠の外を押すと、選択欄に戻る
 function buildRangeCellHtml(inputClass, value, locked = false) {
+  const isCost = /(^|\s)(p-cost|skill-cost)(\s|$)/.test(inputClass);
+  const presets = isCost ? COST_PRESETS : RANGE_PRESETS;
   const v = (value === undefined || value === null) ? '' : String(value);
-  const free = v !== '' && !RANGE_PRESETS.includes(v);
+  const free = v !== '' && !presets.includes(v);
   const opt = (val, label, sel) => `<option value="${escapeHtml(val)}" ${sel ? 'selected' : ''}>${escapeHtml(label)}</option>`;
-  const options = opt('', '－', v === '') + RANGE_PRESETS.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
-  return `<select class="range-sel" ${locked ? 'disabled' : ''} style="${free ? 'display:none;' : ''}" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="射程" ${locked ? 'readonly' : ''} onblur="onRangeFreeBlur(this)" style="${free ? '' : 'display:none;'}">`;
+  const options = opt('', '－', v === '') + presets.map(p => opt(p, p, v === p)).join('') + opt('自由枠', '自由枠', free);
+  return `<select class="range-sel${isCost ? ' cost-sel' : ''}" ${locked ? 'disabled' : ''} style="${free ? 'display:none;' : ''}" onchange="onRangeSelChange(this)">${options}</select><input type="text" class="${inputClass}" value="${escapeHtml(v)}" placeholder="${isCost ? 'コスト' : '射程'}" ${locked ? 'readonly' : ''} onblur="onRangeFreeBlur(this)" style="${free ? '' : 'display:none;'}">`;
 }
 function onRangeSelChange(sel) {
   const inp = sel.parentElement && sel.parentElement.querySelector('input[type="text"]');
@@ -509,7 +516,7 @@ function syncRangeSelect(inp) {
   const sel = inp && inp.parentElement && inp.parentElement.querySelector('select.range-sel');
   if (!sel) return;
   const v = inp.value || '';
-  const free = v !== '' && !RANGE_PRESETS.includes(v);
+  const free = v !== '' && !presetsForInput(inp).includes(v);
   sel.value = free ? '自由枠' : v;
   sel.style.display = free ? 'none' : '';
   inp.style.display = free ? '' : 'none';
@@ -563,7 +570,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     </td>
     <td><select class="p-level" ${disabledAttr} onchange="calcTotals()">${buildLevelOptionsHtml(level)}</select></td>
     <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
-    <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
+    <td>${buildRangeCellHtml('p-cost', cost, !isEditable)}</td>
     <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>
     <td class="col-op"><span class="op-stack"><span class="move-btns"><button type="button" class="move-btn" title="1つ上へ動かします(いちばん上のときは、ひとつ上の部位の最後へ)" aria-label="1つ上へ" onclick="movePartRow(this,-1)">▲</button><button type="button" class="move-btn" title="1つ下へ動かします(いちばん下のときは、ひとつ下の部位の先頭へ)" aria-label="1つ下へ" onclick="movePartRow(this,1)">▼</button></span><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
