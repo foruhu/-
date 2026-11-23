@@ -473,9 +473,9 @@ function onExtraPartSelect(secId, selectElem, acquired) {
   selectElem.value = '';
 }
 
-// 射程は「0・なし・自身」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
+// 射程は「0・なし・自身・効果参照」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
 // 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
-const RANGE_PRESETS = ['0', 'なし', '自身'];
+const RANGE_PRESETS = ['0', 'なし', '自身', '効果参照'];
 // 枠は1つだけ見せる：ふだんは選択欄、「自由枠」を選ぶ(または「0〜1」など自由な値が入っている)と、文字欄に切り替わる。
 // 文字欄を空にして、枠の外を押すと、選択欄に戻る
 function buildRangeCellHtml(inputClass, value, locked = false) {
