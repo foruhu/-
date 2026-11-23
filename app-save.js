@@ -783,40 +783,62 @@ function applyData_(data) {
 function restorePartsFromData(parts) {
   const sectionIds = ['head', 'arm', 'body', 'leg'];
   const locMap = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
   const savedParts = Array.isArray(parts) ? parts : [];
+  const defs = (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS) ? DEFAULT_PARTS : {};
+
+  sectionIds.forEach(secId => {
+    const tbody = document.getElementById(`parts-tbody-${secId}`);
+    if (tbody) tbody.innerHTML = '';
+  });
+
+  // 「基本」パーツは中身を常に標準データから作り、保存データからは「並び順・部位・損傷/使用・色」だけを引き継ぐ。
+  // 追加パーツ(武装・変異・改造など)は保存データから復元する。どちらも、保存されたときの並び順のまま並べる
+  // 同じ名前の標準パーツ(胴部の「はらわた」、脚部の「ほね」)が2つずつあるので、名前だけでなく「何番目か」で対応させる
+  const defList = [];
+  sectionIds.forEach(secId => (defs[secId] || []).forEach(p => defList.push({ secId, p, used: false })));
+  const plan = { head: [], arm: [], body: [], leg: [] };
+  const strayBase = []; // 名前が標準データに無い「基本」(古い保存データ)：同じ部位の、まだ使われていない標準パーツに順に割り当てる
+  savedParts.forEach(p => {
+    if (!p) return;
+    if (p.type === '基本') {
+      const wantSec = locToSection[p.location] || '';
+      const cands = defList.filter(d => !d.used && d.p.name === p.name);
+      const d = cands.find(x => x.secId === wantSec) || cands[0];
+      if (d) {
+        d.used = true;
+        (plan[wantSec] || plan[d.secId]).push({ def: d.p, saved: p });
+      } else if (!defList.some(x => x.p.name === p.name)) strayBase.push(p);
+    } else {
+      plan[locToSection[p.location] || 'body'].push({ saved: p });
+    }
+  });
+  // 保存データに無かった標準パーツは、その部位の先頭に標準の並びで入れる(新しいキャラ・新しく増えた標準パーツ用)
+  sectionIds.forEach(secId => {
+    const missing = [];
+    defList.filter(d => d.secId === secId && !d.used).forEach(d => {
+      const k = strayBase.findIndex(s => (locToSection[s.location] || '') === secId);
+      const saved = k >= 0 ? strayBase.splice(k, 1)[0] : null;
+      d.used = true;
+      missing.push({ def: d.p, saved });
+    });
+    plan[secId] = missing.concat(plan[secId]);
+  });
 
   sectionIds.forEach(secId => {
     const tbody = document.getElementById(`parts-tbody-${secId}`);
     if (!tbody) return;
-    tbody.innerHTML = '';
-
-    // このセクションの「基本」パーツの損傷・使用状態（DEFAULT_PARTSと同じ並び順で対応させる）
-    const savedBaseStates = savedParts.filter(p => p.type === '基本' && p.location === locMap[secId]);
-
-    if (typeof DEFAULT_PARTS !== 'undefined' && DEFAULT_PARTS[secId]) {
-      DEFAULT_PARTS[secId].forEach((p, idx) => {
-        const saved = savedBaseStates[idx];
+    plan[secId].forEach(e => {
+      if (e.def) {
+        const p = e.def, saved = e.saved;
         addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo || '', false, locMap[secId], saved ? saved.tag || '' : '');
         if (saved) applyRowFlags(tbody, saved.isBroken, saved.isUsed, saved.isChouai, saved.isOther);
-      });
-    }
-  });
-
-  if (savedParts.length === 0) {
-    if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();
-    return;
-  }
-
-  const locToSection = { '頭部': 'head', '腕部': 'arm', '胴部': 'body', '脚部': 'leg' };
-
-  // 武装・変異・改造など「基本」以外の追加パーツを保存データから復元
-  savedParts.filter(p => p.type !== '基本').forEach(p => {
-    const secId = locToSection[p.location] || 'body';
-    const tbody = document.getElementById(`parts-tbody-${secId}`);
-    if (!tbody) return;
-
-    addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, p.location || locMap[secId], p.tag || '');
-    applyRowFlags(tbody, p.isBroken, p.isUsed, p.isChouai, p.isOther);
+      } else {
+        const p = e.saved;
+        addPartRow(tbody, p.name, p.type, p.level, p.timing, p.cost, p.range, p.memo, p.isEditable, locMap[secId], p.tag || '');
+        applyRowFlags(tbody, p.isBroken, p.isUsed, p.isChouai, p.isOther);
+      }
+    });
   });
 
   if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions();

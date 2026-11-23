@@ -576,6 +576,15 @@ html.table-roomy .maneuver-table select.range-sel { font-size: .8rem; }
 
 /* 寵愛点で取得したスキル・パーツ：「寵」ボタンと、行の左端の金色の印 */
 .op-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 2px; }
+/* パーツの並べ替え(▲▼)：2つを横に並べる */
+.move-btns { display: flex; gap: 2px; }
+.move-btn { flex: 1 1 0; min-width: 0; background: #23304a; color: #cfe0ff; border: 1px solid #5a74a8; border-radius: 3px; font-size: .7rem; padding: 2px 0; line-height: 1.2; cursor: pointer; }
+.move-btn:hover, .move-btn:focus-visible { background: #34466c; }
+.move-btn:active { filter: brightness(1.3); }
+html.theme-light .move-btn { background: #e3eaf8; color: #28406e; border-color: #8aa0cc; }
+@keyframes movedflash { from { background-color: rgba(120,180,255,.55); } to { background-color: transparent; } }
+tr.moved-flash > td { animation: movedflash 1.1s ease-out; }
+@media print { .move-btns { display: none !important; } }
 .chouai-btn { background: #2a2418; color: #d9b44a; border: 1px solid #8a6d1e; border-radius: 3px; font-size: .68rem; padding: 1px 3px; cursor: pointer; line-height: 1.2; }
 tr.chouai-acq .chouai-btn { background: #b8860b; color: #fff; border-color: #ffd24a; font-weight: bold; }
 tr.chouai-acq > td:first-child { box-shadow: inset 4px 0 0 #ffd24a; }

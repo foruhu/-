@@ -273,6 +273,13 @@ function renderPartsContainer() {
   updateExtraPartOptions();
 }
 
+// 自由枠の初期の名前「新規パーツ」は、欄を押したときに全部選ばれた状態にする(消さずに、そのまま書き始められる)
+function selectDefaultPartName(inp) {
+  try {
+    if (!inp || inp.readOnly || inp.value !== '新規パーツ') return;
+    setTimeout(() => { try { inp.select(); inp.setSelectionRange(0, inp.value.length); } catch (e) {} }, 0);
+  } catch (e) { /* 選べなくても、入力はできる */ }
+}
 function isPartAlreadyExists(partName) {
   if (!partName || partName === '新規パーツ') return false;
   return Array.from(document.querySelectorAll('#parts-container .p-name')).some(input => input.value.trim() === partName.trim());
@@ -448,6 +455,13 @@ function onExtraPartSelect(secId, selectElem, acquired) {
       return;
     }
     addPartRow(tbody, partData.name, partData.type, partData.level, partData.timing, partData.cost, partData.range, partData.memo, partData.isEditable, currentLocName, detectCategoryFromMemo(partData.memo));
+    if (val === 'custom') { // 自由枠は、足したらすぐ名前の欄に入って、そのまま書けるようにする
+      try {
+        const rows0 = tbody.querySelectorAll('tr.part-row');
+        const nameInp = rows0.length ? rows0[rows0.length - 1].querySelector('.p-name') : null;
+        if (nameInp) { nameInp.focus({ preventScroll: true }); nameInp.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      } catch (e) { /* 入れなくても、名前の欄を押せば書ける */ }
+    }
     if (acquired) { // 「シナリオ中に獲得」の選択欄から足したときは、足したパーツに「獲得」の印を付ける(基本・たからものは対象外)
       try {
         const rows = tbody.querySelectorAll('tr.part-row');
@@ -540,8 +554,8 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><input type="checkbox" class="p-broken" onchange="togglePartBreak(this)"></td>
     <td class="p-used-cell"><input type="checkbox" class="p-used" onchange="togglePartUsed(this)"></td>
     <td class="color-col"><select class="p-tag" onchange="onManeuverCategoryChange(this)">${buildCategoryOptions(tag)}</select></td>
-    <td><select class="p-location" style="padding:2px;font-size:0.75rem;">${locOptions}</select></td>
-    <td><input type="text" value="${escapeHtml(name)}" class="p-name" ${readOnlyAttr}></td>
+    <td><select class="p-location" style="padding:2px;font-size:0.75rem;" onchange="onPartLocationChange(this)">${locOptions}</select></td>
+    <td><input type="text" value="${escapeHtml(name)}" class="p-name" ${readOnlyAttr} onfocus="selectDefaultPartName(this)"></td>
     <td>
       <select class="p-type" ${disabledAttr} onchange="calcTotals()">
         ${type === '' ? '<option value="" selected>（未選択）</option>' : ''}${['基本','武装','変異','改造','たからもの'].map(t => `<option ${type===t?'selected':''}>${t}</option>`).join('')}
@@ -551,7 +565,7 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
     <td><select class="p-timing" ${disabledAttr} onchange="updatePartUsedCheckboxVisibility(this.closest('tr'))">${buildTimingOptionsHtml(timing)}</select></td>
     <td><input type="text" value="${escapeHtml(cost)}" class="p-cost" ${readOnlyAttr}></td>
     <td>${buildRangeCellHtml('p-range', range, !isEditable)}</td>
-    <td class="col-op"><span class="op-stack"><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
+    <td class="col-op"><span class="op-stack"><span class="move-btns"><button type="button" class="move-btn" title="1つ上へ動かします(いちばん上のときは、ひとつ上の部位の最後へ)" aria-label="1つ上へ" onclick="movePartRow(this,-1)">▲</button><button type="button" class="move-btn" title="1つ下へ動かします(いちばん下のときは、ひとつ下の部位の先頭へ)" aria-label="1つ下へ" onclick="movePartRow(this,1)">▼</button></span><button type="button" class="chouai-btn" title="押すと「寵愛点で取得した」印が付きます(金色になります)。もう一度押すと外れます" onclick="toggleChouaiAcq(this)">寵</button><button type="button" class="other-btn" title="押すと「シナリオ中に獲得した」印が付きます(青緑になります)。寵愛点は使わず、上限だけ1増えます。もう一度押すと外れます" onclick="toggleOtherAcq(this)">獲得</button><button type="button" class="del" onclick="removeRowWithUndo(this, calcTotals)">X</button></span></td>
   `;
   tbody.appendChild(tr);
   unlockEffectlessPart(tr, name, isEditable);
@@ -581,6 +595,84 @@ function addPartRow(tbody, name, type, level, timing, cost, range, memo, isEdita
   autoResizeTextarea(memoTr.querySelector('.p-memo'));
   markDirty();
   calcTotals();
+}
+
+// --- パーツ(マニューバ)の並べ替え：▲▼で1つずつ動かす。いちばん端で押すと、隣の部位に移る。「配置部位」を変えても、その部位へ移る ---
+const PART_SEC_IDS = ['head', 'arm', 'body', 'leg'];
+const PART_SEC_LOC = { head: '頭部', arm: '腕部', body: '胴部', leg: '脚部' };
+function partMemoRowOf(tr) {
+  const n = tr && tr.nextElementSibling;
+  return (n && n.classList.contains('part-memo-row')) ? n : null;
+}
+function flashMovedPart(tr) {
+  try {
+    const memoTr = partMemoRowOf(tr);
+    tr.classList.add('moved-flash'); if (memoTr) memoTr.classList.add('moved-flash');
+    setTimeout(() => { tr.classList.remove('moved-flash'); if (memoTr) memoTr.classList.remove('moved-flash'); }, 1100);
+    tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  } catch (e) { /* 目印や画面の移動に失敗しても、並べ替え自体は済んでいる */ }
+}
+// 本体行(tr)と効果メモ行を、1組のまま別の場所へ動かす。beforeNode が null なら tbody の最後へ
+function relocatePartPair(tr, tbody, beforeNode) {
+  const memoTr = partMemoRowOf(tr);
+  tbody.insertBefore(tr, beforeNode);
+  if (memoTr) tbody.insertBefore(memoTr, beforeNode);
+  const secId = (tbody.id || '').replace('parts-tbody-', '');
+  const sel = tr.querySelector('.p-location');
+  if (sel && PART_SEC_LOC[secId]) sel.value = PART_SEC_LOC[secId];
+}
+function afterPartMoved(tr) {
+  markDirty();
+  try { calcTotals(); } catch (e) {}
+  try { if (typeof updateExtraPartOptions === 'function') updateExtraPartOptions(); } catch (e) {}
+  flashMovedPart(tr);
+}
+function movePartRow(btn, dir) {
+  const tr = btn && btn.closest ? btn.closest('tr.part-row') : null;
+  if (!tr || !tr.parentNode) return;
+  const tbody = tr.parentNode;
+  const snapshot = (() => { try { return JSON.stringify(getFullData()); } catch (e) { return null; } })();
+  try {
+    const rows = Array.from(tbody.querySelectorAll(':scope > tr.part-row'));
+    const i = rows.indexOf(tr);
+    const secIdx = PART_SEC_IDS.indexOf((tbody.id || '').replace('parts-tbody-', ''));
+    let moved = false;
+    if (dir < 0) {
+      if (i > 0) { pushUndoSnapshot(); relocatePartPair(tr, tbody, rows[i - 1]); moved = true; }
+      else if (secIdx > 0) {
+        const to = document.getElementById('parts-tbody-' + PART_SEC_IDS[secIdx - 1]);
+        if (to) { pushUndoSnapshot(); relocatePartPair(tr, to, null); moved = true; }
+      } else { showToast('いちばん上です'); return; }
+    } else {
+      if (i >= 0 && i < rows.length - 1) {
+        const nextMemo = partMemoRowOf(rows[i + 1]);
+        pushUndoSnapshot();
+        relocatePartPair(tr, tbody, nextMemo ? nextMemo.nextSibling : null);
+        moved = true;
+      } else if (secIdx >= 0 && secIdx < PART_SEC_IDS.length - 1) {
+        const to = document.getElementById('parts-tbody-' + PART_SEC_IDS[secIdx + 1]);
+        if (to) { pushUndoSnapshot(); relocatePartPair(tr, to, to.firstChild); moved = true; }
+      } else { showToast('いちばん下です'); return; }
+    }
+    if (moved) afterPartMoved(tr);
+  } catch (e) {
+    // 途中で失敗したときは、動かす前の状態に戻す
+    try { if (snapshot) applyData(JSON.parse(snapshot)); } catch (e2) {}
+    showToast('並べ替えに失敗しました。元の並びに戻しました');
+  }
+}
+function onPartLocationChange(sel) {
+  const tr = sel && sel.closest ? sel.closest('tr.part-row') : null;
+  if (!tr || !tr.parentNode) return;
+  const secId = Object.keys(PART_SEC_LOC).find(k => PART_SEC_LOC[k] === sel.value);
+  const to = secId ? document.getElementById('parts-tbody-' + secId) : null;
+  if (!to || to === tr.parentNode) return;
+  try {
+    relocatePartPair(tr, to, null);
+    afterPartMoved(tr);
+  } catch (e) {
+    showToast('部位を移せませんでした');
+  }
 }
 
 function togglePartBreak(checkbox) {
