@@ -635,6 +635,14 @@ function addSlotSkillRow(slot) {
   addSkillRow(document.getElementById(slot)?.value || '');
   try { const rows = document.querySelectorAll('#skill-tbody tr.skill-row'); const last = rows[rows.length - 1]; if (last) last.dataset.slot = slot; } catch (e) {}
 }
+// 初期状態(何も入力していないとき)は、取れる数ぶんの空き枠(ポジション1・メインクラス2・サブクラス1)を最初から並べておく
+function seedInitialSkillRows() {
+  try {
+    const tb = document.getElementById('skill-tbody');
+    if (!tb || tb.querySelector('tr.skill-row')) return;
+    ['pos', 'mc', 'mc', 'sc'].forEach(k => addSlotSkillRow(k));
+  } catch (e) { /* 空き枠を並べられなくても、「+ ポジション」などのボタンから足せる */ }
+}
 function addPosSkillRow() { addSlotSkillRow('pos'); }
 function addMcSkillRow() { addSlotSkillRow('mc'); }
 function addScSkillRow() { addSlotSkillRow('sc'); }

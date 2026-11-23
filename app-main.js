@@ -257,6 +257,7 @@ window.onload = async function() {
   if (typeof initLook === 'function') initLook();
   if (typeof renderPartsContainer === 'function') renderPartsContainer();
   onClassChange();
+  if (typeof seedInitialSkillRows === 'function') seedInitialSkillRows(); // 白紙の状態にも含まれるので、「新規作成」でも同じ空き枠が並ぶ
   if (typeof captureBlankSheet === 'function') captureBlankSheet();
   if (typeof migrateOldSingleSave === 'function') migrateOldSingleSave();
   if (typeof refreshSaveSlotOptions === 'function') refreshSaveSlotOptions();
