@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=303">
+<link rel="stylesheet" href="style.css?v=304">
 </head>
 <body>
 
@@ -717,6 +717,14 @@
       <li>2026/11/10 パーツ・スキルのコストと射程の「無し」を「なし」にそろえました(入力した「無し」は、そのまま残ります)。</li>
       <li>2026/11/16 キャラクター画像を、最大6枚まで設定できるようにしました。設定する場所も、基本情報のいちばん上にしました。</li>
       <li>2026/11/17 クラス「サイケデリック」(スキルは名前のみ)を追加しました。各クラスの特化スキルには、スキル選択で「（特化）」と表示されます。</li>
+      <li>2026/11/24 マニューバ(パーツ)の位置を、行の右端の「▲」「▼」で1つずつ動かせるようにしました(基本パーツも動かせます)。いちばん上・下で押すと隣の部位に移ります。「配置部位」を変えても、その部位へ移ります。</li>
+      <li>2026/11/24 2レベル改造「リフレックス」を、どの部位でも選べる共通の追加パーツに移しました(ゾンビボムの次に並びます)。</li>
+      <li>2026/11/24 自由枠にパーツを追加したとき、名前欄にカーソルが入り、「新規パーツ」の文字が選ばれた状態になりました。消さずにそのまま名前を打てます。</li>
+      <li>2026/11/24 最初の状態で、習得スキルの空き枠(ポジション1・メインクラス2・サブクラス1)が出るようにしました。</li>
+      <li>2026/11/24 射程に「効果参照」を追加しました。</li>
+      <li>2026/11/24 コストを、「なし・0・1・2・3」から選ぶ形にしました。それ以外は「自由枠」を選んで書けます(パーツ・習得スキルの両方)。</li>
+      <li>2026/11/24 「+ 未練枠を追加」で増やした未練は、狂気点が3/4から始まるようにしました。</li>
+      <li>2026/11/24 使い方に、ココフォリアに貼り付けたとき1回目だけ読み込みエラーが出ることがある、という説明を足しました。</li>
       <li>2026/11/22 スマホで編集するパーツ表を、「⚙ 表示設定」の「パーツ：2段／1行」ボタンで、2段(折り返し)と1行(これまでの表)から選べるようにしました。2段のときは、行と行の間に薄い区切り線が入ります。</li>
       <li>2026/11/22 畳んだ固定バーの1行表示で、上限を超えているときは、超過の内訳(どの欄がいくつ超えているか)も出るようにしました。</li>
       <li>2026/11/22 幅の狭い小型のスマホでも、表示モードのパーツ表が折り返して読めるようにしました。</li>
@@ -774,16 +782,16 @@
   </div>
 </div>
 
-<script src="data.js?v=303"></script>
-<script src="app-core.js?v=303"></script>
-<script src="app-parts.js?v=303"></script>
-<script src="app-skills.js?v=303"></script>
-<script src="app-save.js?v=303"></script>
-<script src="app-dict.js?v=303"></script>
-<script src="app-image.js?v=303"></script>
-<script src="app-look.js?v=303"></script>
-<script src="app-sheetprint.js?v=303"></script>
-<script src="app-share.js?v=303"></script>
-<script src="app-main.js?v=303"></script>
+<script src="data.js?v=304"></script>
+<script src="app-core.js?v=304"></script>
+<script src="app-parts.js?v=304"></script>
+<script src="app-skills.js?v=304"></script>
+<script src="app-save.js?v=304"></script>
+<script src="app-dict.js?v=304"></script>
+<script src="app-image.js?v=304"></script>
+<script src="app-look.js?v=304"></script>
+<script src="app-sheetprint.js?v=304"></script>
+<script src="app-share.js?v=304"></script>
+<script src="app-main.js?v=304"></script>
 </body>
 </html>
