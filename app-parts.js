@@ -476,8 +476,8 @@ function onExtraPartSelect(secId, selectElem, acquired) {
 // 射程は「0・なし・自身・効果参照」から選ぶ。それ以外(「0〜1」など)は「自由枠」を選んで、自分で書く。
 // 値は、(見えない時もある)文字欄に入れておき、保存や読み込みは今までどおり、その文字欄を見る
 const RANGE_PRESETS = ['0', 'なし', '自身', '効果参照'];
-// コストは「なし・1・2・3」から選ぶ。それ以外(「2+」「X」など)は「自由枠」を選んで、自分で書く
-const COST_PRESETS = ['なし', '1', '2', '3'];
+// コストは「0・なし・1・2・3」から選ぶ。それ以外(「2+」「X」など)は「自由枠」を選んで、自分で書く
+const COST_PRESETS = ['0', 'なし', '1', '2', '3'];
 function presetsForInput(inp) {
   return inp && inp.classList && (inp.classList.contains('p-cost') || inp.classList.contains('skill-cost')) ? COST_PRESETS : RANGE_PRESETS;
 }
