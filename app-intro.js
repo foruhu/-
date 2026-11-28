@@ -2,8 +2,13 @@
 // （外部ライブラリなし・canvasで直接描画。保存のしくみは「画像で保存」と同じ savePngCanvas を使う）
 const INTRO_LAYOUTS = {
   v: { w: 1080, h: 1350, label: '縦長（1080×1350）' },
-  h: { w: 1600, h: 900, label: '横長（1600×900）' }
+  h: { w: 1600, h: 900, label: '横長（1600×900）' },
+  b: { w: 1080, h: 1620, label: '人体図（1080×1620）：頭・腕・胴・脚の札を、線で結ぶ' }
 };
+// 人体図で、線の先(立ち絵の上の場所)の初めの位置。画像全体に対する割合(0〜1)。立ち絵に合わせて、画面で動かせる
+function introDefaultAnchors() {
+  return { head: { x: 0.5, y: 0.18 }, arm: { x: 0.6, y: 0.37 }, body: { x: 0.5, y: 0.45 }, leg: { x: 0.5, y: 0.68 } };
+}
 // 背景の見本。stops は上から下への色、grid は格子の線を重ねる
 const INTRO_BGS = [
   { id: 'grid', name: '格子', stops: ['#1b2a78', '#0d1440'], grid: true },
@@ -143,11 +148,11 @@ function introDrawPortrait(ctx, W, H, st) {
   const im = st.pImg;
   if (!im) return;
   const iw = im.naturalWidth, ih = im.naturalHeight;
-  const vertical = st.layout === 'v';
-  const base = vertical ? Math.min(H * 0.95 / ih, W / iw) : Math.min(H / ih, W * 0.5 / iw);
+  const lay = st.layout;
+  const base = lay === 'v' ? Math.min(H * 0.95 / ih, W / iw) : lay === 'b' ? Math.min(H * 0.70 / ih, W * 0.62 / iw) : Math.min(H / ih, W * 0.5 / iw);
   const s = base * st.ps;
-  const cx = (vertical ? W / 2 : W * 0.27) + st.px * W;
-  const bottom = H + st.py * H;
+  const cx = (lay === 'h' ? W * 0.27 : W / 2) + st.px * W;
+  const bottom = (lay === 'b' ? H * 0.78 : H) + st.py * H;
   ctx.save();
   ctx.translate(cx, bottom);
   if (st.flip) ctx.scale(-1, 1);
@@ -243,6 +248,84 @@ function introDrawOps(ctx, ops, ox, oy) {
   });
 }
 
+// 人体図の型：立ち絵のまわりに、頭・腕・胴・脚の札(マニューバ名)を置き、線で立ち絵につなぐ。下に、行動値・スキル・未練を載せる
+function introDrawBodyLayout(ctx, st, data, W, H) {
+  const F = INTRO_FONT;
+  // 名前とクラス(画像の上に直接書く)
+  let size = 92;
+  ctx.font = `bold ${size}px ${F}`;
+  while (size > 44 && ctx.measureText(data.name).width > W - 112) { size -= 4; ctx.font = `bold ${size}px ${F}`; }
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.85)'; ctx.shadowBlur = 14;
+  ctx.fillStyle = '#fff'; ctx.fillText(data.name, 56, 56 + size);
+  if (data.classes.length) { ctx.font = `bold 34px ${F}`; ctx.fillStyle = '#e8ecff'; ctx.fillText(data.classes.join(' / '), 58, 56 + size + 54); }
+  ctx.restore();
+  // 札
+  if (st.show.parts) {
+    const cw = 300, pad = 18, fz = 27, lh = Math.round(fz * 1.4);
+    const specs = [['頭', 'head', 'L', 0.15], ['腕', 'arm', 'R', 0.29], ['胴', 'body', 'L', 0.43], ['脚', 'leg', 'R', 0.57]];
+    const cards = [];
+    specs.forEach(([lab, key, side, ty]) => {
+      const g = data.parts.find(p => p.label === lab);
+      if (!g) return;
+      const total = g.names.length;
+      let lines = [];
+      for (let n = total; n >= 1; n--) {
+        lines = introWrap(ctx, g.names.slice(0, n).join('・') + (n < total ? `…ほか${total - n}件` : ''), cw - pad * 2, `${fz}px ${F}`);
+        if (lines.length <= 5) break;
+      }
+      const h = pad * 2 + 40 + lines.length * lh;
+      const x = side === 'L' ? 36 : W - 36 - cw;
+      cards.push({ lab, key, side, lines, x, y: Math.round(ty * H), w: cw, h });
+    });
+    const anchors = st.anchors || introDefaultAnchors();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(159,216,255,.95)'; ctx.fillStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 6;
+    cards.forEach(c => {
+      const a = anchors[c.key] || introDefaultAnchors()[c.key];
+      const sx = c.side === 'L' ? c.x + c.w : c.x, sy = c.y + c.h / 2;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(a.x * W, a.y * H); ctx.stroke();
+      ctx.beginPath(); ctx.arc(a.x * W, a.y * H, 9, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+    cards.forEach(c => {
+      introRoundRect(ctx, c.x, c.y, c.w, c.h, 18);
+      ctx.fillStyle = 'rgba(10,10,20,.8)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(159,216,255,.7)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = `bold 30px ${F}`; ctx.fillStyle = '#9fd8ff';
+      ctx.fillText(c.lab, c.x + pad, c.y + pad + 30);
+      ctx.font = `${fz}px ${F}`; ctx.fillStyle = '#fff';
+      c.lines.forEach((l, i) => ctx.fillText(l, c.x + pad, c.y + pad + 40 + (i + 1) * lh - 6));
+    });
+  }
+  // 下のパネル(行動値・強化値・スキル・未練。マニューバは札にあるので載せない)
+  const st2 = Object.assign({}, st, { show: Object.assign({}, st.show, { parts: false }) });
+  const PAD = 30, pw = W - 80, px = 40, maxH = 340, iw = pw - PAD * 2;
+  let fs = 1, built = null;
+  for (; fs >= 0.549; fs -= 0.05) {
+    built = introBuildContent(ctx, data, st2, iw, fs * 0.82, false);
+    if (built.h + PAD * 2 <= maxH) break;
+  }
+  const overflow = built.h + PAD * 2 > maxH;
+  const ph = Math.min(maxH, Math.round(built.h + PAD * 2));
+  const py = H - 40 - ph;
+  ctx.save();
+  introRoundRect(ctx, px, py, pw, ph, 28);
+  ctx.fillStyle = 'rgba(10,10,20,.8)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 2; ctx.stroke();
+  introRoundRect(ctx, px, py, pw, ph, 28); ctx.clip();
+  introDrawOps(ctx, built.ops, px + PAD, py + PAD);
+  ctx.restore();
+  ctx.save();
+  ctx.font = `16px ${F}`; ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.textAlign = 'right';
+  ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 4;
+  ctx.fillText('ドール設計図館', W - 20, H - 14);
+  ctx.restore();
+  return { overflow };
+}
+
 // 紹介画像を cv に描く。入りきらない項目があれば、overflow: true を返す
 function introDraw(cv, st, data) {
   const L = INTRO_LAYOUTS[st.layout] || INTRO_LAYOUTS.v;
@@ -252,6 +335,7 @@ function introDraw(cv, st, data) {
   ctx.textBaseline = 'alphabetic';
   introDrawBackground(ctx, W, H, st);
   introDrawPortrait(ctx, W, H, st);
+  if (st.layout === 'b') return introDrawBodyLayout(ctx, st, data, W, H);
   const vertical = st.layout === 'v';
   const PAD = vertical ? 34 : 36;
   let pw, px, maxH;
@@ -330,7 +414,7 @@ function introCloseDialog() {
 function openIntroImage() {
   if (document.getElementById('intro-overlay')) return;
   const prefs = introLoadPrefs();
-  introState = { layout: prefs.layout, bg: prefs.bg, dim: prefs.dim, show: prefs.show, bgImg: null, pImg: null, ps: 1, px: 0, py: 0, flip: false, fileError: '' };
+  introState = { layout: prefs.layout, bg: prefs.bg, dim: prefs.dim, show: prefs.show, bgImg: null, pImg: null, ps: 1, px: 0, py: 0, flip: false, fileError: '', anchors: introDefaultAnchors() };
   const saved = (typeof currentImageList === 'function') ? currentImageList() : [];
   const ov = document.createElement('div');
   ov.id = 'intro-overlay';
@@ -373,6 +457,10 @@ function openIntroImage() {
         <label style="${lab}"><input type="checkbox" id="intro-flip"> 左右を反転する</label>
         <button type="button" class="sec" id="intro-pos-reset">位置をもどす</button>
       </div>
+      <details id="intro-anchor-box" style="display:none;margin-top:8px;font-size:.82rem;"><summary style="cursor:pointer;color:#9fd8ff;">人体図の線の先を動かす（立ち絵に合わせる）</summary>
+        ${[['head', '頭'], ['arm', '腕'], ['body', '胴'], ['leg', '脚']].map(([k, n]) => `<div style="margin-top:6px;"><b style="color:#9fd8ff;">${n}</b> 左右 <input type="range" class="intro-anc" data-k="${k}" data-ax="x" min="0" max="100" step="1" value="${Math.round(introState.anchors[k].x * 100)}" style="vertical-align:middle;width:30%;"> 上下 <input type="range" class="intro-anc" data-k="${k}" data-ax="y" min="0" max="100" step="1" value="${Math.round(introState.anchors[k].y * 100)}" style="vertical-align:middle;width:30%;"></div>`).join('')}
+        <button type="button" class="sec" id="intro-anc-reset" style="margin-top:8px;">線の先をもどす</button>
+      </details>
       <div style="${h}">載せる項目（名前とクラスは、いつも載ります）</div>
       ${INTRO_SHOW_ITEMS.map(([k, n]) => `<label style="${lab}"><input type="checkbox" class="intro-show" data-k="${k}" ${introState.show[k] ? 'checked' : ''}> ${n}</label>`).join('')}
       <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
@@ -397,6 +485,7 @@ function introSyncControls() {
   ov.querySelector('#intro-dim-v').textContent = Math.round(introState.dim * 100) + '%';
   ov.querySelector('#intro-ps-v').textContent = Math.round(introState.ps * 100) + '%';
   ov.querySelectorAll('.intro-th').forEach(b => { b.style.borderColor = (introState.pKey === b.dataset.key) ? '#fff' : '#555'; });
+  ov.querySelector('#intro-anchor-box').style.display = (introState.layout === 'b' && introState.show.parts) ? '' : 'none';
   ov.querySelector('#intro-pos').style.opacity = introState.pImg ? '1' : '.45';
 }
 
@@ -416,7 +505,7 @@ function introWire(ov, saved) {
   const q = s => ov.querySelector(s);
   ov.addEventListener('click', e => { if (e.target === ov) introCloseDialog(); });
   q('#intro-cancel').onclick = introCloseDialog;
-  ov.querySelectorAll('input[name="intro-layout"]').forEach(r => r.addEventListener('change', () => { introState.layout = r.value; introSavePrefs(); introRenderSoon(); }));
+  ov.querySelectorAll('input[name="intro-layout"]').forEach(r => r.addEventListener('change', () => { introState.layout = r.value; introSavePrefs(); introSyncControls(); introRenderSoon(); }));
   ov.querySelectorAll('.intro-sw').forEach(b => b.addEventListener('click', () => { introState.bg = b.dataset.bg; introState.bgImg = null; introState.fileError = ''; introSavePrefs(); introSyncControls(); introRenderSoon(); }));
   q('#intro-bg-file').onclick = () => q('#intro-bg-input').click();
   q('#intro-bg-input').addEventListener('change', ev => {
@@ -445,13 +534,19 @@ function introWire(ov, saved) {
   q('#intro-ps').addEventListener('input', e => { introState.ps = Number(e.target.value) / 100; introSyncControls(); introRenderSoon(); });
   q('#intro-px').addEventListener('input', e => { introState.px = Number(e.target.value) / 100; introRenderSoon(); });
   q('#intro-py').addEventListener('input', e => { introState.py = Number(e.target.value) / 100; introRenderSoon(); });
+  ov.querySelectorAll('.intro-anc').forEach(r => r.addEventListener('input', () => { introState.anchors[r.dataset.k][r.dataset.ax] = Number(r.value) / 100; introRenderSoon(); }));
+  q('#intro-anc-reset').onclick = () => {
+    introState.anchors = introDefaultAnchors();
+    ov.querySelectorAll('.intro-anc').forEach(r => { r.value = Math.round(introState.anchors[r.dataset.k][r.dataset.ax] * 100); });
+    introRenderSoon();
+  };
   q('#intro-flip').addEventListener('change', e => { introState.flip = !!e.target.checked; introRenderSoon(); });
   q('#intro-pos-reset').onclick = () => {
     introState.ps = 1; introState.px = 0; introState.py = 0; introState.flip = false;
     q('#intro-ps').value = 100; q('#intro-px').value = 0; q('#intro-py').value = 0; q('#intro-flip').checked = false;
     introSyncControls(); introRenderSoon();
   };
-  ov.querySelectorAll('.intro-show').forEach(c => c.addEventListener('change', () => { introState.show[c.dataset.k] = !!c.checked; introSavePrefs(); introRenderSoon(); }));
+  ov.querySelectorAll('.intro-show').forEach(c => c.addEventListener('change', () => { introState.show[c.dataset.k] = !!c.checked; introSavePrefs(); introSyncControls(); introRenderSoon(); }));
   q('#intro-save').onclick = () => {
     const cv = q('#intro-canvas');
     try { introDraw(cv, introState, introGatherData()); } catch (e) { introSetStatus('画像を作れませんでした。（' + (e && e.message ? e.message : e) + '）', true); return; }
