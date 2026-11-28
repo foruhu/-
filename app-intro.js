@@ -14,6 +14,15 @@ const INTRO_BGS = [
   { id: 'paper', name: '白', stops: ['#f4f1ea', '#cfc7b8'] }
 ];
 const INTRO_SHOW_ITEMS = [['stats', '行動値・強化値'], ['skills', 'スキル'], ['parts', 'マニューバ'], ['miren', '未練']];
+// 見本の立ち絵（samples フォルダの画像。パソコンの中のファイルとして直接開いているときは、画像を取り込めないので出さない）
+const INTRO_SAMPLES = [
+  { file: 'doll_blonde', name: '金髪' },
+  { file: 'doll_blonde_smile', name: '金髪（笑顔）' },
+  { file: 'doll_blonde_angry', name: '金髪（怒り）' },
+  { file: 'doll_blonde_surprise', name: '金髪（驚き）' },
+  { file: 'doll_lavender', name: '紫髪（日傘）' }
+];
+const introSamplesUsable = () => /^https?:$/.test(location.protocol);
 const INTRO_PREF_KEY = 'necro_intro_prefs';
 const INTRO_FILE_MAX = 30 * 1024 * 1024;
 const INTRO_FONT = 'sans-serif';
@@ -329,7 +338,9 @@ function openIntroImage() {
   const lab = 'display:block;margin:3px 0;';
   const h = 'font-size:.8rem;color:#aaa;margin:12px 0 4px;';
   const sw = INTRO_BGS.map(b => `<button type="button" class="intro-sw" data-bg="${b.id}" title="${b.name}" style="width:46px;height:46px;border-radius:8px;border:2px solid #555;background:linear-gradient(${b.stops[0]},${b.stops[1]});color:#fff;font-size:.62rem;padding:0;cursor:pointer;text-shadow:0 0 3px #000;">${b.name}</button>`).join('');
-  const th = saved.map((src, i) => `<button type="button" class="intro-th" data-i="${i}" title="保存してある画像${i + 1}" style="width:54px;height:54px;border-radius:8px;border:2px solid #555;padding:0;background:#000 center/cover no-repeat url('${src}');cursor:pointer;"></button>`).join('');
+  const thBtn = (key, title, url) => `<button type="button" class="intro-th" data-key="${key}" title="${title}" style="width:54px;height:54px;border-radius:8px;border:2px solid #555;padding:0;background:#000 center top/cover no-repeat url('${url}');cursor:pointer;"></button>`;
+  const th = saved.map((src, i) => thBtn('u' + i, '保存してある画像' + (i + 1), src)).join('');
+  const smp = introSamplesUsable() ? INTRO_SAMPLES.map((m, i) => thBtn('s' + i, '見本：' + m.name, 'samples/' + m.file + '_s.webp')).join('') : '';
   ov.innerHTML = `<div style="max-width:560px;margin:0 auto;background:#18181c;border:1.5px solid #8b0000;border-radius:10px;color:#eee;min-height:100%;box-sizing:border-box;">
     <div style="position:sticky;top:0;z-index:2;background:#18181c;padding:10px 12px 6px;border-radius:10px 10px 0 0;">
       <div style="color:#f0a0a0;font-weight:bold;margin-bottom:6px;">🌟 紹介画像</div>
@@ -353,6 +364,7 @@ function openIntroImage() {
         <button type="button" class="sec" id="intro-p-none">なし</button>
         <input type="file" id="intro-p-input" accept="image/*" style="display:none;">
       </div>
+      ${smp ? `<div style="font-size:.78rem;color:#aaa;margin:8px 0 4px;">見本の立ち絵</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${smp}</div>` : ''}
       <div style="font-size:.72rem;color:#888;margin-top:4px;line-height:1.5;">保存してある画像は小さめなので、くっきり出したいときは「ファイルを選ぶ」から元の画像を選んでください(選んだ画像はこの画面だけで使い、保存はされません)。</div>
       <div id="intro-pos" style="margin-top:8px;font-size:.82rem;">
         <div>大きさ <input type="range" id="intro-ps" min="50" max="200" step="5" value="100" style="vertical-align:middle;width:60%;"> <span id="intro-ps-v">100%</span></div>
@@ -371,7 +383,9 @@ function openIntroImage() {
   document.body.appendChild(ov);
   introWire(ov, saved);
   introSyncControls();
-  if (saved.length) introUsePortraitSrc(saved[0], 0); else introRender();
+  if (saved.length) introUsePortraitSrc(saved[0], 'u0');
+  else if (introSamplesUsable()) introUsePortraitSrc('samples/' + INTRO_SAMPLES[0].file + '.webp', 's0');
+  else introRender();
 }
 
 function introSyncControls() {
@@ -382,14 +396,14 @@ function introSyncControls() {
   ov.querySelector('#intro-dim-row').style.display = introState.bgImg ? '' : 'none';
   ov.querySelector('#intro-dim-v').textContent = Math.round(introState.dim * 100) + '%';
   ov.querySelector('#intro-ps-v').textContent = Math.round(introState.ps * 100) + '%';
-  ov.querySelectorAll('.intro-th').forEach(b => { b.style.borderColor = (introState.pIndex === Number(b.dataset.i)) ? '#fff' : '#555'; });
+  ov.querySelectorAll('.intro-th').forEach(b => { b.style.borderColor = (introState.pKey === b.dataset.key) ? '#fff' : '#555'; });
   ov.querySelector('#intro-pos').style.opacity = introState.pImg ? '1' : '.45';
 }
 
-function introUsePortraitSrc(src, index) {
+function introUsePortraitSrc(src, key) {
   introLoadImage(src).then(im => {
     if (!introState) return;
-    introState.pImg = im; introState.pIndex = index; introState.fileError = '';
+    introState.pImg = im; introState.pKey = key; introState.fileError = '';
     introSyncControls(); introRender();
   }).catch(e => {
     if (!introState) return;
@@ -414,16 +428,20 @@ function introWire(ov, saved) {
   });
   q('#intro-bg-clear').onclick = () => { introState.bgImg = null; introState.fileError = ''; introSyncControls(); introRenderSoon(); };
   q('#intro-dim').addEventListener('input', e => { introState.dim = Number(e.target.value) / 100; introSavePrefs(); introSyncControls(); introRenderSoon(); });
-  ov.querySelectorAll('.intro-th').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.i); introUsePortraitSrc(saved[i], i); }));
+  ov.querySelectorAll('.intro-th').forEach(b => b.addEventListener('click', () => {
+    const key = b.dataset.key, i = Number(key.slice(1));
+    const src = key[0] === 's' ? 'samples/' + INTRO_SAMPLES[i].file + '.webp' : saved[i];
+    introUsePortraitSrc(src, key);
+  }));
   q('#intro-p-file').onclick = () => q('#intro-p-input').click();
   q('#intro-p-input').addEventListener('change', ev => {
     const f = ev.target.files && ev.target.files[0];
     ev.target.value = '';
     if (!f) return;
-    introReadFile(f).then(im => { if (!introState) return; introState.pImg = im; introState.pIndex = -1; introState.fileError = ''; introSyncControls(); introRender(); })
+    introReadFile(f).then(im => { if (!introState) return; introState.pImg = im; introState.pKey = 'f'; introState.fileError = ''; introSyncControls(); introRender(); })
       .catch(e => { if (!introState) return; introState.fileError = introImageErrorText(e); introRender(); });
   });
-  q('#intro-p-none').onclick = () => { introState.pImg = null; introState.pIndex = -2; introState.fileError = ''; introSyncControls(); introRenderSoon(); };
+  q('#intro-p-none').onclick = () => { introState.pImg = null; introState.pKey = 'n'; introState.fileError = ''; introSyncControls(); introRenderSoon(); };
   q('#intro-ps').addEventListener('input', e => { introState.ps = Number(e.target.value) / 100; introSyncControls(); introRenderSoon(); });
   q('#intro-px').addEventListener('input', e => { introState.px = Number(e.target.value) / 100; introRenderSoon(); });
   q('#intro-py').addEventListener('input', e => { introState.py = Number(e.target.value) / 100; introRenderSoon(); });
