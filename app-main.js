@@ -470,7 +470,7 @@ function trackFeature(name) {
 }
 (function wrapTrackedFeatures() {
   const names = {
-    saveData: 'save', exportSheetImage: 'image', exportGroupImage: 'group-image', printSheetLayout: 'print',
+    saveData: 'save', exportSheetImage: 'image', exportGroupImage: 'group-image', exportIntroImage: 'intro-image', printSheetLayout: 'print',
     exportCcfolia: 'ccfolia-piece', exportChatPalette: 'chat-palette', exportAllCharactersBackup: 'backup',
     exportShareURL: 'share-url', exportViewURL: 'view-url', openHokanshoImport: 'hokansho-import', undoLastAction: 'undo',
     redoLastAction: 'redo', renameSelectedSave: 'rename', togglePinSelectedSave: 'pin', openTrashList: 'trash',

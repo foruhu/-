@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="ドール設計図館">
 <meta name="application-name" content="ドール設計図館">
 <meta name="theme-color" content="#1c2a63">
-<link rel="stylesheet" href="style.css?v=304">
+<link rel="stylesheet" href="style.css?v=305">
 </head>
 <body>
 
@@ -410,6 +410,9 @@
     <button type="button" class="action-btn c-teal" onclick="openGroupImageOptions()">
       <span class="icon">📚</span><span>卓まとめ画像<br>（複数人を1枚に）</span>
     </button>
+    <button type="button" class="action-btn c-blue" onclick="openIntroImage()">
+      <span class="icon">🌟</span><span>紹介画像<br>（立ち絵＋ステータス）</span>
+    </button>
   </div>
 
   <div class="action-btn-row">
@@ -680,6 +683,7 @@
       <li>記憶のカケラは、数字・名前・詳細を分けて書けます。複数あるときは、体重や髪の色のように横に並びます(スマホでは2列)(以前に「名前：詳細」の1行で入れていたデータは、自動で名前と詳細に分かれます)。追加できるのは最大6個までです(すでに6個を超えて保存してあるキャラは、そのまま読み込まれ、減らされません)。</li>
       <li>記憶のカケラの詳細は、長くなっても4行ぶんで止まり、中でスクロールできます(右下の角を引くと広げられます)。また、▾ボタンで1件ずつ、または「詳細をすべて折りたたむ」でまとめて折りたためます(折りたたんでいる間は、詳細の書き出しが1行だけ薄く出ます。押すと開きます。折りたたみの状態は保存されません。印刷では、すべて開いた状態で出ます)。</li>
       <li>「🖼 画像で保存」で、キャラクターシートを1枚の画像(PNG)として保存できます(共有やココフォリアの立ち絵置き場などに)。保存前に、配色(暗い背景/白い背景)と内容(すべて/戦闘用)を選べます。iPhoneでは画像が開くので、長押しで保存します。</li>
+      <li>「🌟 紹介画像」で、背景と立ち絵を選んで、名前・クラス・行動値と強化値・スキル・マニューバ(頭腕胴脚のパーツ名)・未練を重ねた、見せるための1枚の画像(PNG)を作れます(Xへの投稿や、卓の参加者に見せる用)。型は縦長(1080×1350)と横長(1600×900)から選べます。背景は、見本の色や、自分の画像(暗さを調整できます)から選べます。立ち絵は、保存してある画像から選ぶか、「ファイルを選ぶ」で元の画像を選びます(保存してある画像は小さめなので、くっきり出したいときは元の画像を選んでください。選んだ画像は、この画面だけで使い、保存はされません)。大きさ・左右・上下・左右反転で位置を整えられ、載せる項目は選べます。項目が多くて入りきらないときは、文字を小さくして入れ、それでも入りきらないときは知らせます。</li>
       <li>「📚 卓まとめ画像」で、保存済みのキャラクターを2〜8人選んで、1枚の画像(PNG)に並べて保存できます。配色(暗い／白)と内容(戦闘用／すべて)も選べます。今編集している内容は、そのまま残ります。</li>
     </ul>
 
@@ -782,16 +786,17 @@
   </div>
 </div>
 
-<script src="data.js?v=304"></script>
-<script src="app-core.js?v=304"></script>
-<script src="app-parts.js?v=304"></script>
-<script src="app-skills.js?v=304"></script>
-<script src="app-save.js?v=304"></script>
-<script src="app-dict.js?v=304"></script>
-<script src="app-image.js?v=304"></script>
-<script src="app-look.js?v=304"></script>
-<script src="app-sheetprint.js?v=304"></script>
-<script src="app-share.js?v=304"></script>
-<script src="app-main.js?v=304"></script>
+<script src="data.js?v=305"></script>
+<script src="app-core.js?v=305"></script>
+<script src="app-parts.js?v=305"></script>
+<script src="app-skills.js?v=305"></script>
+<script src="app-save.js?v=305"></script>
+<script src="app-dict.js?v=305"></script>
+<script src="app-image.js?v=305"></script>
+<script src="app-intro.js?v=305"></script>
+<script src="app-look.js?v=305"></script>
+<script src="app-sheetprint.js?v=305"></script>
+<script src="app-share.js?v=305"></script>
+<script src="app-main.js?v=305"></script>
 </body>
 </html>
